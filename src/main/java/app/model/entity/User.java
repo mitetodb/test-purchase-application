@@ -3,7 +3,6 @@ package app.model.entity;
 import app.model.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.GenericGenerator;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -16,15 +15,14 @@ import java.util.UUID;
 public class User {
 
     @Id
-    @GeneratedValue(generator = "uuid2")
-    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @GeneratedValue(generator = "uuid")
     private UUID id;
 
     @Column(nullable = false, unique = true)
     private String username;
 
     @Column(nullable = false)
-    private String password; // will store BCrypt hash
+    private String password;
 
     @Column(nullable = false, unique = true)
     private String email;
