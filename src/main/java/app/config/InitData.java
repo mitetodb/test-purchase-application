@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+/*
 @Component
 @RequiredArgsConstructor
 public class InitData implements CommandLineRunner {
@@ -16,7 +17,7 @@ public class InitData implements CommandLineRunner {
     public void run(String... args) {
 
         if (userService.countUsers() == 0) {
-            userService.registerUser(
+            userService.register(
                     "admin",
                     "123123",
                     Role.ADMIN,
@@ -27,3 +28,4 @@ public class InitData implements CommandLineRunner {
         }
     }
 }
+*/

@@ -1,7 +1,7 @@
 package app.service;
 
+import app.model.dto.RegistrationDTO;
 import app.model.entity.User;
-import app.model.enums.Role;
 import app.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,12 +14,21 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public User registerUser(String username, String password, Role role, String email) {
+    public User register(RegistrationDTO dto) {
+
+        if (usernameExists(dto.getUsername())) {
+            throw new IllegalArgumentException("Username already taken.");
+        }
+
+        if (!dto.getPassword().equals(dto.getConfirmPassword())) {
+            throw new IllegalArgumentException("Passwords do not match.");
+        }
+
         User user = User.builder()
-                .username(username)
-                .password(passwordEncoder.encode(password))
-                .role(role)
-                .email(email)
+                .username(dto.getUsername())
+                .password(passwordEncoder.encode(dto.getPassword()))
+                .role(dto.getRole()) // default CUSTOMER
+                .email(dto.getEmail())
                 .build();
 
         return userRepository.save(user);
@@ -27,5 +36,9 @@ public class UserService {
 
     public long countUsers() {
         return userRepository.count();
+    }
+
+    public boolean usernameExists(String username) {
+        return userRepository.findByUsername(username).isPresent();
     }
 }
