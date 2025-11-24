@@ -27,7 +27,7 @@ public class UserService {
         User user = User.builder()
                 .username(dto.getUsername())
                 .password(passwordEncoder.encode(dto.getPassword()))
-                .role(dto.getRole()) // default CUSTOMER
+                .role(dto.getRole())
                 .email(dto.getEmail())
                 .build();
 

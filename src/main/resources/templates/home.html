@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html th:replace="~{layout :: layout(~{::title}, ~{::main})}"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>Home</title>
+</head>
+<body>
+<main>
+<h2>Welcome!</h2>
+<p>You are logged in.</p>
+<p>Go to your <a href="/dashboard">Dashboard</a></p>
+</main>
+</body>
+</html>

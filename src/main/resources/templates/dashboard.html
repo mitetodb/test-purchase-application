@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html th:replace="~{layout :: layout(~{::title}, ~{::main})}"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>Dashboard</title>
+</head>
+<body>
+<main>
+<div class="row">
+    <div class="col-12">
+        <h2>Dashboard</h2>
+
+        <p>Welcome, <strong sec:authentication="name"></strong>!</p>
+
+        <hr/>
+
+        <div>
+            <h4>Your role:</h4>
+            <p sec:authentication="principal.authorities"></p>
+        </div>
+
+        <div class="mt-4">
+
+            <!-- Admin Cards -->
+            <div sec:authorize="hasRole('ADMIN')">
+
+                <h4>Admin Quick Actions</h4>
+
+                <div class="row mt-3">
+
+                    <div class="col-md-4">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h5>Manage Users</h5>
+                                <p>View and manage all system users.</p>
+                                <a th:href="@{/admin/users}" class="btn btn-primary">Open</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h5>Customers</h5>
+                                <a th:href="@{/admin/customers}" class="btn btn-secondary">Open</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Customer -->
+            <div sec:authorize="hasRole('CUSTOMER')">
+                <h4>Your Orders</h4>
+                <a th:href="@{/customer/orders}" class="btn btn-primary">View Orders</a>
+            </div>
+
+            <!-- Mystery Shopper -->
+            <div sec:authorize="hasRole('MYSTERY_SHOPPER')">
+                <h4>Your Assignments</h4>
+                <a th:href="@{/ms/tasks}" class="btn btn-primary">View Tasks</a>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+</main>
+</body>
+</html>

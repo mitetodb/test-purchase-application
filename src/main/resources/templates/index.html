@@ -1,5 +1,7 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" th:replace="~{layout :: layout(~{::title}, ~{::main})}"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport"
@@ -8,6 +10,10 @@
     <title>Test Purchase Application</title>
 </head>
 <body>
+<main>
 Test Purchase Application
+<a href="login.html">Login</a>
+<a href="register.html">Register</a>
+</main>
 </body>
 </html>

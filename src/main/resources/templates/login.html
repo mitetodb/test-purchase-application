@@ -1,9 +1,12 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html th:replace="~{layout :: layout(~{::title}, ~{::main})}"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
 <head>
     <title>Login</title>
 </head>
 <body>
+<main>
 <h2>Login</h2>
 
 <form th:action="@{/login}" method="post">
@@ -29,5 +32,6 @@
     <p style="color: green;">Registration successful! Please login.</p>
 </div>
 
+</main>
 </body>
 </html>

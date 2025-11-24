@@ -11,6 +11,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @AllArgsConstructor
+@NoArgsConstructor
 @Entity
 public class User {
 
@@ -30,21 +31,23 @@ public class User {
     private String imageUrl;
     private String country;
     private String language;
+    private String status;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
 
     private boolean active = true;
-
-    private LocalDateTime createdOn = LocalDateTime.now();
+    private LocalDateTime createdOn;
     private LocalDateTime updatedOn;
 
-    public User() {}
-
-    @PreUpdate
-    public void preUpdate() {
-        updatedOn = LocalDateTime.now();
+    @PrePersist
+    public void onCreate() {
+        this.createdOn = LocalDateTime.now();
     }
 
+    @PreUpdate
+    public void onUpdate() {
+        this.updatedOn = LocalDateTime.now();
+    }
 }
