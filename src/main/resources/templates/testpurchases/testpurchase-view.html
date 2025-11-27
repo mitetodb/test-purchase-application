@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" th:replace="~{layout :: layout(~{::title}, ~{::main})}"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>Test Purchase Details</title>
+</head>
+<body>
+<main>
+<h2>Test Purchase Details</h2>
+
+<div class="mb-3">
+    <label>Id:</label> <span th:text="${purchase.id}"></span>
+</div>
+
+<div class="mb-3">
+    <label>Customer:</label> <span th:text="${purchase.customer.name}"></span>
+</div>
+
+<div class="mb-3">
+    <label>Shop:</label> <span th:text="${purchase.shop.name}"></span>
+</div>
+
+<div class="mb-3">
+    <label>Status:</label> <span th:text="${purchase.status}"></span>
+</div>
+
+<div class="mb-3">
+    <label>Total Price:</label> <span th:text="${purchase.totalPrice}"></span>
+</div>
+
+<h5>Items</h5>
+<table class="table">
+    <thead>
+    <tr>
+        <th>Product</th>
+        <th>Qty</th>
+        <th>Unit Price</th>
+        <th>Subtotal</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="i : ${purchase.items}">
+        <td th:text="${i.productName}"></td>
+        <td th:text="${i.quantity}"></td>
+        <td th:text="${i.unitPrice}"></td>
+        <td th:text="${i.quantity * i.unitPrice}"></td>
+    </tr>
+    </tbody>
+</table>
+
+<a th:href="@{/testpurchases}" class="btn btn-secondary">Back</a>
+</main>
+</body>
+</html>
