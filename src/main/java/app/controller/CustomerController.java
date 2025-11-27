@@ -1,6 +1,7 @@
 package app.controller;
 
 import app.model.dto.CustomerDTO;
+import app.model.entity.Customer;
 import app.service.CustomerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +45,7 @@ public class CustomerController {
 
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable UUID id, Model model) {
-        var customer = customerService.findById(id);
+        Customer customer = customerService.findById(id);
 
         CustomerDTO dto = new CustomerDTO();
         dto.setId(customer.getId());

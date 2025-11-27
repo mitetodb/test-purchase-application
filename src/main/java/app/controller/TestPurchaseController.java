@@ -3,6 +3,7 @@ package app.controller;
 import app.model.dto.TestPurchaseCreateDTO;
 import app.model.dto.TestPurchaseEditDTO;
 import app.model.entity.TestPurchase;
+import app.service.AttachmentService;
 import app.service.CustomerService;
 import app.service.ShopService;
 import app.service.TestPurchaseService;
@@ -24,6 +25,7 @@ public class TestPurchaseController {
     private final TestPurchaseService testPurchaseService;
     private final CustomerService customerService;
     private final ShopService shopService;
+    private final AttachmentService attachmentService;
 
     @GetMapping
     public String list(Model model) {
@@ -113,6 +115,7 @@ public class TestPurchaseController {
     public String view(@PathVariable UUID id, Model model) {
         TestPurchase purchase = testPurchaseService.findById(id);
         model.addAttribute("purchase", purchase);
+        model.addAttribute("attachments", attachmentService.getByTestPurchase(id));
         return "testpurchases/testpurchase-view";
     }
 }

@@ -36,6 +36,9 @@ public class TestPurchase {
     @OneToMany(mappedBy = "purchase", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Item> items = new ArrayList<>();
 
+    @OneToMany
+    private List<Attachment> attachments;
+
     private LocalDateTime createdOn;
     private LocalDateTime updatedOn;
 
