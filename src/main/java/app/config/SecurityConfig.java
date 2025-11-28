@@ -25,6 +25,8 @@ public class SecurityConfig {
                         .requestMatchers("/", "/login", "/register", "/css/**", "/images/**").permitAll()
                         .requestMatchers("/dashboard").authenticated()
                         .requestMatchers("/testpurchases/**").authenticated()
+                        .requestMatchers("/attachments/delete/**").hasRole("ADMIN")
+                        .requestMatchers("/attachments/upload").authenticated()
                         .requestMatchers("/attachments/**").authenticated()
                         .anyRequest().authenticated()
                 )

@@ -66,6 +66,7 @@ public class AttachmentService {
 
     private AttachmentFileType determineFileType(String filename) {
         if (filename.endsWith(".pdf")) return AttachmentFileType.PDF;
+        if (filename.endsWith(".png")) return AttachmentFileType.PNG;
         if (filename.endsWith(".jpg") || filename.endsWith(".jpeg")) return AttachmentFileType.JPG;
         if (filename.endsWith(".doc") || filename.endsWith(".docx")) return AttachmentFileType.DOC;
         if (filename.endsWith(".xls") || filename.endsWith(".xlsx")) return AttachmentFileType.XLS;

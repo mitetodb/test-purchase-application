@@ -76,15 +76,30 @@
     </form>
 
     <ul class="list-group mt-3">
-        <li class="list-group-item" th:each="att : ${attachments}">
-            <span th:text="${att.name}">File</span>
-            <span th:text="${att.category}">Category</span>
-            <a th:href="@{'/attachments/' + ${att.id} + '/download'}" class="btn btn-sm btn-secondary ms-2">Download</a>
+        <li class="list-group-item d-flex align-items-center" th:each="att : ${attachments}">
+            <div class="me-3">
+                <span th:if="${att.fileType.name() != 'JPG' and att.fileType.name() != 'PNG'}"
+                      th:text="${att.name}">File</span>
 
-            <form th:action="@{'/attachments/delete/' + ${att.id}}" method="post" style="display:inline;">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                <button class="btn btn-sm btn-danger ms-2" type="submit">Delete</button>
-            </form>
+                <!-- img preview -->
+                <img th:if="${att.fileType.name() == 'JPG' || att.fileType.name() == 'PNG'}"
+                     th:src="@{'/attachments/' + ${att.id} + '/preview'}"
+                     alt="Preview"
+                     style="max-height: 80px; border-radius: 5px; border: 1px solid #ccc;">
+            </div>
+
+            <div class="ms-auto">
+                <a th:href="@{'/attachments/' + ${att.id} + '/download'}"
+                   class="btn btn-sm btn-secondary">Download</a>
+
+                <!-- delete button only for admin) -->
+                <form th:if="${#authorization.expression('hasRole(''ADMIN'')')}"
+                      th:action="@{'/attachments/delete/' + ${att.id}}"
+                      method="post" style="display:inline;">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <button class="btn btn-sm btn-danger ms-2" type="submit">Delete</button>
+                </form>
+            </div>
         </li>
     </ul>
 
