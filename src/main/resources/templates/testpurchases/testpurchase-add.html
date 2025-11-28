@@ -47,7 +47,8 @@
         </select>
     </div>
 
-    <h5>Items</h5><button type="button" class="btn btn-secondary mb-3" onclick="addItem()">+ Add Item</button>
+    <h5>Items</h5>
+    <button type="button" class="btn btn-secondary mb-3" onclick="addItem()">+ Add Item</button>
     <div id="items-container" th:each="item, iterStat : *{items}">
         <div class="card mb-2 p-2">
             <div class="row">

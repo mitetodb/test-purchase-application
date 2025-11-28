@@ -2,6 +2,7 @@ package app.controller;
 
 import app.model.dto.ShopDTO;
 import app.model.entity.Shop;
+import app.model.entity.TestPurchase;
 import app.service.ShopService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,8 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
+import java.util.List;
 import java.util.UUID;
 
 @Controller
@@ -21,7 +24,11 @@ public class ShopController {
 
     @GetMapping
     public String list(Model model) {
-        model.addAttribute("shops", shopService.findAll());
+        List<Shop> shops = shopService.findAll()
+                .stream()
+                .sorted(Comparator.comparing(Shop::getNumber).reversed())
+                .toList();
+        model.addAttribute("shops", shops);
         return "shops/shops-list";
     }
 

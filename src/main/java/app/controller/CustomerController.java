@@ -2,6 +2,7 @@ package app.controller;
 
 import app.model.dto.CustomerDTO;
 import app.model.entity.Customer;
+import app.model.entity.TestPurchase;
 import app.service.CustomerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,8 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
+import java.util.List;
 import java.util.UUID;
 
 @Controller
@@ -21,7 +24,11 @@ public class CustomerController {
 
     @GetMapping
     public String listCustomers(Model model) {
-        model.addAttribute("customers", customerService.findAll());
+        List<Customer> customers = customerService.findAll()
+                .stream()
+                .sorted(Comparator.comparing(Customer::getNumber).reversed())
+                .toList();
+        model.addAttribute("customers", customers);
         return "customers/customers-list";
     }
 

@@ -14,6 +14,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,7 +30,10 @@ public class TestPurchaseController {
 
     @GetMapping
     public String list(Model model) {
-        List<TestPurchase> purchases = testPurchaseService.findAll();
+        List<TestPurchase> purchases = testPurchaseService.findAll()
+                .stream()
+                .sorted(Comparator.comparing(TestPurchase::getNumber).reversed())
+                .toList();
         model.addAttribute("purchases", purchases);
         return "testpurchases/testpurchases-list";
     }

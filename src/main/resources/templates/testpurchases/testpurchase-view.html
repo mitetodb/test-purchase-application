@@ -22,19 +22,19 @@
 </div>
 
     <div class="mb-3">
-        <label>Country:</label> <span th:text="${purchase.country}"></span>
+        <label>Country:</label> <span th:text="${purchase.country.getDisplayName()}"></span>
     </div>
 
     <div class="mb-3">
-        <label>Category:</label> <span th:text="${purchase.category}"></span>
+        <label>Category:</label> <span th:text="${purchase.category.getDisplayName()}"></span>
     </div>
 
     <div class="mb-3">
-        <label>Type:</label> <span th:text="${purchase.type}"></span>
+        <label>Type:</label> <span th:text="${purchase.type.getDisplayName()}"></span>
     </div>
 
 <div class="mb-3">
-    <label>Status:</label> <span th:text="${purchase.status}"></span>
+    <label>Status:</label> <span th:text="${purchase.status.getDisplayName()}"></span>
 </div>
 
 <div class="mb-3">
@@ -69,7 +69,7 @@
         <select name="category">
             <option value="">--Category (optional)--</option>
             <option th:each="c : ${T(app.model.enums.AttachmentCategory).values()}"
-                    th:value="${c}" th:text="${c}"></option>
+                    th:value="${c}" th:text="${c.getDisplayName()}"></option>
         </select>
         <button class="btn btn-primary" type="submit">Upload</button>
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
@@ -78,8 +78,9 @@
     <ul class="list-group mt-3">
         <li class="list-group-item d-flex align-items-center" th:each="att : ${attachments}">
             <div class="me-3">
-                <span th:if="${att.fileType.name() != 'JPG' and att.fileType.name() != 'PNG'}"
-                      th:text="${att.name}">File</span>
+<!--                <span th:text="${att.name}">File</span>-->
+                <span th:text="${att.category.getDisplayName()}">File</span>
+
 
                 <!-- img preview -->
                 <img th:if="${att.fileType.name() == 'JPG' || att.fileType.name() == 'PNG'}"
