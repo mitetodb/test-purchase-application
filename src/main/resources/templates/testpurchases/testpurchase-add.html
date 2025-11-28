@@ -47,8 +47,8 @@
         </select>
     </div>
 
-    <h5>Items</h5>
-    <div th:each="item, iterStat : *{items}">
+    <h5>Items</h5><button type="button" class="btn btn-secondary mb-3" onclick="addItem()">+ Add Item</button>
+    <div id="items-container" th:each="item, iterStat : *{items}">
         <div class="card mb-2 p-2">
             <div class="row">
                 <div class="col-md-5">
@@ -62,6 +62,7 @@
                 </div>
             </div>
         </div>
+<!--        <button type="button" class="btn btn-sm btn-danger" onclick="removeItem(this)">Remove</button>-->
     </div>
 
     <button class="btn btn-success" type="submit">Create</button>

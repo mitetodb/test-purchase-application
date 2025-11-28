@@ -22,4 +22,55 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
+
+<script>
+    function addItem() {
+        const container = document.getElementById("items-container").parentNode;
+        const items = container.querySelectorAll(".item-block");
+
+        const newIndex = items.length;
+
+        const newItemHtml = `
+            <div class="card mb-2 p-2 item-block">
+                <div class="row">
+                    <div class="col-md-5">
+                        <input name="items[${newIndex}].productName" class="form-control" placeholder="Product name"/>
+                    </div>
+                    <div class="col-md-2">
+                        <input type="number" name="items[${newIndex}].quantity" class="form-control" placeholder="Qty"/>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="number" step="0.01" name="items[${newIndex}].unitPrice" class="form-control" placeholder="Unit price"/>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-danger" onclick="removeItem(this)">Remove</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        container.insertAdjacentHTML("beforeend", newItemHtml);
+    }
+
+    function removeItem(button) {
+        const itemBlock = button.closest(".item-block");
+        itemBlock.remove();
+
+        reindexItems();
+    }
+
+    function reindexItems() {
+        const items = document.querySelectorAll(".item-block");
+
+        items.forEach((block, index) => {
+            const inputs = block.querySelectorAll("input");
+
+            inputs.forEach(input => {
+                const fieldName = input.name.split(".")[1]; // productName, quantity, unitPrice
+                input.name = `items[${index}].${fieldName}`;
+            });
+        });
+    }
+</script>
+
 </html>
