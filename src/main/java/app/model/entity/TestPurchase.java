@@ -1,6 +1,9 @@
 package app.model.entity;
 
-import app.model.enums.PurchaseStatus;
+import app.model.enums.Country;
+import app.model.enums.TestPurchaseCategory;
+import app.model.enums.TestPurchaseStatus;
+import app.model.enums.TestPurchaseType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,6 +25,9 @@ public class TestPurchase {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(name = "number", unique = true, nullable = false, length = 20)
+    private String number;
+
     @ManyToOne
     private Shop shop;
 
@@ -29,7 +35,16 @@ public class TestPurchase {
     private Customer customer;
 
     @Enumerated(EnumType.STRING)
-    private PurchaseStatus status;
+    private Country country;
+
+    @Enumerated(EnumType.STRING)
+    private TestPurchaseCategory category;
+
+    @Enumerated(EnumType.STRING)
+    private TestPurchaseType type;
+
+    @Enumerated(EnumType.STRING)
+    private TestPurchaseStatus status;
 
     private Double totalPrice;
 
@@ -45,7 +60,7 @@ public class TestPurchase {
     @PrePersist
     public void onCreate() {
         createdOn = LocalDateTime.now();
-        status = PurchaseStatus.CREATED;
+        status = TestPurchaseStatus.INITIALISED;
     }
 
     @PreUpdate

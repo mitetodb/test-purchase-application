@@ -1,8 +1,7 @@
 package app.model.dto;
 
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import app.model.enums.Country;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -18,7 +17,8 @@ public class ShopDTO {
     @NotBlank(message = "Shop name is required.")
     private String name;
 
-    private String country;
+    @Enumerated(EnumType.STRING)
+    private Country country;
 
     private String notes;
 

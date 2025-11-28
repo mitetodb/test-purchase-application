@@ -29,6 +29,7 @@ public class UserService {
                 .password(passwordEncoder.encode(dto.getPassword()))
                 .role(dto.getRole())
                 .email(dto.getEmail())
+                .country(dto.getCountry())
                 .build();
 
         return userRepository.save(user);

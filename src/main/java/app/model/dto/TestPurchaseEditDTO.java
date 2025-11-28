@@ -1,5 +1,10 @@
 package app.model.dto;
 
+import app.model.enums.Country;
+import app.model.enums.TestPurchaseCategory;
+import app.model.enums.TestPurchaseType;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -19,6 +24,15 @@ public class TestPurchaseEditDTO {
 
     @NotNull(message = "Shop is required.")
     private UUID shopId;
+
+    @Enumerated(EnumType.STRING)
+    private Country country;
+
+    @Enumerated(EnumType.STRING)
+    private TestPurchaseCategory category;
+
+    @Enumerated(EnumType.STRING)
+    private TestPurchaseType type;
 
     @Valid
     private List<ItemDTO> items = new ArrayList<>();

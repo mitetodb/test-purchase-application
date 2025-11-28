@@ -1,5 +1,6 @@
 package app.model.entity;
 
+import app.model.enums.Country;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,10 +21,16 @@ public class Customer {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(name = "number", unique = true, nullable = false, length = 10)
+    private String number;
+
     @Column(nullable = false)
     private String name;
 
     private String category;
+
+    @Enumerated(EnumType.STRING)
+    private Country country;
 
     @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
     private List<TestPurchase> testPurchases;

@@ -30,6 +30,12 @@ public class CustomerService {
                 .category(dto.getCategory())
                 .build();
 
+        Long lastSeq = customerRepository.findLastSequence();
+        long nextSeq = lastSeq + 1;
+
+        String number = String.format("%04d", nextSeq);
+        customer.setNumber(number);
+
         return customerRepository.save(customer);
     }
 

@@ -26,6 +26,27 @@
         </select>
     </div>
 
+    <div class="mb-3">
+        <label for="country">Country</label>
+        <select id="country" th:field="*{country}" class="form-control">
+            <option th:each="country : ${T(app.model.enums.Country).values()}" th:value="${country}" th:text="${country.getDisplayName()}">Bulgaria</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label for="category">Category</label>
+        <select id="category" th:field="*{category}" class="form-control">
+            <option th:each="category : ${T(app.model.enums.TestPurchaseCategory).values()}" th:value="${category}" th:text="${category.getDisplayName()}">M</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label for="type">Type</label>
+        <select id="type" th:field="*{type}" class="form-control">
+            <option th:each="type : ${T(app.model.enums.TestPurchaseType).values()}" th:value="${type}" th:text="${type.getDisplayName()}">Forwarding to client</option>
+        </select>
+    </div>
+
     <h5>Items</h5>
     <div th:each="item, iterStat : *{items}">
         <div class="card mb-2 p-2">
@@ -37,7 +58,7 @@
                     <input type="number" th:field="*{items[__${iterStat.index}__].quantity}" class="form-control" placeholder="Qty"/>
                 </div>
                 <div class="col-md-3">
-                    <input type="number" step="0.01" th:field="*{items[__${iterStat.index}__].unitPrice}" class="form-control" placeholder="Unit price"/>
+                    <input type="number" step="0.01" th:field="*{items[__${iterStat.index}__].unitPrice}" name="productBasePrice" class="form-control" placeholder="Unit price"/>
                 </div>
             </div>
         </div>

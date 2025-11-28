@@ -1,5 +1,6 @@
 package app.model.entity;
 
+import app.model.enums.Country;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,10 +20,14 @@ public class Shop {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(name = "number", unique = true, nullable = false, length = 10)
+    private String number;
+
     @Column(nullable = false)
     private String name;
 
-    private String country;
+    @Enumerated(EnumType.STRING)
+    private Country country;
 
     @Column(columnDefinition = "TEXT")
     private String notes;

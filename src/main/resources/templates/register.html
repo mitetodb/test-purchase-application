@@ -33,6 +33,13 @@
     <span th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></span>
     <br/>
 
+    <label for="country">Country</label>
+    <select id="country" th:field="*{country}">
+
+        <option th:each="country : ${T(app.model.enums.Country).values()}" th:value="${country}" th:text="${country.getDisplayName()}">BULGARIA</option>
+
+    </select>
+
     <button type="submit">Register</button>
 </form>
 

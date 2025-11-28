@@ -9,9 +9,9 @@
 <main>
 <h2>Test Purchase Details</h2>
 
-<div class="mb-3">
-    <label>Id:</label> <span th:text="${purchase.id}"></span>
-</div>
+    <div class="mb-3">
+        <label>Number:</label> <span th:text="${purchase.number}"></span>
+    </div>
 
 <div class="mb-3">
     <label>Customer:</label> <span th:text="${purchase.customer.name}"></span>
@@ -20,6 +20,18 @@
 <div class="mb-3">
     <label>Shop:</label> <span th:text="${purchase.shop.name}"></span>
 </div>
+
+    <div class="mb-3">
+        <label>Country:</label> <span th:text="${purchase.country}"></span>
+    </div>
+
+    <div class="mb-3">
+        <label>Category:</label> <span th:text="${purchase.category}"></span>
+    </div>
+
+    <div class="mb-3">
+        <label>Type:</label> <span th:text="${purchase.type}"></span>
+    </div>
 
 <div class="mb-3">
     <label>Status:</label> <span th:text="${purchase.status}"></span>
@@ -66,6 +78,7 @@
     <ul class="list-group mt-3">
         <li class="list-group-item" th:each="att : ${attachments}">
             <span th:text="${att.name}">File</span>
+            <span th:text="${att.category}">Category</span>
             <a th:href="@{'/attachments/' + ${att.id} + '/download'}" class="btn btn-sm btn-secondary ms-2">Download</a>
 
             <form th:action="@{'/attachments/delete/' + ${att.id}}" method="post" style="display:inline;">

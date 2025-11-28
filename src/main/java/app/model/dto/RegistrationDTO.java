@@ -1,6 +1,9 @@
 package app.model.dto;
 
+import app.model.enums.Country;
 import app.model.enums.Role;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -23,6 +26,9 @@ public class RegistrationDTO {
     @Email
     @NotBlank
     private String email;
+
+    @Enumerated(EnumType.STRING)
+    private Country country;
 
     private Role role = Role.CUSTOMER;
 }

@@ -17,6 +17,9 @@
         <th>#</th>
         <th>Customer</th>
         <th>Shop</th>
+        <th>Country</th>
+        <th>Category</th>
+        <th>Type</th>
         <th>Total Price</th>
         <th>Status</th>
         <th>Created On</th>
@@ -25,12 +28,15 @@
     </thead>
     <tbody>
     <tr th:each="p : ${purchases}">
-        <td th:text="${p.id}"></td>
+        <td th:text="${p.number}"></td>
         <td th:text="${p.customer.name}"></td>
         <td th:text="${p.shop.name}"></td>
+        <td th:text="${p.country.getDisplayName()}"></td>
+        <td th:text="${p.category.getDisplayName()}"></td>
+        <td th:text="${p.type.getDisplayName()}"></td>
         <td th:text="${p.totalPrice}"></td>
-        <td th:text="${p.status}"></td>
-        <td th:text="${#dates.format(p.createdOn, 'yyyy-MM-dd HH:mm')}"></td>
+        <td th:text="${p.status.getDisplayName()}"></td>
+        <td th:text="${#temporals.format(p.createdOn, 'yyyy-MM-dd HH:mm')}"></td>
         <td>
             <a th:href="@{'/testpurchases/view/' + ${p.id}}" class="btn btn-sm btn-info">View</a>
             <a th:href="@{'/testpurchases/edit/' + ${p.id}}" class="btn btn-sm btn-warning">Edit</a>

@@ -1,5 +1,6 @@
 package app.model.entity;
 
+import app.model.enums.Country;
 import app.model.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
@@ -30,7 +31,10 @@ public class User {
     private String email;
 
     private String imageUrl;
-    private String country;
+
+    @Enumerated(EnumType.STRING)
+    private Country country;
+
     private String language;
     private String status;
 

@@ -32,6 +32,12 @@ public class ShopService {
                 .description(dto.getDescription())
                 .build();
 
+        Long lastSeq = shopRepository.findLastSequence();
+        long nextSeq = lastSeq + 1;
+
+        String number = String.format("%04d", nextSeq);
+        shop.setNumber(number);
+
         return shopRepository.save(shop);
     }
 

@@ -20,8 +20,10 @@
     </div>
 
     <div class="mb-3">
-        <label>Country:</label>
-        <input th:field="*{country}" class="form-control"/>
+        <label for="country">Country:</label>
+        <select id="country" class="form-control" th:field="*{country}">
+            <option th:each="country : ${T(app.model.enums.Country).values()}" th:value="${country}" th:text="${country.getDisplayName()}">Bulgaria</option>
+        </select>
     </div>
 
     <div class="mb-3">

@@ -26,6 +26,27 @@
         </select>
     </div>
 
+    <div class="mb-3">
+        <label>Country</label>
+        <select id="country" th:field="*{country}" class="form-control">
+            <option th:each="country : ${T(app.model.enums.Country).values()}" th:value="${country}" th:text="${country.getDisplayName()}">Bulgaria</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label>Category</label>
+        <select id="category" th:field="*{category}" class="form-control">
+            <option th:each="category : ${T(app.model.enums.TestPurchaseCategory).values()}" th:value="${category}" th:text="${category.getDisplayName()}">M</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label>Type</label>
+        <select id="type" th:field="*{type}" class="form-control">
+            <option th:each="type : ${T(app.model.enums.TestPurchaseType).values()}" th:value="${type}" th:text="${type.getDisplayName()}">Forwarding to Client</option>
+        </select>
+    </div>
+
     <h5>Items</h5>
     <div th:each="item, iterStat : *{items}">
         <div class="card mb-2 p-2">

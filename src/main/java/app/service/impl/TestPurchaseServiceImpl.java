@@ -8,7 +8,7 @@ import app.model.entity.Customer;
 import app.model.entity.Item;
 import app.model.entity.Shop;
 import app.model.entity.TestPurchase;
-import app.model.enums.PurchaseStatus;
+import app.model.enums.TestPurchaseStatus;
 import app.repository.CustomerRepository;
 import app.repository.ShopRepository;
 import app.repository.TestPurchaseRepository;
@@ -41,7 +41,10 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
         TestPurchase purchase = new TestPurchase();
         purchase.setCustomer(customer);
         purchase.setShop(shop);
-        purchase.setStatus(PurchaseStatus.CREATED);
+        purchase.setCountry(dto.getCountry());
+        purchase.setCategory(dto.getCategory());
+        purchase.setType(dto.getType());
+        purchase.setStatus(TestPurchaseStatus.INITIALISED);
 
         // convert DTO items to entities
         List<Item> items = new ArrayList<>();
@@ -58,8 +61,16 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
 
         purchase.setItems(items);
 
+        // generate unique TP number TP-1001
+        Long lastSeq = testPurchaseRepository.findLastSequence();
+        long nextSeq = lastSeq + 1;
+
+        String number = "TP-" + String.format("%04d", nextSeq);
+        purchase.setNumber(number);
+
         // calculation of total price with microservice
-        purchase.setTotalPrice(calculateTotalPriceDTO(dto));
+        //purchase.setTotalPrice(calculateTotalPriceDTO(dto));
+        purchase.setTotalPrice(99.99);
 
         return testPurchaseRepository.save(purchase);
     }
@@ -79,6 +90,9 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
 
         purchase.setCustomer(customer);
         purchase.setShop(shop);
+        purchase.setCountry(dto.getCountry());
+        purchase.setCategory(dto.getCategory());
+        purchase.setType(dto.getType());
 
         // clear old items
         purchase.getItems().clear();
@@ -99,8 +113,8 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
         purchase.getItems().addAll(newItems);
 
         // re-calculation of total price with microservice
-        purchase.setTotalPrice(calculateTotalPriceDTO(dto));
-
+        //purchase.setTotalPrice(calculateTotalPriceDTO(dto));
+        purchase.setTotalPrice(99.99);
         return testPurchaseRepository.save(purchase);
     }
 
@@ -111,7 +125,7 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
 
     @Override
     public TestPurchase findById(UUID id) {
-        return testPurchaseRepository.findById(id)
+        return testPurchaseRepository.findByIdWithRelations(id)
                 .orElseThrow(() -> new IllegalArgumentException("Purchase not found"));
     }
 
