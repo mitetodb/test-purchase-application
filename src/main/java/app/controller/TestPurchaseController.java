@@ -3,12 +3,11 @@ package app.controller;
 import app.model.dto.TestPurchaseCreateDTO;
 import app.model.dto.TestPurchaseEditDTO;
 import app.model.entity.TestPurchase;
-import app.service.AttachmentService;
-import app.service.CustomerService;
-import app.service.ShopService;
-import app.service.TestPurchaseService;
+import app.model.enums.TestPurchaseStatus;
+import app.service.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -27,6 +26,7 @@ public class TestPurchaseController {
     private final CustomerService customerService;
     private final ShopService shopService;
     private final AttachmentService attachmentService;
+    private final StatusHistoryService statusHistoryService;
 
     @GetMapping
     public String list(Model model) {
@@ -104,12 +104,13 @@ public class TestPurchaseController {
             model.addAttribute("shops", shopService.findAll());
             return "testpurchases/testpurchase-edit";
         }
-
+        model.addAttribute("testPurchaseDTO", dto);
         testPurchaseService.edit(id, dto);
         return "redirect:/testpurchases";
     }
 
     @PostMapping("/delete/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public String delete(@PathVariable UUID id) {
         testPurchaseService.delete(id);
         return "redirect:/testpurchases";
@@ -120,6 +121,20 @@ public class TestPurchaseController {
         TestPurchase purchase = testPurchaseService.findById(id);
         model.addAttribute("purchase", purchase);
         model.addAttribute("attachments", attachmentService.getByTestPurchase(id));
+        model.addAttribute("history", statusHistoryService.getHistory(id));
+        model.addAttribute("statuses", TestPurchaseStatus.values());
         return "testpurchases/testpurchase-view";
     }
+
+    @PostMapping("/{id}/change-status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String changeStatus(@PathVariable UUID id,
+                               @RequestParam TestPurchaseStatus newStatus,
+                               @RequestParam(required = false) String comment) {
+
+        testPurchaseService.changeStatus(id, newStatus, comment);
+
+        return "redirect:/testpurchases/view/" + id;
+    }
+
 }

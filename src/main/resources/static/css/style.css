@@ -1,3 +1,48 @@
 .item-block {
     border-left: 4px solid #0d6efd;
 }
+
+.timeline {
+    position: relative;
+    margin-left: 20px;
+    border-left: 2px solid #0d6efd;
+    padding-left: 20px;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 25px;
+}
+
+.timeline-dot {
+    width: 14px;
+    height: 14px;
+    background-color: #0d6efd;
+    border-radius: 50%;
+    position: absolute;
+    left: -8px;
+    top: 4px;
+}
+
+.timeline-content {
+    margin-left: 10px;
+}
+
+.timeline-time {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #6c757d;
+}
+
+.timeline-status {
+    margin-top: 3px;
+    font-size: 1.1rem;
+}
+
+.timeline-comment {
+    margin-top: 5px;
+    font-size: 0.9rem;
+    color: #495057;
+    border-left: 2px solid #ccc;
+    padding-left: 10px;
+}

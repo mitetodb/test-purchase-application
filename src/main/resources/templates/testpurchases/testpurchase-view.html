@@ -104,6 +104,45 @@
         </li>
     </ul>
 
+    <h3 class="mt-4">Status History</h3>
+
+    <div class="timeline">
+        <div th:each="h : ${history}" class="timeline-item">
+            <div class="timeline-dot"></div>
+
+            <div class="timeline-content">
+                <div class="timeline-time" th:text="${#temporals.format(h.changedAt, 'dd MMM yyyy HH:mm')}"></div>
+
+                <div class="timeline-status">
+                    <strong th:text="${h.oldStatus}"></strong>
+                    →
+                    <strong th:text="${h.newStatus}"></strong>
+                </div>
+
+                <div class="timeline-user">
+                    By: <span th:text="${h.changedBy}"></span>
+                </div>
+
+                <div class="timeline-comment" th:if="${h.comment}">
+                    <em th:text="${h.comment}"></em>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+        <form action="#" th:action="@{'/testpurchases/' + ${purchase.id} + '/change-status'}" method="post">
+            <select name="newStatus" class="form-select mb-2">
+                <option th:each="st : ${statuses}"
+                        th:value="${st}"
+                        th:text="${st}">
+                </option>
+            </select>
+            <input type="text" name="comment" class="form-control mb-2" placeholder="Optional comment">
+            <button class="btn btn-primary">Change status</button>
+        </form>
+    </div>
+
     <a th:href="@{/testpurchases}" class="btn btn-secondary">Back</a>
 </main>
 </body>

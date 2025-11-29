@@ -12,7 +12,9 @@ import app.model.enums.TestPurchaseStatus;
 import app.repository.CustomerRepository;
 import app.repository.ShopRepository;
 import app.repository.TestPurchaseRepository;
+import app.service.StatusHistoryService;
 import app.service.TestPurchaseService;
+import org.springframework.security.core.context.SecurityContextHolder;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,7 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
     private final CustomerRepository customerRepository;
     private final ShopRepository shopRepository;
     private final PriceCalculationClient priceClient;
+    private final StatusHistoryService statusHistoryService;
 
     @Override
     @Transactional
@@ -158,4 +161,20 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
 
         return Map.of("items", itemsList);
     }
+
+    @Transactional
+    public void changeStatus(UUID id, TestPurchaseStatus newStatus, String comment) {
+        TestPurchase tp = testPurchaseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Purchase not found"));
+
+        TestPurchaseStatus oldStatus = tp.getStatus();
+
+        tp.setStatus(newStatus);
+        testPurchaseRepository.save(tp);
+
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        statusHistoryService.recordStatusChange(tp, oldStatus, newStatus, username, comment);
+    }
+
 }
