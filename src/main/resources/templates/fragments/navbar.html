@@ -27,9 +27,9 @@
                     </a>
 
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" th:href="@{/admin/users}">Users</a></li>
-                        <li><a class="dropdown-item" th:href="@{/admin/customers}">Customers</a></li>
-                        <li><a class="dropdown-item" th:href="@{/admin/shops}">Shops</a></li>
+                        <li><a class="dropdown-item" th:href="@{/users}">Users</a></li>
+                        <li><a class="dropdown-item" th:href="@{/customers}">Customers</a></li>
+                        <li><a class="dropdown-item" th:href="@{/shops}">Shops</a></li>
                     </ul>
 
                 </li>
@@ -43,7 +43,7 @@
                 <!-- Customer -->
                 <li class="nav-item"
                     sec:authorize="hasRole('CUSTOMER')">
-                    <a class="nav-link" th:href="@{/customer/orders}">My Orders</a>
+                    <a class="nav-link" th:href="@{/testpurchases}">My Test Purchases</a>
                 </li>
 
             </ul>

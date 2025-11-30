@@ -34,7 +34,7 @@
                             <div class="card-body">
                                 <h5>Manage Users</h5>
                                 <p>View and manage all system users.</p>
-                                <a th:href="@{/admin/users}" class="btn btn-primary">Open</a>
+                                <a th:href="@{/users}" class="btn btn-primary">Open</a>
                             </div>
                         </div>
                     </div>
@@ -43,7 +43,7 @@
                         <div class="card shadow-sm">
                             <div class="card-body">
                                 <h5>Customers</h5>
-                                <a th:href="@{/admin/customers}" class="btn btn-secondary">Open</a>
+                                <a th:href="@{/customers}" class="btn btn-secondary">Open</a>
                             </div>
                         </div>
                     </div>
@@ -53,14 +53,14 @@
 
             <!-- Customer -->
             <div sec:authorize="hasRole('CUSTOMER')">
-                <h4>Your Orders</h4>
-                <a th:href="@{/customer/orders}" class="btn btn-primary">View Orders</a>
+                <h4>Your Test Purchases</h4>
+                <a th:href="@{/testpurchases}" class="btn btn-primary">View Test Purchases</a>
             </div>
 
             <!-- Mystery Shopper -->
             <div sec:authorize="hasRole('MYSTERY_SHOPPER')">
-                <h4>Your Assignments</h4>
-                <a th:href="@{/ms/tasks}" class="btn btn-primary">View Tasks</a>
+                <h4>Your Test Purchases</h4>
+                <a th:href="@{/testpurchases}" class="btn btn-primary">View Test Purchases</a>
             </div>
 
         </div>

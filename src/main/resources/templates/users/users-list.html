@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en"
+      th:replace="~{layout :: layout(~{::title}, ~{::main})}"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <title>Users</title>
+</head>
+
+<body>
+<main>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Users</h2>
+        <a th:href="@{/users/add}" class="btn btn-primary">Add User</a>
+    </div>
+    <div id="export-buttons-users" class="mb-3"></div>
+
+    <table id="usersTable" class="table table-hover">
+        <thead>
+        <tr>
+            <th class="sortable">#</th>
+            <th class="sortable">Username</th>
+            <th class="sortable">Email</th>
+            <th class="sortable">Country</th>
+            <th class="sortable">Role</th>
+            <th class="sortable">Active</th>
+            <th class="sortable">Created On</th>
+            <th>Actions</th>
+        </tr>
+        <tr>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search ID"></th>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search username"></th>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search email"></th>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search country"></th>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search role"></th>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search active"></th>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search created"></th>
+            <th></th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <tr th:each="u : ${users}">
+            <td th:text="${u.id}"></td>
+            <td th:text="${u.username}"></td>
+            <td th:text="${u.email}"></td>
+            <td th:text="${u.country.getDisplayName()}"></td>
+            <td th:text="${u.role.getDisplayName()}"></td>
+            <td>
+                <span th:text="${u.active ? 'Yes' : 'No'}"></span>
+            </td>
+            <td th:text="${#temporals.format(u.createdOn, 'yyyy-MM-dd HH:mm')}"></td>
+
+            <td>
+                <a th:href="@{'/users/edit/' + ${u.id}}"
+                   class="btn btn-sm btn-warning">Edit</a>
+
+                <form th:action="@{'/users/delete/' + ${u.id}}"
+                      method="post"
+                      th:if="${#authorization.expression('hasRole(''ADMIN'')')}"
+                      style="display:inline;">
+
+                    <input type="hidden"
+                           th:name="${_csrf.parameterName}"
+                           th:value="${_csrf.token}"/>
+
+                    <button class="btn btn-sm btn-danger"
+                            type="submit">Delete</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            initDataTable("usersTable");
+            attachExportButtons("export-buttons-users", "usersTable");
+        });
+    </script>
+
+</main>
+</body>
+</html>

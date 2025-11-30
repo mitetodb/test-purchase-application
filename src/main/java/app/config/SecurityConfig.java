@@ -25,6 +25,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/login", "/register", "/css/**", "/js/**", "/images/**").permitAll()
+                        .requestMatchers("/users","/users/**").hasRole("ADMIN")
                         .requestMatchers("/dashboard").authenticated()
                         .requestMatchers("/testpurchases/**").authenticated()
                         .requestMatchers("/attachments/delete/**").hasRole("ADMIN")
@@ -33,7 +34,8 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
-                        .accessDeniedPage("/access-denied"))
+                        .accessDeniedPage("/access-denied")
+                )
                 .formLogin(form -> form
                         .loginPage("/login")
                         .defaultSuccessUrl("/home", true)

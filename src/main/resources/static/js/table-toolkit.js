@@ -67,8 +67,7 @@ function removeItem(button) {
 }
 
 function reindexItems() {
-    const blocks = document.querySelectorAll(".item-block");
-    blocks.forEach((block, index) => {
+    document.querySelectorAll(".item-block").forEach((block, index) => {
         block.querySelectorAll("input").forEach(input => {
             const field = input.name.split(".")[1];
             input.name = `items[${index}].${field}`;
@@ -86,8 +85,7 @@ function exportCSV(tableId, filename = "export.csv") {
 
     table.querySelectorAll("tr").forEach(row => {
         let cols = [...row.querySelectorAll("th,td")].map(e =>
-            `"${e.innerText.replace(/"/g, '""')}"`
-        );
+            `"${e.innerText.replace(/"/g, '""')}"`);
         csv.push(cols.join(","));
     });
 
@@ -107,7 +105,6 @@ function exportCSV(tableId, filename = "export.csv") {
 
 function exportExcel(tableId, filename = "export.xlsx") {
     const table = document.getElementById(tableId);
-
     const workbook = XLSX.utils.table_to_book(table, { sheet: "Sheet1" });
     XLSX.writeFile(workbook, filename);
 }
@@ -123,7 +120,6 @@ function initDataTable(tableId) {
         pageLength: 25
     });
 
-    // Column filters
     $('#' + tableId + ' thead').on('keyup change', '.column-filter', function () {
         let colIndex = $(this).closest('th').index();
         table.column(colIndex).search(this.value).draw();
@@ -131,13 +127,13 @@ function initDataTable(tableId) {
 }
 
 /* --------------------------
-   Attach Export Buttons
+   ATTACH EXPORT BUTTONS
 -------------------------- */
 
 function attachExportButtons(containerId, tableId) {
     const container = document.getElementById(containerId);
 
-    const html = `
+    container.innerHTML = `
         <button class="btn btn-success me-2" onclick="exportExcel('${tableId}', '${tableId}.xlsx')">
             Export Excel
         </button>
@@ -145,6 +141,4 @@ function attachExportButtons(containerId, tableId) {
             Export CSV
         </button>
     `;
-
-    container.innerHTML = html;
 }

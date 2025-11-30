@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html th:replace="~{layout :: layout(~{::title}, ~{::main})}"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>My Profile</title>
+</head>
+<body>
+<main>
+
+    <h2>My Profile</h2>
+
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+
+    <form th:action="@{/profile}"
+          th:object="${profile}"
+          method="post"
+          enctype="multipart/form-data">
+
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+        <div class="row">
+            <div class="col-md-3 text-center mb-3">
+                <img th:if="*{imageUrl != null}"
+                     th:src="*{imageUrl}"
+                     class="img-thumbnail mb-2"
+                     alt="Avatar"
+                     style="max-width: 150px; max-height: 150px;">
+
+                <div th:if="*{imageUrl == null}" class="border rounded-circle d-inline-block"
+                     style="width: 120px; height: 120px; line-height: 120px; text-align:center;">
+                    No image
+                </div>
+
+                <div class="mt-2">
+                    <input type="file" name="imageFile" class="form-control form-control-sm">
+                    <small class="text-muted">Upload new profile picture</small>
+                </div>
+            </div>
+
+            <div class="col-md-9">
+                <div class="mb-3">
+                    <label class="form-label">Username</label>
+                    <input th:field="*{username}" class="form-control" readonly/>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Role</label>
+                    <input th:field="*{role}" class="form-control" readonly/>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Created on:</label>
+                    <input th:field="*{createdOn}" class="form-control" readonly/>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input th:field="*{email}" class="form-control"/>
+                    <div class="text-danger" th:if="${#fields.hasErrors('email')}"
+                         th:errors="*{email}"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Country</label>
+                    <select th:field="*{country}" class="form-control">
+                        <option th:each="c : ${countries}"
+                                th:value="${c}"
+                                th:text="${c.displayName}"></option>
+                    </select>
+                </div>
+
+                <button class="btn btn-primary" type="submit">Save Profile</button>
+            </div>
+        </div>
+    </form>
+
+</main>
+</body>
+</html>

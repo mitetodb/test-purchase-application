@@ -9,10 +9,10 @@
 <body>
 <main>
 
-    <h2>Customers</h2>
-
-    <a th:href="@{/customers/add}" class="btn btn-primary mb-3">Add Customer</a>
-
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Customers</h2>
+        <a th:href="@{/customers/add}" class="btn btn-primary mb-3">Add Customer</a>
+    </div>
     <div id="export-buttons-customers" class="mb-3"></div>
 
     <table id="customersTable" class="table table-striped">
@@ -53,8 +53,10 @@
     </table>
 
     <script>
-        initDataTable("customersTable");
-        attachExportButtons("export-buttons-customers", "customersTable");
+        document.addEventListener("DOMContentLoaded", function() {
+            initDataTable("customersTable");
+            attachExportButtons("export-buttons-customers", "customersTable");
+        });
     </script>
 
 </main>
