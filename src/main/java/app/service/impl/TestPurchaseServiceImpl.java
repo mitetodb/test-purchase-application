@@ -1,9 +1,7 @@
 package app.service.impl;
 
-import app.client.PriceCalculationClient;
-import app.model.dto.ItemDTO;
-import app.model.dto.TestPurchaseCreateDTO;
-import app.model.dto.TestPurchaseEditDTO;
+import app.client.PricingClient;
+import app.model.dto.*;
 import app.model.entity.Customer;
 import app.model.entity.Item;
 import app.model.entity.Shop;
@@ -28,7 +26,7 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
     private final TestPurchaseRepository testPurchaseRepository;
     private final CustomerRepository customerRepository;
     private final ShopRepository shopRepository;
-    private final PriceCalculationClient priceClient;
+    private final PricingClient pricingClient;
     private final StatusHistoryService statusHistoryService;
 
     @Override
@@ -50,30 +48,34 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
         purchase.setStatus(TestPurchaseStatus.INITIALISED);
 
         // convert DTO items to entities
-        List<Item> items = new ArrayList<>();
-        for (ItemDTO itemDTO : dto.getItems()) {
-            Item item = Item.builder()
-                    .productName(itemDTO.getProductName())
-                    .quantity(itemDTO.getQuantity())
-                    .unitPrice(itemDTO.getUnitPrice())
-                    .purchase(purchase)
-                    .build();
-
-            items.add(item);
-        }
+        List<Item> items = getItemList(dto.getItems(), purchase);
 
         purchase.setItems(items);
 
+        // set total product price of all items
+        purchase.setProductPrice(itemsTotalPrice(purchase));
+
         // generate unique TP number TP-1001
         Long lastSeq = testPurchaseRepository.findLastSequence();
-        long nextSeq = lastSeq + 1;
+        Long nextSeq = lastSeq + 1;
 
         String number = "TP-" + String.format("%04d", nextSeq);
         purchase.setNumber(number);
 
-        // calculation of total price with microservice
-        //purchase.setTotalPrice(calculateTotalPriceDTO(dto));
-        purchase.setTotalPrice(99.99);
+        // create request DTO
+        PriceCalculationRequestDTO requestDTO = new PriceCalculationRequestDTO();
+        requestDTO.setCustomerId(purchase.getCustomer().getId());
+        requestDTO.setCountry(purchase.getCountry().name());
+        requestDTO.setCategory(purchase.getCategory().name());  // S/M/L/XL
+        requestDTO.setType(purchase.getType().name());          // FORWARDING_TO_CLIENT, RETURN_BACK_TO_SELLER
+        requestDTO.setProductTotal(itemsTotalPrice(purchase));
+
+        // call microservice
+        PriceCalculationResponseDTO responseDTO = pricingClient.calculatePrice(requestDTO);
+
+        // save returned prices
+        purchase.setServiceFee(responseDTO.getTestPurchaseFee());
+        purchase.setPostageFee(responseDTO.getPostageFee());
 
         return testPurchaseRepository.save(purchase);
     }
@@ -101,9 +103,21 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
         purchase.getItems().clear();
 
         // add new items
+        List<Item> newItems = getItemList(dto.getItems(), purchase);
+
+        purchase.getItems().addAll(newItems);
+
+        // set total product price of all items
+        purchase.setProductPrice(itemsTotalPrice(purchase));
+
+        return testPurchaseRepository.save(purchase);
+    }
+
+    private static List<Item> getItemList(List<ItemDTO> dto, TestPurchase purchase) {
         List<Item> newItems = new ArrayList<>();
-        for (ItemDTO itemDTO : dto.getItems()) {
+        for (ItemDTO itemDTO : dto) {
             Item item = Item.builder()
+                    .productUrl(itemDTO.getProductUrl())
                     .productName(itemDTO.getProductName())
                     .quantity(itemDTO.getQuantity())
                     .unitPrice(itemDTO.getUnitPrice())
@@ -112,13 +126,13 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
 
             newItems.add(item);
         }
+        return newItems;
+    }
 
-        purchase.getItems().addAll(newItems);
-
-        // re-calculation of total price with microservice
-        //purchase.setTotalPrice(calculateTotalPriceDTO(dto));
-        purchase.setTotalPrice(99.99);
-        return testPurchaseRepository.save(purchase);
+    private static double itemsTotalPrice(TestPurchase purchase) {
+        return purchase.getItems().stream()
+                        .mapToDouble(i -> i.getQuantity() * i.getUnitPrice())
+                        .sum();
     }
 
     @Override
@@ -135,31 +149,6 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
     @Override
     public List<TestPurchase> findAll() {
         return testPurchaseRepository.findAll();
-    }
-
-    // convert DTO to structure
-    private Double calculateTotalPriceDTO(TestPurchaseCreateDTO dto) {
-        Map<String, Object> body = toPriceRequest(dto.getItems());
-        return priceClient.calculateTotalPrice(body);
-    }
-
-    private Double calculateTotalPriceDTO(TestPurchaseEditDTO dto) {
-        Map<String, Object> body = toPriceRequest(dto.getItems());
-        return priceClient.calculateTotalPrice(body);
-    }
-
-    private Map<String, Object> toPriceRequest(List<ItemDTO> items) {
-        List<Map<String, Object>> itemsList = new ArrayList<>();
-
-        for (ItemDTO item : items) {
-            itemsList.add(Map.of(
-                    "productName", item.getProductName(),
-                    "quantity", item.getQuantity(),
-                    "unitPrice", item.getUnitPrice()
-            ));
-        }
-
-        return Map.of("items", itemsList);
     }
 
     @Transactional

@@ -79,6 +79,7 @@ public class TestPurchaseController {
         purchase.getItems().forEach(i -> {
             app.model.dto.ItemDTO itemDTO = new app.model.dto.ItemDTO();
             itemDTO.setId(i.getId());
+            itemDTO.setProductUrl(i.getProductUrl());
             itemDTO.setProductName(i.getProductName());
             itemDTO.setQuantity(i.getQuantity());
             itemDTO.setUnitPrice(i.getUnitPrice());

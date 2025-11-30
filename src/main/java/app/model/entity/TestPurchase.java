@@ -46,7 +46,9 @@ public class TestPurchase {
     @Enumerated(EnumType.STRING)
     private TestPurchaseStatus status;
 
-    private Double totalPrice;
+    private Double productPrice;
+    private Double serviceFee;
+    private Double postageFee;
 
     @OneToMany(mappedBy = "purchase", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Item> items = new ArrayList<>();

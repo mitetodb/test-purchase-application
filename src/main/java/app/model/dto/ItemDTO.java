@@ -16,6 +16,9 @@ public class ItemDTO {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @NotBlank(message = "Product URL is required.")
+    private String productUrl;
+
     @NotBlank(message = "Product name is required.")
     private String productName;
 

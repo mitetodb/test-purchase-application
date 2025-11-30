@@ -7,19 +7,19 @@
 </head>
 <body>
 <main>
-<h2>Test Purchase Details</h2>
+    <h2>Test Purchase Details</h2>
 
     <div class="mb-3">
         <label>Number:</label> <span th:text="${purchase.number}"></span>
     </div>
 
-<div class="mb-3">
-    <label>Customer:</label> <span th:text="${purchase.customer.name}"></span>
-</div>
+    <div class="mb-3">
+        <label>Customer:</label> <span th:text="${purchase.customer.name}"></span>
+    </div>
 
-<div class="mb-3">
-    <label>Shop:</label> <span th:text="${purchase.shop.name}"></span>
-</div>
+    <div class="mb-3">
+        <label>Shop:</label> <span th:text="${purchase.shop.name}"></span>
+    </div>
 
     <div class="mb-3">
         <label>Country:</label> <span th:text="${purchase.country.getDisplayName()}"></span>
@@ -33,33 +33,51 @@
         <label>Type:</label> <span th:text="${purchase.type.getDisplayName()}"></span>
     </div>
 
-<div class="mb-3">
-    <label>Status:</label> <span th:text="${purchase.status.getDisplayName()}"></span>
-</div>
+    <div class="mb-3">
+        <label>Status:</label> <span th:text="${purchase.status.getDisplayName()}"></span>
+    </div>
 
-<div class="mb-3">
-    <label>Total Price:</label> <span th:text="${purchase.totalPrice}"></span>
-</div>
+    <div class="mb-3">
+        <label>Total Price:</label> <span th:text="${purchase.productPrice}"></span>
+    </div>
 
-<h5>Items</h5>
-<table class="table">
-    <thead>
-    <tr>
-        <th>Product</th>
-        <th>Qty</th>
-        <th>Unit Price</th>
-        <th>Subtotal</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="i : ${purchase.items}">
-        <td th:text="${i.productName}"></td>
-        <td th:text="${i.quantity}"></td>
-        <td th:text="${i.unitPrice}"></td>
-        <td th:text="${i.quantity * i.unitPrice}"></td>
-    </tr>
-    </tbody>
-</table>
+    <div class="mb-3">
+        <label>Service Fee:</label> <span th:text="${purchase.serviceFee}"></span>
+    </div>
+
+    <div class="mb-3">
+        <label>Postage Fee:</label> <span th:text="${purchase.postageFee}"></span>
+    </div>
+
+    <h5>Items</h5>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>URL</th>
+            <th>Product</th>
+            <th>Qty</th>
+            <th>Unit Price</th>
+            <th>Subtotal</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="i : ${purchase.items}">
+            <td>
+                <a th:if="${i.productUrl}"
+                   th:href="${i.productUrl}"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   th:text="${#strings.length(i.productUrl) <= 40 ? i.productUrl : #strings.substring(i.productUrl, 0, 40) + '...'}"
+                   title="Open product page">
+                </a>
+            </td>
+            <td th:text="${i.productName}"></td>
+            <td th:text="${i.quantity}"></td>
+            <td th:text="${i.unitPrice}"></td>
+            <td th:text="${i.quantity * i.unitPrice}"></td>
+        </tr>
+        </tbody>
+    </table>
 
     <h5>Attachments</h5>
 
@@ -69,7 +87,8 @@
         <select name="category">
             <option value="">--Category (optional)--</option>
             <option th:each="c : ${T(app.model.enums.AttachmentCategory).values()}"
-                    th:value="${c}" th:text="${c.getDisplayName()}"></option>
+                    th:value="${c}"
+                    th:text="${c.getDisplayName()}"></option>
         </select>
         <button class="btn btn-primary" type="submit">Upload</button>
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
@@ -78,11 +97,8 @@
     <ul class="list-group mt-3">
         <li class="list-group-item d-flex align-items-center" th:each="att : ${attachments}">
             <div class="me-3">
-<!--                <span th:text="${att.name}">File</span>-->
                 <span th:text="${att.category.getDisplayName()}">File</span>
 
-
-                <!-- img preview -->
                 <img th:if="${att.fileType.name() == 'JPG' || att.fileType.name() == 'PNG'}"
                      th:src="@{'/attachments/' + ${att.id} + '/preview'}"
                      alt="Preview"
@@ -93,7 +109,6 @@
                 <a th:href="@{'/attachments/' + ${att.id} + '/download'}"
                    class="btn btn-sm btn-secondary">Download</a>
 
-                <!-- delete button only for admin) -->
                 <form th:if="${#authorization.expression('hasRole(''ADMIN'')')}"
                       th:action="@{'/attachments/delete/' + ${att.id}}"
                       method="post" style="display:inline;">
@@ -111,7 +126,8 @@
             <div class="timeline-dot"></div>
 
             <div class="timeline-content">
-                <div class="timeline-time" th:text="${#temporals.format(h.changedAt, 'dd MMM yyyy HH:mm')}"></div>
+                <div class="timeline-time"
+                     th:text="${#temporals.format(h.changedAt, 'dd MMM yyyy HH:mm')}"></div>
 
                 <div class="timeline-status">
                     <strong th:text="${h.oldStatus}"></strong>
@@ -131,7 +147,7 @@
     </div>
 
     <div th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
-        <form action="#" th:action="@{'/testpurchases/' + ${purchase.id} + '/change-status'}" method="post">
+        <form th:action="@{'/testpurchases/' + ${purchase.id} + '/change-status'}" method="post">
             <select name="newStatus" class="form-select mb-2">
                 <option th:each="st : ${statuses}"
                         th:value="${st}"
@@ -143,7 +159,7 @@
         </form>
     </div>
 
-    <a th:href="@{/testpurchases}" class="btn btn-secondary">Back</a>
+    <a th:href="@{/testpurchases}" class="btn btn-secondary mt-3">Back</a>
 </main>
 </body>
 </html>

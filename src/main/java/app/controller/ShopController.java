@@ -2,7 +2,6 @@ package app.controller;
 
 import app.model.dto.ShopDTO;
 import app.model.entity.Shop;
-import app.model.entity.TestPurchase;
 import app.service.ShopService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

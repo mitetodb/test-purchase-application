@@ -18,6 +18,8 @@ public class Item {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    private String productUrl;
+
     private String productName;
 
     private Integer quantity;

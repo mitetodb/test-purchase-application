@@ -25,25 +25,47 @@
 
 <script>
     function addItem() {
-        const container = document.getElementById("items-container").parentNode;
+        const container = document.getElementById("items-container");
         const items = container.querySelectorAll(".item-block");
-
         const newIndex = items.length;
 
         const newItemHtml = `
             <div class="card mb-2 p-2 item-block">
+                <div class="row mb-2">
+                    <div class="col-md-12">
+                        <input name="items[${newIndex}].productUrl"
+                               class="form-control"
+                               placeholder="Product URL"
+                               required />
+                    </div>
+                </div>
+
                 <div class="row">
                     <div class="col-md-5">
-                        <input name="items[${newIndex}].productName" class="form-control" placeholder="Product name"/>
+                        <input name="items[${newIndex}].productName"
+                               class="form-control"
+                               placeholder="Product name"
+                               required />
                     </div>
                     <div class="col-md-2">
-                        <input type="number" name="items[${newIndex}].quantity" class="form-control" placeholder="Qty"/>
+                        <input type="number"
+                               name="items[${newIndex}].quantity"
+                               class="form-control"
+                               placeholder="Qty"
+                               min="1"
+                               required />
                     </div>
                     <div class="col-md-3">
-                        <input type="number" step="0.01" name="items[${newIndex}].unitPrice" class="form-control" placeholder="Unit price"/>
+                        <input type="number" step="0.01"
+                               name="items[${newIndex}].unitPrice"
+                               class="form-control"
+                               placeholder="Unit price"
+                               min="0"
+                               required />
                     </div>
                     <div class="col-md-2">
-                        <button type="button" class="btn btn-danger" onclick="removeItem(this)">Remove</button>
+                        <button type="button" class="btn btn-danger"
+                                onclick="removeItem(this)">Remove</button>
                     </div>
                 </div>
             </div>
@@ -53,20 +75,19 @@
     }
 
     function removeItem(button) {
-        const itemBlock = button.closest(".item-block");
-        itemBlock.remove();
-
+        const block = button.closest(".item-block");
+        block.remove();
         reindexItems();
     }
 
     function reindexItems() {
-        const items = document.querySelectorAll(".item-block");
+        const blocks = document.querySelectorAll(".item-block");
 
-        items.forEach((block, index) => {
+        blocks.forEach((block, index) => {
             const inputs = block.querySelectorAll("input");
 
             inputs.forEach(input => {
-                const fieldName = input.name.split(".")[1]; // productName, quantity, unitPrice
+                const fieldName = input.name.split(".")[1]; // productUrl, productName, quantity, unitPrice
                 input.name = `items[${index}].${fieldName}`;
             });
         });
