@@ -24,10 +24,7 @@ public class CustomerController {
 
     @GetMapping
     public String listCustomers(Model model) {
-        List<Customer> customers = customerService.findAll()
-                .stream()
-                .sorted(Comparator.comparing(Customer::getNumber).reversed())
-                .toList();
+        List<Customer> customers = customerService.findAll();
         model.addAttribute("customers", customers);
         return "customers/customers-list";
     }

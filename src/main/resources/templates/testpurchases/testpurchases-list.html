@@ -1,55 +1,76 @@
 <!DOCTYPE html>
-<html lang="en" th:replace="~{layout :: layout(~{::title}, ~{::main})}"
-      xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+<html lang="en" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
 <head>
     <title>Test Purchases</title>
 </head>
 <body>
 <main>
-<h2>Test Purchases</h2>
+    <h2>Test Purchases</h2>
 
-<a th:href="@{/testpurchases/add}" class="btn btn-primary mb-3">Create Test Purchase</a>
+    <a th:href="@{/testpurchases/add}" class="btn btn-primary mb-3">Create Test Purchase</a>
 
-<table class="table table-hover">
-    <thead>
-    <tr>
-        <th>#</th>
-        <th>Customer</th>
-        <th>Shop</th>
-        <th>Country</th>
-        <th>Category</th>
-        <th>Type</th>
-        <th>Total Price</th>
-        <th>Status</th>
-        <th>Created On</th>
-        <th>Actions</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="p : ${purchases}">
-        <td th:text="${p.number}"></td>
-        <td th:text="${p.customer.name}"></td>
-        <td th:text="${p.shop.name}"></td>
-        <td th:text="${p.country.getDisplayName()}"></td>
-        <td th:text="${p.category.getDisplayName()}"></td>
-        <td th:text="${p.type.getDisplayName()}"></td>
-        <td th:text="${p.productPrice}"></td>
-        <td th:text="${p.status.getDisplayName()}"></td>
-        <td th:text="${#temporals.format(p.createdOn, 'yyyy-MM-dd HH:mm')}"></td>
-        <td>
-            <a th:href="@{'/testpurchases/view/' + ${p.id}}" class="btn btn-sm btn-info">View</a>
-            <a th:href="@{'/testpurchases/edit/' + ${p.id}}" class="btn btn-sm btn-warning">Edit</a>
+    <!-- EXPORT BUTTONS -->
+    <div id="export-buttons" class="mb-3"></div>
 
-            <form th:if="${#authorization.expression('hasRole(''ADMIN'')')}"
-                  th:action="@{'/testpurchases/delete/' + ${p.id}}" method="post" style="display:inline;">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                <button class="btn btn-sm btn-danger" type="submit">Delete</button>
-            </form>
-        </td>
-    </tr>
-    </tbody>
-</table>
+    <table id="tpTable" class="table table-hover">
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>Customer</th>
+            <th>Shop</th>
+            <th>Country</th>
+            <th>Category</th>
+            <th>Type</th>
+            <th>Total Price</th>
+            <th>Status</th>
+            <th>Created On</th>
+            <th>Actions</th>
+        </tr>
+
+        <tr>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search #"></th>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search Customer"></th>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search Shop"></th>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search Country"></th>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search Category"></th>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search Type"></th>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search Price"></th>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search Status"></th>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search Created"></th>
+            <th></th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <tr th:each="p : ${purchases}">
+            <td th:text="${p.number}"></td>
+            <td th:text="${p.customer.name}"></td>
+            <td th:text="${p.shop.name}"></td>
+            <td th:text="${p.country.getDisplayName()}"></td>
+            <td th:text="${p.category.getDisplayName()}"></td>
+            <td th:text="${p.type.getDisplayName()}"></td>
+            <td th:text="${p.productPrice}"></td>
+            <td th:text="${p.status.getDisplayName()}"></td>
+            <td th:text="${#temporals.format(p.createdOn, 'yyyy-MM-dd HH:mm')}"></td>
+            <td>
+                <a th:href="@{'/testpurchases/view/' + ${p.id}}" class="btn btn-sm btn-info">View</a>
+                <a th:href="@{'/testpurchases/edit/' + ${p.id}}" class="btn btn-sm btn-warning">Edit</a>
+
+                <form th:if="${#authorization.expression('hasRole(''ADMIN'')')}"
+                      th:action="@{'/testpurchases/delete/' + ${p.id}}" method="post" style="display:inline;">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <button class="btn btn-sm btn-danger" type="submit">Delete</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <script>
+        initDataTable("tpTable");
+        attachExportButtons("export-buttons", "tpTable");
+    </script>
+
 </main>
 </body>
 </html>

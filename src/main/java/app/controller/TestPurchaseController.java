@@ -30,10 +30,7 @@ public class TestPurchaseController {
 
     @GetMapping
     public String list(Model model) {
-        List<TestPurchase> purchases = testPurchaseService.findAll()
-                .stream()
-                .sorted(Comparator.comparing(TestPurchase::getNumber).reversed())
-                .toList();
+        List<TestPurchase> purchases = testPurchaseService.findAll();
         model.addAttribute("purchases", purchases);
         return "testpurchases/testpurchases-list";
     }

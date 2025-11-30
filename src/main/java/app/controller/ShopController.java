@@ -24,10 +24,7 @@ public class ShopController {
 
     @GetMapping
     public String list(Model model) {
-        List<Shop> shops = shopService.findAll()
-                .stream()
-                .sorted(Comparator.comparing(Shop::getNumber).reversed())
-                .toList();
+        List<Shop> shops = shopService.findAll();
         model.addAttribute("shops", shops);
         return "shops/shops-list";
     }

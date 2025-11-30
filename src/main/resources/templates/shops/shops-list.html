@@ -1,45 +1,60 @@
 <!DOCTYPE html>
 <html lang="en" th:replace="~{layout :: layout(~{::title}, ~{::main})}"
-      xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+      xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <title>Shops</title>
 </head>
+
 <body>
 <main>
-<h2>Shops</h2>
 
-<a th:href="@{/shops/add}" class="btn btn-primary mb-3">Add Shop</a>
+    <h2>Shops</h2>
 
-<table class="table table-striped">
-    <thead>
-    <tr>
-        <th>#</th>
-        <th>Name</th>
-        <th>Country</th>
-        <th>Actions</th>
-    </tr>
-    </thead>
+    <a th:href="@{/shops/add}" class="btn btn-primary mb-3">Add Shop</a>
 
-    <tbody>
-    <tr th:each="s : ${shops}">
-        <td th:text="${s.number}"></td>
-        <td th:text="${s.name}"></td>
-        <td th:text="${s.country.getDisplayName()}"></td>
-        <td>
-            <a th:href="@{'/shops/edit/' + ${s.id}}" class="btn btn-warning btn-sm">Edit</a>
+    <div id="export-buttons-shops" class="mb-3"></div>
 
-            <form th:if="${#authorization.expression('hasRole(''ADMIN'')')}"
-                  th:action="@{'/shops/delete/' + ${s.id}}"
-                  method="post" style="display:inline;">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                <button class="btn btn-danger btn-sm" type="submit">Delete</button>
-            </form>
-        </td>
-    </tr>
-    </tbody>
+    <table id="shopsTable" class="table table-striped">
+        <thead>
+        <tr>
+            <th class="sortable">#</th>
+            <th class="sortable">Name</th>
+            <th class="sortable">Country</th>
+            <th>Actions</th>
+        </tr>
+        <tr>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search #"></th>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search Name"></th>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search Country"></th>
+            <th></th>
+        </tr>
+        </thead>
 
-</table>
+        <tbody>
+        <tr th:each="s : ${shops}">
+            <td th:text="${s.number}"></td>
+            <td th:text="${s.name}"></td>
+            <td th:text="${s.country.getDisplayName()}"></td>
+            <td>
+                <a th:href="@{'/shops/edit/' + ${s.id}}" class="btn btn-warning btn-sm">Edit</a>
+
+                <form th:if="${#authorization.expression('hasRole(''ADMIN'')')}"
+                      th:action="@{'/shops/delete/' + ${s.id}}"
+                      method="post" style="display:inline;">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <script>
+        initDataTable("shopsTable");
+        attachExportButtons("export-buttons-shops", "shopsTable");
+    </script>
+
 </main>
 </body>
 </html>
