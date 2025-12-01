@@ -1,5 +1,6 @@
 package app.service;
 
+import app.config.SecurityConfig;
 import app.model.dto.RegistrationDTO;
 import app.model.dto.UserCreateDTO;
 import app.model.dto.UserProfileDTO;
@@ -8,7 +9,6 @@ import app.model.enums.Country;
 import app.model.enums.Role;
 import app.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.EnumMap;
@@ -20,7 +20,7 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final SecurityConfig securityConfig;
 
     public User register(RegistrationDTO dto) {
 
@@ -34,7 +34,7 @@ public class UserService {
 
         User user = User.builder()
                 .username(dto.getUsername())
-                .password(passwordEncoder.encode(dto.getPassword()))
+                .password(securityConfig.passwordEncoder().encode(dto.getPassword()))
                 .role(dto.getRole())
                 .email(dto.getEmail())
                 .country(dto.getCountry())
@@ -59,7 +59,7 @@ public class UserService {
 
         User user = User.builder()
                 .username(userCreateDTO.getUsername())
-                .password(passwordEncoder.encode(userCreateDTO.getPassword()))
+                .password(securityConfig.passwordEncoder().encode(userCreateDTO.getPassword()))
                 .email(userCreateDTO.getEmail())
                 .role(userCreateDTO.getRole())
                 .country(userCreateDTO.getCountry())
@@ -96,6 +96,46 @@ public class UserService {
         }
 
         userRepository.save(user);
+    }
+
+    public void changePassword(User user, String newPassword) {
+        user.setPassword(securityConfig.passwordEncoder().encode(newPassword));
+        userRepository.save(user);
+    }
+
+    public Optional<User> findByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
+
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    public long countActiveUsers() {
+        return userRepository.countByActiveTrue();
+    }
+
+    public long countInactiveUsers() {
+        return userRepository.countByActiveFalse();
+    }
+
+    public Map<Role, Long> countUsersByRole() {
+        Map<Role, Long> result = new EnumMap<>(Role.class);
+        for (Role r : Role.values()) {
+            result.put(r, userRepository.countByRole(r));
+        }
+        return result;
+    }
+
+    public Map<Country, Long> countUsersByCountry() {
+        Map<Country, Long> result = new EnumMap<>(Country.class);
+        for (Country c : Country.values()) {
+            long cnt = userRepository.countByCountry(c);
+            if (cnt > 0) {
+                result.put(c, cnt);
+            }
+        }
+        return result;
     }
 
 }

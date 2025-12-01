@@ -89,7 +89,7 @@ public class ProfileController {
         Files.copy(file.getInputStream(), target);
 
         // this URL will be handled by WebConfig
-        return "/avatars/" + newFileName;
+        return "/uploads/" + newFileName;
     }
 }
 
