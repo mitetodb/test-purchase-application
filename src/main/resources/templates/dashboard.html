@@ -7,66 +7,222 @@
 </head>
 <body>
 <main>
-<div class="row">
-    <div class="col-12">
-        <h2>Dashboard</h2>
+    <div class="row">
+        <div class="col-12">
+            <!-- Dashboard Header -->
+            <div class="dashboard-header">
+                <h2 class="text-gradient">Dashboard</h2>
+                <p class="dashboard-welcome">
+                    Welcome back, <strong sec:authentication="name"></strong>!
+                </p>
+            </div>
 
-        <p>Welcome, <strong sec:authentication="name"></strong>!</p>
+            <!-- Role Badge -->
+            <div class="mb-4">
+                <span class="badge bg-gradient-primary" sec:authentication="principal.authorities"></span>
+            </div>
 
-        <hr/>
+            <!-- Statistics Cards -->
+            <div sec:authorize="hasRole('ADMIN')" class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-card-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-card-value">--</div>
+                    <div class="stat-card-label">Total Users</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-icon" style="background: var(--gradient-success);">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div class="stat-card-value">--</div>
+                    <div class="stat-card-label">Customers</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-icon" style="background: var(--gradient-warm);">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="stat-card-value">--</div>
+                    <div class="stat-card-label">Test Purchases</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-icon" style="background: var(--gradient-secondary);">
+                        <i class="fas fa-store"></i>
+                    </div>
+                    <div class="stat-card-value">--</div>
+                    <div class="stat-card-label">Shops</div>
+                </div>
+            </div>
 
-        <div>
-            <h4>Your role:</h4>
-            <p sec:authentication="principal.authorities"></p>
-        </div>
+            <!-- Quick Actions -->
+            <div class="quick-actions">
 
-        <div class="mt-4">
-
-            <!-- Admin Cards -->
-            <div sec:authorize="hasRole('ADMIN')">
-
-                <h4>Admin Quick Actions</h4>
-
-                <div class="row mt-3">
-
-                    <div class="col-md-4">
-                        <div class="card shadow-sm">
-                            <div class="card-body">
-                                <h5>Manage Users</h5>
-                                <p>View and manage all system users.</p>
-                                <a th:href="@{/users}" class="btn btn-primary">Open</a>
+                <!-- Admin Quick Actions -->
+                <div sec:authorize="hasRole('ADMIN')">
+                    <h4><i class="fas fa-bolt me-2"></i>Admin Quick Actions</h4>
+                    <div class="action-cards">
+                        <div class="action-card" onclick="window.location.href='/users'">
+                            <div class="action-card-icon">
+                                <i class="fas fa-users"></i>
                             </div>
+                            <h5>Manage Users</h5>
+                            <p>View and manage all system users, roles, and permissions.</p>
+                            <a th:href="@{/users}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-arrow-right me-1"></i> Open
+                            </a>
+                        </div>
+
+                        <div class="action-card" onclick="window.location.href='/customers'">
+                            <div class="action-card-icon">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            <h5>Manage Customers</h5>
+                            <p>View and manage customer accounts and information.</p>
+                            <a th:href="@{/customers}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-arrow-right me-1"></i> Open
+                            </a>
+                        </div>
+
+                        <div class="action-card" onclick="window.location.href='/shops'">
+                            <div class="action-card-icon">
+                                <i class="fas fa-store"></i>
+                            </div>
+                            <h5>Manage Shops</h5>
+                            <p>View and manage shop information and settings.</p>
+                            <a th:href="@{/shops}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-arrow-right me-1"></i> Open
+                            </a>
+                        </div>
+
+                        <div class="action-card" onclick="window.location.href='/testpurchases'">
+                            <div class="action-card-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <h5>Test Purchases</h5>
+                            <p>View and manage all test purchases in the system.</p>
+                            <a th:href="@{/testpurchases}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-arrow-right me-1"></i> Open
+                            </a>
                         </div>
                     </div>
+                </div>
 
-                    <div class="col-md-4">
-                        <div class="card shadow-sm">
-                            <div class="card-body">
-                                <h5>Customers</h5>
-                                <a th:href="@{/customers}" class="btn btn-secondary">Open</a>
+                <!-- Account Manager Quick Actions -->
+                <div sec:authorize="hasRole('ACCOUNT_MANAGER')">
+                    <h4><i class="fas fa-briefcase me-2"></i>Account Management</h4>
+                    <div class="action-cards">
+                        <div class="action-card" onclick="window.location.href='/customers'">
+                            <div class="action-card-icon">
+                                <i class="fas fa-user-tie"></i>
                             </div>
+                            <h5>Manage Customers</h5>
+                            <p>View and manage customer accounts and relationships.</p>
+                            <a th:href="@{/customers}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-arrow-right me-1"></i> Open
+                            </a>
+                        </div>
+
+                        <div class="action-card" onclick="window.location.href='/testpurchases'">
+                            <div class="action-card-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <h5>Test Purchases</h5>
+                            <p>Monitor and manage test purchase orders.</p>
+                            <a th:href="@{/testpurchases}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-arrow-right me-1"></i> Open
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sales Manager Quick Actions -->
+                <div sec:authorize="hasRole('SALES_MANAGER')">
+                    <h4><i class="fas fa-chart-line me-2"></i>Sales Management</h4>
+                    <div class="action-cards">
+                        <div class="action-card" onclick="window.location.href='/testpurchases'">
+                            <div class="action-card-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <h5>Test Purchases</h5>
+                            <p>View and manage test purchase orders and sales data.</p>
+                            <a th:href="@{/testpurchases}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-arrow-right me-1"></i> Open
+                            </a>
+                        </div>
+
+                        <div class="action-card" onclick="window.location.href='/shops'">
+                            <div class="action-card-icon">
+                                <i class="fas fa-store"></i>
+                            </div>
+                            <h5>Shops</h5>
+                            <p>View shop information and performance metrics.</p>
+                            <a th:href="@{/shops}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-arrow-right me-1"></i> Open
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer Quick Actions -->
+                <div sec:authorize="hasRole('CUSTOMER')">
+                    <h4><i class="fas fa-shopping-bag me-2"></i>My Test Purchases</h4>
+                    <div class="action-cards">
+                        <div class="action-card" onclick="window.location.href='/testpurchases'">
+                            <div class="action-card-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <h5>View Test Purchases</h5>
+                            <p>View all your test purchase orders and their status.</p>
+                            <a th:href="@{/testpurchases}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-arrow-right me-1"></i> View All
+                            </a>
+                        </div>
+
+                        <div class="action-card" onclick="window.location.href='/testpurchases/add'">
+                            <div class="action-card-icon">
+                                <i class="fas fa-plus-circle"></i>
+                            </div>
+                            <h5>Create New Test Purchase</h5>
+                            <p>Submit a new test purchase order.</p>
+                            <a th:href="@{/testpurchases/add}" class="btn btn-success btn-sm">
+                                <i class="fas fa-plus me-1"></i> Create New
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mystery Shopper Quick Actions -->
+                <div sec:authorize="hasRole('MYSTERY_SHOPPER')">
+                    <h4><i class="fas fa-user-secret me-2"></i>My Assignments</h4>
+                    <div class="action-cards">
+                        <div class="action-card" onclick="window.location.href='/ms/tasks'">
+                            <div class="action-card-icon">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                            <h5>My Assignments</h5>
+                            <p>View your assigned test purchase tasks and complete them.</p>
+                            <a th:href="@{/ms/tasks}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-arrow-right me-1"></i> View Tasks
+                            </a>
+                        </div>
+
+                        <div class="action-card" onclick="window.location.href='/testpurchases'">
+                            <div class="action-card-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <h5>Test Purchases</h5>
+                            <p>View all test purchases assigned to you.</p>
+                            <a th:href="@{/testpurchases}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-arrow-right me-1"></i> View All
+                            </a>
                         </div>
                     </div>
                 </div>
 
             </div>
 
-            <!-- Customer -->
-            <div sec:authorize="hasRole('CUSTOMER')">
-                <h4>Your Test Purchases</h4>
-                <a th:href="@{/testpurchases}" class="btn btn-primary">View Test Purchases</a>
-            </div>
-
-            <!-- Mystery Shopper -->
-            <div sec:authorize="hasRole('MYSTERY_SHOPPER')">
-                <h4>Your Test Purchases</h4>
-                <a th:href="@{/testpurchases}" class="btn btn-primary">View Test Purchases</a>
-            </div>
-
         </div>
-
     </div>
-</div>
 </main>
 </body>
 </html>

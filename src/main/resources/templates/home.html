@@ -3,17 +3,78 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
 <head>
-    <title>Home</title>
+    <title>Home - Test Purchase System</title>
 </head>
 <body>
 <main>
-<h2>Welcome!</h2>
-<p>You are logged in.</p>
-    <p><a href="/dashboard">Dashboard</a></p>
-    <p><a href="/customers">Customers</a></p>
-    <p><a href="/shops">Shops</a></p>
-    <p><a href="/testpurchases">Test Purchases</a></p>
+    <div class="row">
+        <div class="col-12">
+            <div class="dashboard-header">
+                <h2 class="text-gradient">Welcome to Test Purchase System</h2>
+                <p class="dashboard-welcome" sec:authorize="isAuthenticated()">
+                    You are logged in. Navigate to your dashboard to get started.
+                </p>
+                <p class="dashboard-welcome" sec:authorize="isAnonymous()">
+                    Please login or register to access the system.
+                </p>
+            </div>
 
+            <div sec:authorize="isAuthenticated()" class="action-cards mt-4">
+                <div class="action-card" onclick="window.location.href='/dashboard'">
+                    <div class="action-card-icon">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <h5>Dashboard</h5>
+                    <p>View your personalized dashboard with quick access to all features.</p>
+                    <a href="/dashboard" class="btn btn-primary btn-sm">
+                        <i class="fas fa-arrow-right me-1"></i> Go to Dashboard
+                    </a>
+                </div>
+
+                <div class="action-card" onclick="window.location.href='/testpurchases'">
+                    <div class="action-card-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <h5>Test Purchases</h5>
+                    <p>Manage and view all test purchase orders.</p>
+                    <a href="/testpurchases" class="btn btn-primary btn-sm">
+                        <i class="fas fa-arrow-right me-1"></i> View Test Purchases
+                    </a>
+                </div>
+
+                <div class="action-card" sec:authorize="hasAnyRole('ADMIN', 'ACCOUNT_MANAGER')" onclick="window.location.href='/customers'">
+                    <div class="action-card-icon">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <h5>Customers</h5>
+                    <p>Manage customer accounts and information.</p>
+                    <a href="/customers" class="btn btn-primary btn-sm">
+                        <i class="fas fa-arrow-right me-1"></i> Manage Customers
+                    </a>
+                </div>
+
+                <div class="action-card" sec:authorize="hasAnyRole('ADMIN', 'SALES_MANAGER')" onclick="window.location.href='/shops'">
+                    <div class="action-card-icon">
+                        <i class="fas fa-store"></i>
+                    </div>
+                    <h5>Shops</h5>
+                    <p>View and manage shop information.</p>
+                    <a href="/shops" class="btn btn-primary btn-sm">
+                        <i class="fas fa-arrow-right me-1"></i> Manage Shops
+                    </a>
+                </div>
+            </div>
+
+            <div sec:authorize="isAnonymous()" class="text-center mt-5">
+                <a th:href="@{/login}" class="btn btn-primary btn-lg me-3">
+                    <i class="fas fa-sign-in-alt me-2"></i>Login
+                </a>
+                <a th:href="@{/register}" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-user-plus me-2"></i>Register
+                </a>
+            </div>
+        </div>
+    </div>
 </main>
 </body>
 </html>
