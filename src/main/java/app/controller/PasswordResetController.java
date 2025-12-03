@@ -9,6 +9,7 @@ import app.service.PasswordResetService;
 import app.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -21,6 +22,9 @@ public class PasswordResetController {
     private final UserService userService;
     private final PasswordResetService passwordResetService;
     private final EmailService emailService;
+
+    @Value("${app.base-url}")
+    private String baseUrl;
 
     @GetMapping("/forgot-password")
     public String showForgotPasswordForm(Model model) {
@@ -42,7 +46,8 @@ public class PasswordResetController {
 
         userService.findByEmail(dto.getEmail()).ifPresent(user -> {
             String token = passwordResetService.createTokenForUser(user);
-            String link = "/reset-password?token=" + token; // adapt with absolute URL if needed
+
+            String link = baseUrl + "/reset-password?token=" + token; // adapt with absolute URL if needed
             emailService.sendResetPasswordEmail(
                     user.getEmail(),
                     user.getUsername(),

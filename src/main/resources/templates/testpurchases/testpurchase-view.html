@@ -130,9 +130,9 @@
                      th:text="${#temporals.format(h.changedAt, 'dd MMM yyyy HH:mm')}"></div>
 
                 <div class="timeline-status">
-                    <strong th:text="${h.oldStatus}"></strong>
+                    <strong th:text="${h.oldStatus.getDisplayName()}"></strong>
                     →
-                    <strong th:text="${h.newStatus}"></strong>
+                    <strong th:text="${h.newStatus.getDisplayName()}"></strong>
                 </div>
 
                 <div class="timeline-user">
@@ -151,7 +151,7 @@
             <select name="newStatus" class="form-select mb-2">
                 <option th:each="st : ${statuses}"
                         th:value="${st}"
-                        th:text="${st}">
+                        th:text="${st.getDisplayName()}">
                 </option>
             </select>
             <input type="text" name="comment" class="form-control mb-2" placeholder="Optional comment">

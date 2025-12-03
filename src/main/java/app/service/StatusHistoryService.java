@@ -36,8 +36,10 @@ public class StatusHistoryService {
         emailService.sendStatusChangeEmail(
                 tp.getCustomer().getEmail(),
                 tp.getNumber(),
-                oldStatus.toString(),
-                newStatus.toString()
+                oldStatus.getDisplayName(),
+                newStatus.getDisplayName(),
+                username,
+                comment
         );
 
         historyRepo.save(h);

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Status Update</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body style="font-family: Arial, sans-serif; background-color: #f7f7f7; padding: 20px;">
+
+<div style="max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 6px;">
+
+    <h2>Status Update for Test Purchase <span th:text="${tpNumber}"></span></h2>
+
+    <p>
+        The status has changed from
+        <strong th:text="${oldStatus}"></strong> to
+        <strong th:text="${newStatus}"></strong>.
+    </p>
+
+    <p th:if="${comment}">
+        <em>Comment:</em> <span th:text="${comment}"></span>
+    </p>
+
+    <p>
+        Changed by: <strong th:text="${username}"></strong>
+    </p>
+
+    <hr/>
+
+    <p style="font-size: 0.9em; color: #555;">
+        This is an automated message from the Test Purchase System.
+    </p>
+
+</div>
+
+</body>
+</html>
