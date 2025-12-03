@@ -22,6 +22,8 @@
             <th class="sortable">#</th>
             <th class="sortable">Name</th>
             <th class="sortable">Category</th>
+            <th class="sortable">Country</th>
+            <th class="sortable">Email</th>
             <th sec:authorize="hasRole('ADMIN')" class="sortable">Updated By</th>
             <th>Actions</th>
         </tr>
@@ -30,6 +32,8 @@
             <th><input class="form-control form-control-sm column-filter" placeholder="Search #"></th>
             <th><input class="form-control form-control-sm column-filter" placeholder="Search Name"></th>
             <th><input class="form-control form-control-sm column-filter" placeholder="Search Category"></th>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search Country"></th>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search Email"></th>
             <th sec:authorize="hasRole('ADMIN')"><input class="form-control form-control-sm column-filter" placeholder="Search Updated"></th>
             <th></th>
         </tr>
@@ -40,6 +44,8 @@
             <td th:text="${c.number}"></td>
             <td th:text="${c.name}"></td>
             <td th:text="${c.category}"></td>
+            <td th:text="${c.country}"></td>
+            <td th:text="${c.email}"></td>
             <td sec:authorize="hasRole('ADMIN')" th:text="${c.updatedByUser}"></td>
             <td>
                 <a th:href="@{'/customers/edit/' + ${c.id}}" class="btn btn-warning btn-sm">Edit</a>

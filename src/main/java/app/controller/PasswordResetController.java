@@ -43,7 +43,10 @@ public class PasswordResetController {
         userService.findByEmail(dto.getEmail()).ifPresent(user -> {
             String token = passwordResetService.createTokenForUser(user);
             String link = "/reset-password?token=" + token; // adapt with absolute URL if needed
-            emailService.sendResetPasswordEmail(user.getEmail(), link);
+            emailService.sendResetPasswordEmail(
+                    user.getEmail(),
+                    user.getUsername(),
+                    link);
         });
 
         model.addAttribute("message", "If this email exists, a reset link has been sent.");

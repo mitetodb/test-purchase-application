@@ -29,6 +29,8 @@ public class Customer {
 
     private String category;
 
+    private String email;
+
     @Enumerated(EnumType.STRING)
     private Country country;
 

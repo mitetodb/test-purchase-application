@@ -55,6 +55,8 @@ public class CustomerController {
         dto.setId(customer.getId());
         dto.setName(customer.getName());
         dto.setCategory(customer.getCategory());
+        dto.setCountry(customer.getCountry());
+        dto.setEmail(customer.getEmail());
 
         model.addAttribute("customerDTO", dto);
 

@@ -4,6 +4,7 @@ import app.model.entity.TestPurchase;
 import app.model.entity.TestPurchaseStatusHistory;
 import app.model.enums.TestPurchaseStatus;
 import app.repository.TestPurchaseStatusHistoryRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -11,13 +12,11 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class StatusHistoryService {
 
     private final TestPurchaseStatusHistoryRepository historyRepo;
-
-    public StatusHistoryService(TestPurchaseStatusHistoryRepository historyRepo) {
-        this.historyRepo = historyRepo;
-    }
+    private final EmailService emailService;
 
     public void recordStatusChange(
             TestPurchase tp,
@@ -33,6 +32,13 @@ public class StatusHistoryService {
         h.setChangedAt(LocalDateTime.now());
         h.setChangedBy(username);
         h.setComment(comment);
+
+        emailService.sendStatusChangeEmail(
+                tp.getCustomer().getEmail(),
+                tp.getNumber(),
+                oldStatus.toString(),
+                newStatus.toString()
+        );
 
         historyRepo.save(h);
     }

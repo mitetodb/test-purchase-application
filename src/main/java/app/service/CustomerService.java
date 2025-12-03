@@ -29,6 +29,8 @@ public class CustomerService {
         Customer customer = Customer.builder()
                 .name(dto.getName())
                 .category(dto.getCategory())
+                .country(dto.getCountry())
+                .email(dto.getEmail())
                 .build();
 
         Long lastSeq = customerRepository.findLastSequence();
@@ -47,6 +49,8 @@ public class CustomerService {
 
         customer.setName(dto.getName());
         customer.setCategory(dto.getCategory());
+        customer.setEmail(dto.getEmail());
+        customer.setCountry(dto.getCountry());
         customer.setUpdatedByUser(SecurityUtils.getCurrentUsername());
 
         return customerRepository.save(customer);

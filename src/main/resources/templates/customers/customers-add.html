@@ -24,6 +24,18 @@
         <input th:field="*{category}" class="form-control"/>
     </div>
 
+    <div class="mb-3">
+        <label for="country">Country:</label>
+        <select id="country" class="form-control" th:field="*{country}">
+            <option th:each="country : ${T(app.model.enums.Country).values()}" th:value="${country}" th:text="${country.getDisplayName()}">Bulgaria</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label>Email:</label>
+        <input th:field="*{email}" class="form-control"/>
+    </div>
+
     <button class="btn btn-success" type="submit">Save</button>
     <a th:href="@{/customers}" class="btn btn-secondary">Cancel</a>
 
