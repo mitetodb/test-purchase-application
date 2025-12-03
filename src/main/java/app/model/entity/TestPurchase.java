@@ -1,5 +1,4 @@
 package app.model.entity;
-
 import app.model.enums.Country;
 import app.model.enums.TestPurchaseCategory;
 import app.model.enums.TestPurchaseStatus;
@@ -33,6 +32,9 @@ public class TestPurchase {
 
     @ManyToOne
     private Customer customer;
+
+    @ManyToOne
+    private User mysteryShopper;
 
     @Enumerated(EnumType.STRING)
     private Country country;

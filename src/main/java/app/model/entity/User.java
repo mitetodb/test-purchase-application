@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Builder
@@ -43,6 +44,10 @@ public class User {
     private Role role;
 
     private boolean active = true;
+
+    @OneToMany(mappedBy = "mysteryShopper", fetch = FetchType.LAZY)
+    private List<TestPurchase> testPurchases;
+
     private LocalDateTime createdOn;
     private LocalDateTime updatedOn;
 
