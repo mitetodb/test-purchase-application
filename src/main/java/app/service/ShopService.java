@@ -1,5 +1,6 @@
 package app.service;
 
+import app.config.SecurityUtils;
 import app.model.dto.ShopDTO;
 import app.model.entity.Shop;
 import app.repository.ShopRepository;
@@ -38,6 +39,8 @@ public class ShopService {
         String number = String.format("%04d", nextSeq);
         shop.setNumber(number);
 
+        shop.setUpdatedByUser(SecurityUtils.getCurrentUsername());
+
         return shopRepository.save(shop);
     }
 
@@ -48,6 +51,8 @@ public class ShopService {
         shop.setCountry(dto.getCountry());
         shop.setNotes(dto.getNotes());
         shop.setDescription(dto.getDescription());
+
+        shop.setUpdatedByUser(SecurityUtils.getCurrentUsername());
 
         return shopRepository.save(shop);
     }

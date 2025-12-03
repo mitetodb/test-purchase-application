@@ -38,6 +38,8 @@ public class Customer {
     private LocalDateTime createdOn;
     private LocalDateTime updatedOn;
 
+    private String updatedByUser;
+
     @PrePersist
     public void onCreate() {
         this.createdOn = LocalDateTime.now();

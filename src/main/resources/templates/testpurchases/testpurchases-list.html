@@ -1,5 +1,8 @@
 <!DOCTYPE html>
-<html lang="en" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<html lang="en"
+      th:replace="~{layout :: layout(~{::title}, ~{::main})}"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
 <head>
     <title>Test Purchases</title>
 </head>
@@ -31,6 +34,7 @@
             <th>Total Price</th>
             <th>Status</th>
             <th>Created On</th>
+            <th sec:authorize="hasRole('ADMIN')">Updated By</th>
             <th>Actions</th>
         </tr>
 
@@ -44,6 +48,7 @@
             <th><input class="form-control form-control-sm column-filter" placeholder="Search Price"></th>
             <th><input class="form-control form-control-sm column-filter" placeholder="Search Status"></th>
             <th><input class="form-control form-control-sm column-filter" placeholder="Search Created"></th>
+            <th sec:authorize="hasRole('ADMIN')"><input class="form-control form-control-sm column-filter" placeholder="Search Updated"></th>
             <th></th>
         </tr>
         </thead>
@@ -59,6 +64,7 @@
             <td th:text="${p.productPrice}"></td>
             <td th:text="${p.status.getDisplayName()}"></td>
             <td th:text="${#temporals.format(p.createdOn, 'yyyy-MM-dd HH:mm')}"></td>
+            <td sec:authorize="hasRole('ADMIN')" th:text="${p.updatedByUser}"></td>
             <td>
                 <div class="d-flex gap-2">
                     <a th:href="@{'/testpurchases/view/' + ${p.id}}" class="btn btn-sm btn-info">

@@ -1,6 +1,7 @@
 package app.service;
 
 import app.config.SecurityConfig;
+import app.config.SecurityUtils;
 import app.model.dto.RegistrationDTO;
 import app.model.dto.UserCreateDTO;
 import app.model.dto.UserProfileDTO;
@@ -41,6 +42,8 @@ public class UserService {
                 .active(true)
                 .build();
 
+        user.setUpdatedByUser(null);
+
         return userRepository.save(user);
     }
 
@@ -65,6 +68,8 @@ public class UserService {
                 .country(userCreateDTO.getCountry())
                 .active(userCreateDTO.isActive())
                 .build();
+
+        user.setUpdatedByUser(SecurityUtils.getCurrentUsername());
 
         return userRepository.save(user);
     }
@@ -94,6 +99,8 @@ public class UserService {
         if (imageUrl != null) {
             user.setImageUrl(imageUrl);
         }
+
+        user.setUpdatedByUser(SecurityUtils.getCurrentUsername());
 
         userRepository.save(user);
     }

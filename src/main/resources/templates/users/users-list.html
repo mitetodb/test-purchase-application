@@ -27,6 +27,8 @@
             <th class="sortable">Role</th>
             <th class="sortable">Active</th>
             <th class="sortable">Created On</th>
+            <th sec:authorize="hasRole('ADMIN')" class="sortable">Updated By</th>
+
             <th>Actions</th>
         </tr>
         <tr>
@@ -37,6 +39,7 @@
             <th><input class="form-control form-control-sm column-filter" placeholder="Search role"></th>
             <th><input class="form-control form-control-sm column-filter" placeholder="Search active"></th>
             <th><input class="form-control form-control-sm column-filter" placeholder="Search created"></th>
+            <th sec:authorize="hasRole('ADMIN')"><input class="form-control form-control-sm column-filter" placeholder="Search updated"></th>
             <th></th>
         </tr>
         </thead>
@@ -48,10 +51,12 @@
             <td th:text="${u.email}"></td>
             <td th:text="${u.country.getDisplayName()}"></td>
             <td th:text="${u.role.getDisplayName()}"></td>
+
             <td>
                 <span th:text="${u.active ? 'Yes' : 'No'}"></span>
             </td>
             <td th:text="${#temporals.format(u.createdOn, 'yyyy-MM-dd HH:mm')}"></td>
+            <td sec:authorize="hasRole('ADMIN')" th:text="${u.updatedByUser}"></td>
 
             <td>
                 <a th:href="@{'/users/edit/' + ${u.id}}"

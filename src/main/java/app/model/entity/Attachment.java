@@ -39,6 +39,8 @@ public class Attachment {
     private LocalDateTime createdOn;
     private LocalDateTime updatedOn;
 
+    private String updatedByUser;
+
     @PrePersist
     public void prePersist() {
         createdOn = LocalDateTime.now();

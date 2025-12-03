@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html lang="en" th:replace="~{layout :: layout(~{::title}, ~{::main})}"
-      xmlns:th="http://www.thymeleaf.org">
-
+<html lang="en"
+      th:replace="~{layout :: layout(~{::title}, ~{::main})}"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
 <head>
     <title>Shops</title>
 </head>
@@ -21,12 +22,14 @@
             <th class="sortable">#</th>
             <th class="sortable">Name</th>
             <th class="sortable">Country</th>
+            <th sec:authorize="hasRole('ADMIN')" class="sortable">Updated By</th>
             <th>Actions</th>
         </tr>
         <tr>
             <th><input class="form-control form-control-sm column-filter" placeholder="Search #"></th>
             <th><input class="form-control form-control-sm column-filter" placeholder="Search Name"></th>
             <th><input class="form-control form-control-sm column-filter" placeholder="Search Country"></th>
+            <th sec:authorize="hasRole('ADMIN')"><input class="form-control form-control-sm column-filter" placeholder="Search Updated"></th>
             <th></th>
         </tr>
         </thead>
@@ -36,6 +39,7 @@
             <td th:text="${s.number}"></td>
             <td th:text="${s.name}"></td>
             <td th:text="${s.country.getDisplayName()}"></td>
+            <td sec:authorize="hasRole('ADMIN')" th:text="${s.updatedByUser}"></td>
             <td>
                 <a th:href="@{'/shops/edit/' + ${s.id}}" class="btn btn-warning btn-sm">Edit</a>
 

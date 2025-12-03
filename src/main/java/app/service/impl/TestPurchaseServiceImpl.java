@@ -1,6 +1,7 @@
 package app.service.impl;
 
 import app.client.PricingClient;
+import app.config.SecurityUtils;
 import app.model.dto.*;
 import app.model.entity.Customer;
 import app.model.entity.Item;
@@ -77,6 +78,8 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
         purchase.setServiceFee(responseDTO.getTestPurchaseFee());
         purchase.setPostageFee(responseDTO.getPostageFee());
 
+        purchase.setUpdatedByUser(SecurityUtils.getCurrentUsername());
+
         return testPurchaseRepository.save(purchase);
     }
 
@@ -109,6 +112,8 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
 
         // set total product price of all items
         purchase.setProductPrice(itemsTotalPrice(purchase));
+
+        purchase.setUpdatedByUser(SecurityUtils.getCurrentUsername());
 
         return testPurchaseRepository.save(purchase);
     }

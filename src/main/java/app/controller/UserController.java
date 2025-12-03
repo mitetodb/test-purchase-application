@@ -1,5 +1,6 @@
 package app.controller;
 
+import app.config.SecurityUtils;
 import app.model.dto.UserCreateDTO;
 import app.model.dto.UserEditDTO;
 import app.model.entity.User;
@@ -100,6 +101,7 @@ public class UserController {
         user.setCountry(userEditDTO.getCountry());
         user.setRole(userEditDTO.getRole());
         user.setActive(userEditDTO.isActive());
+        user.setUpdatedByUser(SecurityUtils.getCurrentUsername());
 
         userRepository.save(user);
 

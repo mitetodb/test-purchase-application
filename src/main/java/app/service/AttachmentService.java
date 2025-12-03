@@ -1,5 +1,6 @@
 package app.service;
 
+import app.config.SecurityUtils;
 import app.model.entity.Attachment;
 import app.model.entity.TestPurchase;
 import app.model.enums.AttachmentFileType;
@@ -45,6 +46,8 @@ public class AttachmentService {
                 .fileSize(file.getSize())
                 .filePath(storedPath)
                 .build();
+
+        att.setUpdatedByUser(SecurityUtils.getCurrentUsername());
 
         return attachmentRepository.save(att);
     }

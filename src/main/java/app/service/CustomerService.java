@@ -1,5 +1,6 @@
 package app.service;
 
+import app.config.SecurityUtils;
 import app.model.dto.CustomerDTO;
 import app.model.entity.Customer;
 import app.repository.CustomerRepository;
@@ -36,6 +37,8 @@ public class CustomerService {
         String number = String.format("%04d", nextSeq);
         customer.setNumber(number);
 
+        customer.setUpdatedByUser(SecurityUtils.getCurrentUsername());
+
         return customerRepository.save(customer);
     }
 
@@ -44,6 +47,7 @@ public class CustomerService {
 
         customer.setName(dto.getName());
         customer.setCategory(dto.getCategory());
+        customer.setUpdatedByUser(SecurityUtils.getCurrentUsername());
 
         return customerRepository.save(customer);
     }
