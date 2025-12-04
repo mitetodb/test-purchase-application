@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en"
+      th:replace="~{layout :: layout(~{::title}, ~{::main})}"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Error 400</title>
+</head>
+<body>
+<main>
+    <h2>Oops, something went wrong</h2>
+    <p th:text="${message}">400 bad request.</p>
+    <p th:if="${errorId}">
+        Error ID: <strong th:text="${errorId}"></strong>
+    </p>
+    <a th:href="@{/}" class="btn btn-primary mt-3">Back to home</a>
+</main>
+</body>
+</html>
