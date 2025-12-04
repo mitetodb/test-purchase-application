@@ -14,21 +14,24 @@
 
         <div class="mb-3">
             <label>Customer</label>
-            <select th:field="*{customerId}" class="form-control">
+            <label for="customer"></label><select id="customer" name="customer" autocomplete="customer" th:field="*{customerId}" class="form-control">
+                <option value="">--Select customer--</option>
                 <option th:each="c : ${customers}" th:value="${c.id}" th:text="${c.name}">Customer</option>
             </select>
         </div>
 
         <div class="mb-3">
             <label>Shop</label>
-            <select th:field="*{shopId}" class="form-control">
+            <label for="shop"></label><select id="shop" name="shop" autocomplete="shop" th:field="*{shopId}" class="form-control">
+                <option value="">--Select shop--</option>
                 <option th:each="s : ${shops}" th:value="${s.id}" th:text="${s.name}">Shop</option>
             </select>
         </div>
 
         <div class="mb-3">
             <label for="country">Country</label>
-            <select id="country" th:field="*{country}" class="form-control">
+            <select id="country" name="country" autocomplete="country" th:field="*{country}" class="form-control">
+                <option value="">--Select country--</option>
                 <option th:each="country : ${T(app.model.enums.Country).values()}"
                         th:value="${country}"
                         th:text="${country.getDisplayName()}">
@@ -39,7 +42,8 @@
 
         <div class="mb-3">
             <label for="category">Category</label>
-            <select id="category" th:field="*{category}" class="form-control">
+            <select id="category" name="category" autocomplete="category" th:field="*{category}" class="form-control">
+                <option value="">--Select category--</option>
                 <option th:each="category : ${T(app.model.enums.TestPurchaseCategory).values()}"
                         th:value="${category}"
                         th:text="${category.getDisplayName()}">
@@ -104,9 +108,35 @@
             </div>
         </div>
 
+
         <button class="btn btn-success mt-3" type="submit">Create</button>
+        <button class="btn btn-secondary mt-3"
+                type="submit"
+                formmethod="post"
+                th:formaction="@{/testpurchases/add/calculate-price}">Calculate Price</button>
         <a th:href="@{/testpurchases}" class="btn btn-secondary mt-3">Cancel</a>
     </form>
+
+
+    <div th:if="${price != null}" class="mt-3">
+        <h5>Calculated Price</h5>
+        <p>
+            Product total:
+            <span th:text="${price.productPrice}"></span>
+        </p>
+        <p>
+            Service fee:
+            <span th:text="${price.testPurchaseFee}"></span>
+        </p>
+        <p>
+            Postage fee:
+            <span th:text="${price.postageFee}"></span>
+        </p>
+    </div>
+
+    <div th:if="${priceError != null}" class="alert alert-warning mt-3">
+        <span th:text="${priceError}"></span>
+    </div>
 </main>
 </body>
 </html>

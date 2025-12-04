@@ -50,39 +50,74 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
         purchase.setType(dto.getType());
         purchase.setStatus(TestPurchaseStatus.INITIALISED);
 
-        // convert DTO items to entities
         List<Item> items = getItemList(dto.getItems(), purchase);
-
         purchase.setItems(items);
 
-        // set total product price of all items
         purchase.setProductPrice(itemsTotalPrice(purchase));
 
-        // generate unique TP number TP-1001
         Long lastSeq = testPurchaseRepository.findLastSequence();
         Long nextSeq = lastSeq + 1;
-
         String number = "TP-" + String.format("%04d", nextSeq);
         purchase.setNumber(number);
 
-        // create request DTO
-        PriceCalculationRequestDTO requestDTO = new PriceCalculationRequestDTO();
-        requestDTO.setCustomerId(purchase.getCustomer().getId());
-        requestDTO.setCountry(purchase.getCountry().name());
-        requestDTO.setCategory(purchase.getCategory().name());  // S/M/L/XL
-        requestDTO.setType(purchase.getType().name());          // FORWARDING_TO_CLIENT, RETURN_BACK_TO_SELLER
-        requestDTO.setProductTotal(itemsTotalPrice(purchase));
+        PriceCalculationResponseDTO responseDTO = calculatePriceInternal(
+                customer.getId(),
+                purchase.getCountry().name(),
+                purchase.getCategory().name(),
+                purchase.getType().name(),
+                itemsTotalPrice(purchase)
+        );
 
-        // call microservice
-        PriceCalculationResponseDTO responseDTO = pricingClient.calculatePrice(requestDTO);
-
-        // save returned prices
         purchase.setServiceFee(responseDTO.getTestPurchaseFee());
         purchase.setPostageFee(responseDTO.getPostageFee());
 
         purchase.setUpdatedByUser(SecurityUtils.getCurrentUsername());
 
         return testPurchaseRepository.save(purchase);
+    }
+
+    @Override
+    public PriceCalculationResponseDTO previewPrice(TestPurchaseCreateDTO dto) {
+
+        if (dto.getCustomerId() == null ||
+                dto.getShopId() == null ||
+                dto.getCountry() == null ||
+                dto.getCategory() == null ||
+                dto.getType() == null) {
+            throw new IllegalArgumentException("Customer, shop, country, category and type are required for price calculation.");
+        }
+
+        double productTotal = dto.getItems() == null
+                ? 0.0
+                : dto.getItems().stream()
+                .filter(i -> i.getQuantity() != null && i.getUnitPrice() != null)
+                .mapToDouble(i -> i.getQuantity() * i.getUnitPrice())
+                .sum();
+
+        return calculatePriceInternal(
+                dto.getCustomerId(),
+                dto.getCountry().name(),
+                dto.getCategory().name(),
+                dto.getType().name(),
+                productTotal
+        );
+    }
+
+    private PriceCalculationResponseDTO calculatePriceInternal(
+            UUID customerId,
+            String country,
+            String category,
+            String type,
+            double productTotal
+    ) {
+        PriceCalculationRequestDTO requestDTO = new PriceCalculationRequestDTO();
+        requestDTO.setCustomerId(customerId);
+        requestDTO.setCountry(country);
+        requestDTO.setCategory(category);
+        requestDTO.setType(type);
+        requestDTO.setProductTotal(productTotal);
+
+        return pricingClient.calculatePrice(requestDTO);
     }
 
     @Override

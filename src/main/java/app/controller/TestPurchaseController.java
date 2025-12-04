@@ -61,8 +61,27 @@ public class TestPurchaseController {
             return "testpurchases/testpurchase-add";
         }
 
-        testPurchaseService.create(dto);
+        testPurchaseService.create(dto);;
         return "redirect:/testpurchases";
+    }
+
+    @PostMapping("/add/calculate-price")
+    @PreAuthorize("hasAnyRole('ADMIN','ACCOUNT_MANAGER','CUSTOMER')")
+    public String calculatePriceOnCreate(
+            @ModelAttribute("dto") TestPurchaseCreateDTO dto,
+            Model model
+    ) {
+        try {
+            var price = testPurchaseService.previewPrice(dto);
+            model.addAttribute("price", price);
+        } catch (IllegalArgumentException ex) {
+            model.addAttribute("priceError", ex.getMessage());
+        }
+
+        model.addAttribute("customers", customerService.findAllForCurrentUser());
+        model.addAttribute("shops", shopService.findAll());
+
+        return "testpurchases/testpurchase-add";
     }
 
     @GetMapping("/edit/{id}")

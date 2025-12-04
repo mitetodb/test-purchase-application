@@ -1,5 +1,6 @@
 package app.service;
 
+import app.model.dto.PriceCalculationResponseDTO;
 import app.model.dto.TestPurchaseCreateDTO;
 import app.model.dto.TestPurchaseEditDTO;
 import app.model.entity.TestPurchase;
@@ -25,4 +26,6 @@ public interface TestPurchaseService {
     List<TestPurchase> findAllForCurrentUser();
 
     TestPurchase findByIdForCurrentUser(UUID id);
+
+    PriceCalculationResponseDTO previewPrice(TestPurchaseCreateDTO dto);
 }
