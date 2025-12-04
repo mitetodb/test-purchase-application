@@ -1,26 +1,19 @@
 package app.client;
 
+import app.config.FeignConfig;
 import app.model.dto.PriceCalculationRequestDTO;
 import app.model.dto.PriceCalculationResponseDTO;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
-import java.util.Map;
+@FeignClient(
+        name = "pricingClient",
+        url = "${pricing.api.base-url}",
+        configuration = FeignConfig.class
+)
+public interface PricingClient {
 
-@Service
-public class PricingClient {
-
-    @Value("${rest.microservice.url}")
-    private String restMicroserviceUrl;
-
-    private final RestTemplate restTemplate;
-
-    public PricingClient(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
-    }
-
-    public PriceCalculationResponseDTO calculatePrice(PriceCalculationRequestDTO request) {
-        return restTemplate.postForObject(restMicroserviceUrl, request, PriceCalculationResponseDTO.class);
-    }
+    @PostMapping("/api/pricing/calculate")
+    PriceCalculationResponseDTO calculatePrice(@RequestBody PriceCalculationRequestDTO request);
 }
