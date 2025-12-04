@@ -51,7 +51,7 @@
             <td th:text="${c.baseServiceFee}"></td>
             <td sec:authorize="hasRole('ADMIN')" th:text="${c.updatedByUser}"></td>
             <td>
-                <a th:if="${#authorization.expression('hasAnyRole(''ADMIN'',''ACCOUNT_MANAGER'')')}"
+                <a th:if="${#authorization.expression('hasAnyRole(''ADMIN'',''ACCOUNT_MANAGER'',''SALES_MANAGER'')')}"
                    th:href="@{'/customers/edit/' + ${c.id}}" class="btn btn-warning btn-sm">Edit</a>
 
                 <form th:if="${#authorization.expression('hasRole(''ADMIN'')')}"
