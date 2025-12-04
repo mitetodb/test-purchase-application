@@ -1,5 +1,6 @@
 package app.aop;
 
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.*;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 
+@Slf4j
 @Aspect
 @Component
 public class ActionLoggingAspect {
@@ -17,27 +19,31 @@ public class ActionLoggingAspect {
     @Before("execution(* app.controller..*(..))")
     public void logBefore(JoinPoint jp) {
         String username = getUsername();
-        System.out.println("➡️ BEFORE: User [" + username + "] calls: " +
-                jp.getSignature().toShortString() +
-                " with args: " + Arrays.toString(jp.getArgs()));
+        log.info("➡️ BEFORE: User [{}] calls: {} with args: {}",
+                username,
+                jp.getSignature().toShortString(),
+                Arrays.toString(jp.getArgs()));
     }
 
     // log for response
     @AfterReturning(pointcut = "execution(* app.controller..*(..))", returning = "result")
     public void logAfter(JoinPoint jp, Object result) {
         String username = getUsername();
-        System.out.println("✔️ AFTER RETURN: User [" + username + "] finished: " +
-                jp.getSignature().toShortString() +
-                " returned: " + result);
+        log.info("✔️ AFTER RETURN: User [{}] finished: {} returned: {}",
+                username,
+                jp.getSignature().toShortString(),
+                result);
     }
 
-    // 3) log for errors in controllers
+    // log for errors in controllers
     @AfterThrowing(pointcut = "execution(* app.controller..*(..))", throwing = "ex")
     public void logException(JoinPoint jp, Throwable ex) {
-        String username = getUsername();
-        System.out.println("❌ ERROR: User [" + username + "] caused exception in: "
-                + jp.getSignature().toShortString() +
-                " -> " + ex.getMessage());
+        String username = getUsername(); // твоя метод
+        log.error("❌ Controller error: user [{}], method [{}], message: {}",
+                username,
+                jp.getSignature().toShortString(),
+                ex.getMessage(),
+                ex);
     }
 
     // log for performance of service methods (measure execution time)
@@ -46,25 +52,24 @@ public class ActionLoggingAspect {
         long start = System.currentTimeMillis();
         String username = getUsername();
 
-        Object returned;
-
         try {
-            returned = pjp.proceed();
+            Object returned = pjp.proceed();
+            long diff = System.currentTimeMillis() - start;
+
+            log.info("⏱️ PERFORMANCE: [{}] executed {} in {} ms",
+                    username,
+                    pjp.getSignature().toShortString(),
+                    diff);
+
+            return returned;
         } catch (Throwable ex) {
-            System.out.println("🔥 SERVICE ERROR by [" + username + "] → " +
-                    pjp.getSignature().toShortString() +
-                    " | Message: " + ex.getMessage());
+            log.error("🔥 SERVICE ERROR by [{}] in {} | Message: {}",
+                    username,
+                    pjp.getSignature().toShortString(),
+                    ex.getMessage(),
+                    ex);
             throw ex;
         }
-
-        long end = System.currentTimeMillis();
-        long diff = end - start;
-
-        System.out.println("⏱️ PERFORMANCE: [" + username + "] executed " +
-                pjp.getSignature().toShortString() +
-                " in " + diff + "ms");
-
-        return returned;
     }
 
     // log for logged user
