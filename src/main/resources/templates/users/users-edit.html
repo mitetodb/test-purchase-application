@@ -12,60 +12,65 @@
 
     <h2>Edit User</h2>
 
-    <form th:action="@{'/users/edit/' + ${userEditDTO.id}}"
-          th:object="${userEditDTO}"
-          method="post">
+    <form th:action="@{|/users/edit/${userEditDTO.id}|}"
+      th:object="${userEditDTO}"
+      method="post">
 
-        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
-        <div class="mb-3">
-            <label>Username (cannot change)</label>
-            <input class="form-control" th:field="*{username}" readonly>
-        </div>
+    <div class="mb-3">
+        <label>Username (cannot change)</label>
+        <input class="form-control" th:field="*{username}" readonly>
+    </div>
 
-        <div class="mb-3">
-            <label>Email</label>
-            <input class="form-control" type="email" th:field="*{email}">
-        </div>
+    <div class="mb-3">
+        <label>Email</label>
+        <input class="form-control" type="email" th:field="*{email}">
+    </div>
 
-        <!--<div class="mb-3">
-            <label>New Password (leave empty to keep current)</label>
-            <input class="form-control" type="password" th:field="*{password}">
-        </div>-->
+    <div class="mb-3">
+        <label>Country</label>
+        <select class="form-control" th:field="*{country}">
+            <option th:each="c : ${T(app.model.enums.Country).values()}"
+                    th:value="${c}"
+                    th:text="${c.displayName}"></option>
+        </select>
+    </div>
 
-        <!--<div class="mb-3">
-            <label>Confirm Password</label>
-            <input class="form-control" type="password" th:field="*{confirmPassword}">
-        </div>-->
+    <div class="mb-3">
+        <label>Role</label>
+        <select class="form-control" th:field="*{role}">
+            <option th:each="r : ${T(app.model.enums.Role).values()}"
+                    th:value="${r}"
+                    th:text="${r.getDisplayName()}"></option>
+        </select>
+    </div>
 
-        <div class="mb-3">
-            <label>Country</label>
-            <select class="form-control" th:field="*{country}">
-                <option th:each="c : ${T(app.model.enums.Country).values()}"
-                        th:value="${c}"
-                        th:text="${c.displayName}"></option>
-            </select>
-        </div>
+    <div class="mb-3">
+        <label>
+            <input type="checkbox" th:field="*{active}"> Active
+        </label>
+    </div>
 
-        <div class="mb-3">
-            <label>Role</label>
-            <select class="form-control" th:field="*{role}">
-                <option th:each="r : ${T(app.model.enums.Role).values()}"
-                        th:value="${r}"
-                        th:text="${r.getDisplayName()}"></option>
-            </select>
-        </div>
+    <div class="form-group"
+          th:if="${userEditDTO.role == T(app.model.enums.Role).ACCOUNT_MANAGER}">
+        <label for="managedCustomers">Managed Customers</label>
+        <select id="managedCustomers"
+                class="form-control"
+                multiple="multiple"
+                th:field="*{managedCustomerIds}">
+            <option th:each="c : ${allCustomers}"
+                    th:value="${c.id}"
+                    th:text="${c.name}">
+            </option>
+        </select>
+        <small class="form-text text-muted">
+            Hold Ctrl (Cmd on Mac) to select multiple customers.
+        </small>
+    </div>
 
-        <div class="mb-3">
-            <label>
-                <input type="checkbox" th:field="*{active}"> Active
-            </label>
-        </div>
-
-        <button class="btn btn-warning">Update</button>
-        <a th:href="@{/users}" class="btn btn-secondary">Cancel</a>
-
-    </form>
+    <button type="submit" class="btn btn-primary">Save</button>
+</form>
 
 </main>
 </body>

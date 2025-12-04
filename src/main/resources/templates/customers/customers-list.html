@@ -24,6 +24,7 @@
             <th class="sortable">Category</th>
             <th class="sortable">Country</th>
             <th class="sortable">Email</th>
+            <th class="sortable">Service Fee</th>
             <th sec:authorize="hasRole('ADMIN')" class="sortable">Updated By</th>
             <th>Actions</th>
         </tr>
@@ -34,6 +35,7 @@
             <th><input class="form-control form-control-sm column-filter" placeholder="Search Category"></th>
             <th><input class="form-control form-control-sm column-filter" placeholder="Search Country"></th>
             <th><input class="form-control form-control-sm column-filter" placeholder="Search Email"></th>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Service Fee"></th>
             <th sec:authorize="hasRole('ADMIN')"><input class="form-control form-control-sm column-filter" placeholder="Search Updated"></th>
             <th></th>
         </tr>
@@ -46,9 +48,11 @@
             <td th:text="${c.category}"></td>
             <td th:text="${c.country}"></td>
             <td th:text="${c.email}"></td>
+            <td th:text="${c.baseServiceFee}"></td>
             <td sec:authorize="hasRole('ADMIN')" th:text="${c.updatedByUser}"></td>
             <td>
-                <a th:href="@{'/customers/edit/' + ${c.id}}" class="btn btn-warning btn-sm">Edit</a>
+                <a th:if="${#authorization.expression('hasAnyRole(''ADMIN'',''ACCOUNT_MANAGER'')')}"
+                   th:href="@{'/customers/edit/' + ${c.id}}" class="btn btn-warning btn-sm">Edit</a>
 
                 <form th:if="${#authorization.expression('hasRole(''ADMIN'')')}"
                       th:action="@{'/customers/delete/' + ${c.id}}"

@@ -1,148 +1,55 @@
 package app.service;
 
-import app.config.SecurityConfig;
-import app.config.SecurityUtils;
 import app.model.dto.RegistrationDTO;
 import app.model.dto.UserCreateDTO;
+import app.model.dto.UserEditDTO;
 import app.model.dto.UserProfileDTO;
+import app.model.entity.TestPurchase;
 import app.model.entity.User;
 import app.model.enums.Country;
 import app.model.enums.Role;
-import app.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
-import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
-@Service
-@RequiredArgsConstructor
-public class UserService {
+public interface UserService {
 
-    private final UserRepository userRepository;
-    private final SecurityConfig securityConfig;
+    User register(RegistrationDTO dto);
 
-    public User register(RegistrationDTO dto) {
+    long countUsers();
 
-        if (usernameExists(dto.getUsername())) {
-            throw new IllegalArgumentException("Username already taken.");
-        }
+    boolean usernameExists(String username);
 
-        if (!dto.getPassword().equals(dto.getConfirmPassword())) {
-            throw new IllegalArgumentException("Passwords do not match.");
-        }
+    User createUser(UserCreateDTO userCreateDTO);
 
-        User user = User.builder()
-                .username(dto.getUsername())
-                .password(securityConfig.passwordEncoder().encode(dto.getPassword()))
-                .role(dto.getRole())
-                .email(dto.getEmail())
-                .country(dto.getCountry())
-                .active(true)
-                .build();
+    UserProfileDTO getProfile(String username);
 
-        user.setUpdatedByUser(null);
+    void updateProfile(String username, UserProfileDTO dto, String imageUrl);
 
-        return userRepository.save(user);
-    }
+    void changePassword(User user, String newPassword);
 
-    public long countUsers() {
-        return userRepository.count();
-    }
+    Optional<User> findByUsername(String username);
 
-    public boolean usernameExists(String username) {
-        return userRepository.findByUsername(username).isPresent();
-    }
+    Optional<User> findByEmail(String email);
 
-    public User createUser(UserCreateDTO userCreateDTO) {
-        if (usernameExists(userCreateDTO.getUsername())) {
-            throw new IllegalArgumentException("Username already taken.");
-        }
+    long countActiveUsers();
 
-        User user = User.builder()
-                .username(userCreateDTO.getUsername())
-                .password(securityConfig.passwordEncoder().encode(userCreateDTO.getPassword()))
-                .email(userCreateDTO.getEmail())
-                .role(userCreateDTO.getRole())
-                .country(userCreateDTO.getCountry())
-                .active(userCreateDTO.isActive())
-                .build();
+    long countInactiveUsers();
 
-        user.setUpdatedByUser(SecurityUtils.getCurrentUsername());
+    Map<Role, Long> countUsersByRole();
 
-        return userRepository.save(user);
-    }
+    Map<Country, Long> countUsersByCountry();
 
-    public UserProfileDTO getProfile(String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    User getCurrentUser();
 
-        UserProfileDTO dto = new UserProfileDTO();
-        dto.setUsername(user.getUsername());
-        dto.setRole(user.getRole());
-        dto.setCreatedOn(user.getCreatedOn());
-        dto.setEmail(user.getEmail());
-        dto.setImageUrl(user.getImageUrl());
-        dto.setCountry(user.getCountry());
+    List<TestPurchase> findAllForCurrentUser();
 
-        return dto;
-    }
+    User findById(UUID id);
 
-    public void updateProfile(String username, UserProfileDTO dto, String imageUrl) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    void updateUserFromDto(UUID id, UserEditDTO dto);
 
-        user.setEmail(dto.getEmail());
-        user.setCountry(dto.getCountry());
-
-        if (imageUrl != null) {
-            user.setImageUrl(imageUrl);
-        }
-
-        user.setUpdatedByUser(SecurityUtils.getCurrentUsername());
-
-        userRepository.save(user);
-    }
-
-    public void changePassword(User user, String newPassword) {
-        user.setPassword(securityConfig.passwordEncoder().encode(newPassword));
-        userRepository.save(user);
-    }
-
-    public Optional<User> findByUsername(String username) {
-        return userRepository.findByUsername(username);
-    }
-
-    public Optional<User> findByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
-
-    public long countActiveUsers() {
-        return userRepository.countByActiveTrue();
-    }
-
-    public long countInactiveUsers() {
-        return userRepository.countByActiveFalse();
-    }
-
-    public Map<Role, Long> countUsersByRole() {
-        Map<Role, Long> result = new EnumMap<>(Role.class);
-        for (Role r : Role.values()) {
-            result.put(r, userRepository.countByRole(r));
-        }
-        return result;
-    }
-
-    public Map<Country, Long> countUsersByCountry() {
-        Map<Country, Long> result = new EnumMap<>(Country.class);
-        for (Country c : Country.values()) {
-            long cnt = userRepository.countByCountry(c);
-            if (cnt > 0) {
-                result.put(c, cnt);
-            }
-        }
-        return result;
-    }
+    User findByIdWithManagedCustomers(UUID id);
 
 }

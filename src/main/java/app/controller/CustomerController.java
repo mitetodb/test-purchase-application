@@ -11,13 +11,13 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/customers")
+@PreAuthorize("hasAnyRole('ADMIN','ACCOUNT_MANAGER','SALES_MANAGER')")
 public class CustomerController {
 
     private final CustomerService customerService;
@@ -57,6 +57,7 @@ public class CustomerController {
         dto.setCategory(customer.getCategory());
         dto.setCountry(customer.getCountry());
         dto.setEmail(customer.getEmail());
+        dto.setBaseServiceFee(customer.getBaseServiceFee());
 
         model.addAttribute("customerDTO", dto);
 

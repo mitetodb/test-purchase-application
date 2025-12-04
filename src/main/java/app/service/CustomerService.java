@@ -31,6 +31,7 @@ public class CustomerService {
                 .category(dto.getCategory())
                 .country(dto.getCountry())
                 .email(dto.getEmail())
+                .baseServiceFee(dto.getBaseServiceFee())
                 .build();
 
         Long lastSeq = customerRepository.findLastSequence();
@@ -51,6 +52,7 @@ public class CustomerService {
         customer.setCategory(dto.getCategory());
         customer.setEmail(dto.getEmail());
         customer.setCountry(dto.getCountry());
+        customer.setBaseServiceFee(dto.getBaseServiceFee());
         customer.setUpdatedByUser(SecurityUtils.getCurrentUsername());
 
         return customerRepository.save(customer);

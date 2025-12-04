@@ -1,12 +1,13 @@
 package app.controller;
 
-import app.config.SecurityUtils;
 import app.model.dto.UserCreateDTO;
 import app.model.dto.UserEditDTO;
+import app.model.entity.Customer;
 import app.model.entity.User;
 import app.model.enums.Country;
 import app.model.enums.Role;
 import app.repository.UserRepository;
+import app.service.CustomerService;
 import app.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ public class UserController {
 
     private final UserRepository userRepository;
     private final UserService userService;
+    private final CustomerService customerService;
 
     @GetMapping
     public String listUsers(Model model) {
@@ -62,48 +64,48 @@ public class UserController {
     }
 
     @GetMapping("/edit/{id}")
-    public String editForm(@PathVariable UUID id, Model model) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    public String showEditUserForm(@PathVariable UUID id, Model model) {
+        User user = userService.findByIdWithManagedCustomers(id);
 
-        UserEditDTO userEditDTO = new UserEditDTO();
-        userEditDTO.setId(user.getId());
-        userEditDTO.setUsername(user.getUsername());
-        userEditDTO.setEmail(user.getEmail());
-        userEditDTO.setRole(user.getRole());
-        userEditDTO.setCountry(user.getCountry());
-        userEditDTO.setActive(user.isActive());
+        UserEditDTO dto = new UserEditDTO();
+        dto.setId(user.getId());
+        dto.setUsername(user.getUsername());
+        dto.setEmail(user.getEmail());
+        dto.setCountry(user.getCountry());
+        dto.setRole(user.getRole());
+        dto.setActive(user.isActive());
 
-        model.addAttribute("userEditDTO", userEditDTO);
-        model.addAttribute("roles", Role.values());
-        model.addAttribute("countries", Country.values());
+        if (user.getManagedCustomers() != null) {
+            dto.setManagedCustomerIds(
+                    user.getManagedCustomers()
+                            .stream()
+                            .map(Customer::getId)
+                            .toList()
+            );
+        }
+
+        model.addAttribute("userEditDTO", dto);
+        model.addAttribute("allRoles", Role.values());
+        model.addAttribute("allCustomers", customerService.findAll());
+
         return "users/users-edit";
     }
 
     @PostMapping("/edit/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public String editUser(
             @PathVariable UUID id,
-            @Valid @ModelAttribute("userEditDTO") UserEditDTO userEditDTO,
-            BindingResult result,
-            Model model) {
-
-        if (result.hasErrors()) {
-            model.addAttribute("roles", Role.values());
-            model.addAttribute("countries", Country.values());
+            @Valid @ModelAttribute("userEditDTO") UserEditDTO dto,
+            BindingResult bindingResult,
+            Model model
+    ) {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("allRoles", Role.values());
+            model.addAttribute("allCustomers", customerService.findAll());
             return "users/users-edit";
         }
 
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-        user.setUsername(userEditDTO.getUsername());
-        user.setEmail(userEditDTO.getEmail());
-        user.setCountry(userEditDTO.getCountry());
-        user.setRole(userEditDTO.getRole());
-        user.setActive(userEditDTO.isActive());
-        user.setUpdatedByUser(SecurityUtils.getCurrentUsername());
-
-        userRepository.save(user);
+        userService.updateUserFromDto(id, dto);
 
         return "redirect:/users";
     }

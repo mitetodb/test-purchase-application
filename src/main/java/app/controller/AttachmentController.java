@@ -23,6 +23,7 @@ public class AttachmentController {
     private final FileStorageService storageService;
 
     @PostMapping("/upload")
+    @PreAuthorize("hasAnyRole('ADMIN','ACCOUNT_MANAGER','MYSTERY_SHOPPER')")
     public String upload(
             @RequestParam("testPurchaseId") UUID tpId,
             @RequestParam("file") MultipartFile file,

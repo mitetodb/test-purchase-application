@@ -3,16 +3,17 @@ package app.service.impl;
 import app.client.PricingClient;
 import app.config.SecurityUtils;
 import app.model.dto.*;
-import app.model.entity.Customer;
-import app.model.entity.Item;
-import app.model.entity.Shop;
-import app.model.entity.TestPurchase;
+import app.model.entity.*;
+import app.model.enums.Role;
 import app.model.enums.TestPurchaseStatus;
 import app.repository.CustomerRepository;
 import app.repository.ShopRepository;
 import app.repository.TestPurchaseRepository;
+import app.repository.UserRepository;
 import app.service.StatusHistoryService;
 import app.service.TestPurchaseService;
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
     private final ShopRepository shopRepository;
     private final PricingClient pricingClient;
     private final StatusHistoryService statusHistoryService;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
@@ -169,6 +171,69 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
         statusHistoryService.recordStatusChange(tp, oldStatus, newStatus, username, comment);
+    }
+
+    @Override
+    public List<TestPurchase> findAllForCurrentUser() {
+        User currentUser = getCurrentUser();
+        Role role = currentUser.getRole();
+
+        return switch (role) {
+            case ADMIN, SALES_MANAGER -> testPurchaseRepository.findAll();
+
+            case MYSTERY_SHOPPER ->
+                    testPurchaseRepository.findByMysteryShopper_Id(currentUser.getId());
+
+            case ACCOUNT_MANAGER ->
+                    testPurchaseRepository.findForAccountManager(currentUser.getId());
+
+            default -> List.of();
+        };
+    }
+
+    @Override
+    @Transactional
+    public TestPurchase findByIdForCurrentUser(UUID id) {
+        TestPurchase purchase = testPurchaseRepository.findByIdWithRelations(id)
+                .orElseThrow(() -> new EntityNotFoundException("TestPurchase not found"));
+
+        User currentUser = getCurrentUserWithManagedCustomers();
+        Role role = currentUser.getRole();
+
+        switch (role) {
+            case ADMIN, SALES_MANAGER:
+                return purchase;
+
+            case MYSTERY_SHOPPER:
+                if (purchase.getMysteryShopper() == null ||
+                        !purchase.getMysteryShopper().getId().equals(currentUser.getId())) {
+                    throw new AccessDeniedException("You are not allowed to view this test purchase");
+                }
+                return purchase;
+
+            case ACCOUNT_MANAGER:
+                if (purchase.getCustomer() == null ||
+                        currentUser.getManagedCustomers() == null ||
+                        !currentUser.getManagedCustomers().contains(purchase.getCustomer())) {
+                    throw new AccessDeniedException("You are not allowed to view this test purchase");
+                }
+                return purchase;
+
+            default:
+                throw new AccessDeniedException("You are not allowed to view this test purchase");
+        }
+    }
+
+    private User getCurrentUser() {
+        String username = SecurityUtils.getCurrentUsername();
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalStateException("Current user not found: " + username));
+    }
+
+    private User getCurrentUserWithManagedCustomers() {
+        String username = SecurityUtils.getCurrentUsername();
+        return userRepository.findByUsernameWithManagedCustomers(username)
+                .orElseThrow(() -> new IllegalStateException("Current user not found: " + username));
     }
 
 }

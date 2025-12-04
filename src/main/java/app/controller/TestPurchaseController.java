@@ -13,7 +13,6 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,12 +29,13 @@ public class TestPurchaseController {
 
     @GetMapping
     public String list(Model model) {
-        List<TestPurchase> purchases = testPurchaseService.findAll();
+        List<TestPurchase> purchases = testPurchaseService.findAllForCurrentUser();
         model.addAttribute("purchases", purchases);
         return "testpurchases/testpurchases-list";
     }
 
     @GetMapping("/add")
+    @PreAuthorize("hasAnyRole('ADMIN','ACCOUNT_MANAGER','CUSTOMER')")
     public String showAddForm(Model model) {
         if (!model.containsAttribute("dto")) {
             TestPurchaseCreateDTO dto = new TestPurchaseCreateDTO();
@@ -49,6 +49,7 @@ public class TestPurchaseController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyRole('ADMIN','ACCOUNT_MANAGER','CUSTOMER')")
     public String add(
             @Valid @ModelAttribute("dto") TestPurchaseCreateDTO dto,
             BindingResult bindingResult,
@@ -65,6 +66,7 @@ public class TestPurchaseController {
     }
 
     @GetMapping("/edit/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','ACCOUNT_MANAGER')")
     public String showEditForm(@PathVariable UUID id, Model model) {
         var purchase = testPurchaseService.findById(id);
 
@@ -91,6 +93,7 @@ public class TestPurchaseController {
     }
 
     @PostMapping("/edit/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','ACCOUNT_MANAGER')")
     public String edit(
             @PathVariable UUID id,
             @Valid @ModelAttribute("dto") TestPurchaseEditDTO dto,
@@ -116,7 +119,7 @@ public class TestPurchaseController {
 
     @GetMapping("/view/{id}")
     public String view(@PathVariable UUID id, Model model) {
-        TestPurchase purchase = testPurchaseService.findById(id);
+        TestPurchase purchase = testPurchaseService.findByIdForCurrentUser(id);
         model.addAttribute("purchase", purchase);
         model.addAttribute("attachments", attachmentService.getByTestPurchase(id));
         model.addAttribute("history", statusHistoryService.getHistory(id));
@@ -125,7 +128,7 @@ public class TestPurchaseController {
     }
 
     @PostMapping("/{id}/change-status")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','ACCOUNT_MANAGER','MYSTERY_SHOPPER')")
     public String changeStatus(@PathVariable UUID id,
                                @RequestParam TestPurchaseStatus newStatus,
                                @RequestParam(required = false) String comment) {

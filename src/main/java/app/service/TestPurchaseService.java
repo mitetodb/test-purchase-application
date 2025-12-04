@@ -21,4 +21,8 @@ public interface TestPurchaseService {
     List<TestPurchase> findAll();
 
     void changeStatus(UUID id, TestPurchaseStatus newStatus, String comment);
+
+    List<TestPurchase> findAllForCurrentUser();
+
+    TestPurchase findByIdForCurrentUser(UUID id);
 }

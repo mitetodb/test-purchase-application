@@ -11,13 +11,13 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/shops")
+@PreAuthorize("hasAnyRole('ADMIN','ACCOUNT_MANAGER','SALES_MANAGER')")
 public class ShopController {
 
     private final ShopService shopService;

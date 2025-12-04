@@ -6,8 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Builder
 @Getter
@@ -47,6 +46,14 @@ public class User {
 
     @OneToMany(mappedBy = "mysteryShopper", fetch = FetchType.LAZY)
     private List<TestPurchase> testPurchases;
+
+    @ManyToMany
+    @JoinTable(
+            name = "account_manager_customers",
+            joinColumns = @JoinColumn(name = "account_manager_id"),
+            inverseJoinColumns = @JoinColumn(name = "customer_id")
+    )
+    private Set<Customer> managedCustomers = new HashSet<>();
 
     private LocalDateTime createdOn;
     private LocalDateTime updatedOn;

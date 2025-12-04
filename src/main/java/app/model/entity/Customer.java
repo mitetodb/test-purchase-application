@@ -42,6 +42,8 @@ public class Customer {
 
     private String updatedByUser;
 
+    private Double baseServiceFee;
+
     @PrePersist
     public void onCreate() {
         this.createdOn = LocalDateTime.now();

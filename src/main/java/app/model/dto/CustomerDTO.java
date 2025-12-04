@@ -23,4 +23,7 @@ public class CustomerDTO {
     private Country country;
 
     private String email;
+
+    private Double baseServiceFee;
+
 }
