@@ -42,8 +42,6 @@ public interface UserService {
 
     Map<Country, Long> countUsersByCountry();
 
-    User getCurrentUser();
-
     List<TestPurchase> findAllForCurrentUser();
 
     User findById(UUID id);

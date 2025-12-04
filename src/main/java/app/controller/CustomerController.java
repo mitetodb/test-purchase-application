@@ -24,7 +24,7 @@ public class CustomerController {
 
     @GetMapping
     public String listCustomers(Model model) {
-        List<Customer> customers = customerService.findAll();
+        List<Customer> customers = customerService.findAllForCurrentUser();
         model.addAttribute("customers", customers);
         return "customers/customers-list";
     }
@@ -49,7 +49,7 @@ public class CustomerController {
 
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable UUID id, Model model) {
-        Customer customer = customerService.findById(id);
+        Customer customer = customerService.findByIdForCurrentUser(id);
 
         CustomerDTO dto = new CustomerDTO();
         dto.setId(customer.getId());

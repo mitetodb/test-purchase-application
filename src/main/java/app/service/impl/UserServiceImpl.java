@@ -31,6 +31,7 @@ public class UserServiceImpl implements UserService {
     private final SecurityConfig securityConfig;
     private final TestPurchaseRepository testPurchaseRepository;
 
+    @Override
     public User register(RegistrationDTO dto) {
 
         if (usernameExists(dto.getUsername())) {
@@ -55,14 +56,17 @@ public class UserServiceImpl implements UserService {
         return userRepository.save(user);
     }
 
+    @Override
     public long countUsers() {
         return userRepository.count();
     }
 
+    @Override
     public boolean usernameExists(String username) {
         return userRepository.findByUsername(username).isPresent();
     }
 
+    @Override
     public User createUser(UserCreateDTO userCreateDTO) {
         if (usernameExists(userCreateDTO.getUsername())) {
             throw new IllegalArgumentException("Username already taken.");
@@ -82,6 +86,7 @@ public class UserServiceImpl implements UserService {
         return userRepository.save(user);
     }
 
+    @Override
     public UserProfileDTO getProfile(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
@@ -97,6 +102,7 @@ public class UserServiceImpl implements UserService {
         return dto;
     }
 
+    @Override
     public void updateProfile(String username, UserProfileDTO dto, String imageUrl) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
@@ -113,27 +119,33 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
+    @Override
     public void changePassword(User user, String newPassword) {
         user.setPassword(securityConfig.passwordEncoder().encode(newPassword));
         userRepository.save(user);
     }
 
+    @Override
     public Optional<User> findByUsername(String username) {
         return userRepository.findByUsername(username);
     }
 
+    @Override
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
 
+    @Override
     public long countActiveUsers() {
         return userRepository.countByActiveTrue();
     }
 
+    @Override
     public long countInactiveUsers() {
         return userRepository.countByActiveFalse();
     }
 
+    @Override
     public Map<Role, Long> countUsersByRole() {
         Map<Role, Long> result = new EnumMap<>(Role.class);
         for (Role r : Role.values()) {
@@ -142,6 +154,7 @@ public class UserServiceImpl implements UserService {
         return result;
     }
 
+    @Override
     public Map<Country, Long> countUsersByCountry() {
         Map<Country, Long> result = new EnumMap<>(Country.class);
         for (Country c : Country.values()) {
@@ -153,6 +166,7 @@ public class UserServiceImpl implements UserService {
         return result;
     }
 
+    @Override
     public List<TestPurchase> findAllForCurrentUser() {
         User currentUser = getCurrentUser();
 
@@ -170,17 +184,19 @@ public class UserServiceImpl implements UserService {
         };
     }
 
-    public User getCurrentUser() {
+    private User getCurrentUser() {
         String username = SecurityUtils.getCurrentUsername();
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalStateException("Current user not found: " + username));
     }
 
+    @Override
     public User findById(UUID id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
     }
 
+    @Override
     @Transactional
     public void updateUserFromDto(UUID id, UserEditDTO dto) {
         User user = findByIdWithManagedCustomers(id);
@@ -202,6 +218,7 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
+    @Override
     @Transactional(readOnly = true)
     public User findByIdWithManagedCustomers(UUID id) {
         return userRepository.findByIdWithManagedCustomers(id)

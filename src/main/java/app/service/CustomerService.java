@@ -10,55 +10,19 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.UUID;
 
-@Service
-@RequiredArgsConstructor
-public class CustomerService {
+public interface CustomerService {
 
-    private final CustomerRepository customerRepository;
+    List<Customer> findAll();
 
-    public List<Customer> findAll() {
-        return customerRepository.findAll();
-    }
+    List<Customer> findAllForCurrentUser();
 
-    public Customer findById(UUID id) {
-        return customerRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Customer not found"));
-    }
+    Customer findById(UUID id);
 
-    public Customer create(CustomerDTO dto) {
-        Customer customer = Customer.builder()
-                .name(dto.getName())
-                .category(dto.getCategory())
-                .country(dto.getCountry())
-                .email(dto.getEmail())
-                .baseServiceFee(dto.getBaseServiceFee())
-                .build();
+    Customer findByIdForCurrentUser(UUID id);
 
-        Long lastSeq = customerRepository.findLastSequence();
-        long nextSeq = lastSeq + 1;
+    Customer create(CustomerDTO dto);
 
-        String number = String.format("%04d", nextSeq);
-        customer.setNumber(number);
+    Customer update(UUID id, CustomerDTO dto);
 
-        customer.setUpdatedByUser(SecurityUtils.getCurrentUsername());
-
-        return customerRepository.save(customer);
-    }
-
-    public Customer update(UUID id, CustomerDTO dto) {
-        Customer customer = findById(id);
-
-        customer.setName(dto.getName());
-        customer.setCategory(dto.getCategory());
-        customer.setEmail(dto.getEmail());
-        customer.setCountry(dto.getCountry());
-        customer.setBaseServiceFee(dto.getBaseServiceFee());
-        customer.setUpdatedByUser(SecurityUtils.getCurrentUsername());
-
-        return customerRepository.save(customer);
-    }
-
-    public void delete(UUID id) {
-        customerRepository.deleteById(id);
-    }
+    void delete(UUID id);
 }

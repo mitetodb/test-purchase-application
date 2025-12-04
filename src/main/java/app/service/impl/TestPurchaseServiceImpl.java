@@ -158,6 +158,7 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
         return testPurchaseRepository.findAll();
     }
 
+    @Override
     @Transactional
     public void changeStatus(UUID id, TestPurchaseStatus newStatus, String comment) {
         TestPurchase tp = testPurchaseRepository.findById(id)

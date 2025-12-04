@@ -34,7 +34,7 @@ public class SecurityConfig {
                         .requestMatchers("/attachments/**").authenticated()
                         .anyRequest().authenticated()
                 )
-                .exceptionHandling(ex -> ex
+                .exceptionHandling(exceptionHandling -> exceptionHandling
                         .accessDeniedPage("/access-denied")
                 )
                 .formLogin(form -> form

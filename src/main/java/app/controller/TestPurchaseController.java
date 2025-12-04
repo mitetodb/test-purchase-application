@@ -43,7 +43,7 @@ public class TestPurchaseController {
             model.addAttribute("dto", dto);
         }
 
-        model.addAttribute("customers", customerService.findAll());
+        model.addAttribute("customers", customerService.findAllForCurrentUser());
         model.addAttribute("shops", shopService.findAll());
         return "testpurchases/testpurchase-add";
     }
@@ -56,7 +56,7 @@ public class TestPurchaseController {
             Model model
     ) {
         if (bindingResult.hasErrors()) {
-            model.addAttribute("customers", customerService.findAll());
+            model.addAttribute("customers", customerService.findAllForCurrentUser());
             model.addAttribute("shops", shopService.findAll());
             return "testpurchases/testpurchase-add";
         }
@@ -86,7 +86,7 @@ public class TestPurchaseController {
         });
 
         model.addAttribute("dto", dto);
-        model.addAttribute("customers", customerService.findAll());
+        model.addAttribute("customers", customerService.findAllForCurrentUser());
         model.addAttribute("shops", shopService.findAll());
         model.addAttribute("purchase", purchase);
         return "testpurchases/testpurchase-edit";
@@ -101,7 +101,7 @@ public class TestPurchaseController {
             Model model
     ) {
         if (bindingResult.hasErrors()) {
-            model.addAttribute("customers", customerService.findAll());
+            model.addAttribute("customers", customerService.findAllForCurrentUser());
             model.addAttribute("shops", shopService.findAll());
             return "testpurchases/testpurchase-edit";
         }
