@@ -12,6 +12,8 @@ import app.repository.UserRepository;
 import app.service.CustomerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +39,7 @@ public class CustomerServiceImpl implements CustomerService {
     );
 
     @Override
+    @Cacheable(value = "customers", key = "'all'")
     public List<Customer> findAll() {
         return customerRepository.findAll();
     }
@@ -54,6 +57,7 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
+    @Cacheable(value = "customers", key = "#id")
     public Customer findById(UUID id) {
         return customerRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Customer not found"));
@@ -78,6 +82,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "customers", allEntries = true)
     public Customer create(CustomerDTO dto) {
         Customer customer = Customer.builder()
                 .name(dto.getName())
@@ -115,6 +120,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "customers", allEntries = true)
     public Customer update(UUID id, CustomerDTO dto) {
         Customer customer = findByIdForCurrentUser(id);
         customer.setName(dto.getName());
@@ -133,6 +139,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "customers", allEntries = true)
     public void delete(UUID id) {
         Customer customer = findByIdForCurrentUser(id);
 

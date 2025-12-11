@@ -1,5 +1,6 @@
 package app.config;
 
+import app.exception.ResourceNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,21 @@ public class RestExceptionHandler {
                         "timestamp", Instant.now(),
                         "status", 403,
                         "error", "Forbidden",
+                        "message", ex.getMessage(),
+                        "errorId", errorId
+                ));
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleResourceNotFound(ResourceNotFoundException ex) {
+        String errorId = UUID.randomUUID().toString();
+        log.warn("[REST {}] Resource not found: {}", errorId, ex.getMessage(), ex);
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of(
+                        "timestamp", Instant.now(),
+                        "status", 404,
+                        "error", "Not Found",
                         "message", ex.getMessage(),
                         "errorId", errorId
                 ));

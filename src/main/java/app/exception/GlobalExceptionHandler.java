@@ -1,4 +1,4 @@
-package app.config;
+package app.exception;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +19,16 @@ public class GlobalExceptionHandler {
     public String handleEntityNotFound(EntityNotFoundException ex, Model model) {
         String errorId = UUID.randomUUID().toString();
         log.warn("[{}] Entity not found: {}", errorId, ex.getMessage(), ex);
+
+        model.addAttribute("errorId", errorId);
+        model.addAttribute("message", ex.getMessage());
+        return "error/not-found";
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public String handleResourceNotFound(ResourceNotFoundException ex, Model model) {
+        String errorId = UUID.randomUUID().toString();
+        log.warn("[{}] Resource not found: {}", errorId, ex.getMessage(), ex);
 
         model.addAttribute("errorId", errorId);
         model.addAttribute("message", ex.getMessage());

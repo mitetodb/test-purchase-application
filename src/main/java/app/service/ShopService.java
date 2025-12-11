@@ -1,10 +1,13 @@
 package app.service;
 
 import app.config.SecurityUtils;
+import app.exception.ResourceNotFoundException;
 import app.model.dto.ShopDTO;
 import app.model.entity.Shop;
 import app.repository.ShopRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,15 +19,18 @@ public class ShopService {
 
     private final ShopRepository shopRepository;
 
+    @Cacheable(value = "shops", key = "'all'")
     public List<Shop> findAll() {
         return shopRepository.findAll();
     }
 
+    @Cacheable(value = "shops", key = "#id")
     public Shop findById(UUID id) {
         return shopRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Shop not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Shop not found with id: " + id));
     }
 
+    @CacheEvict(value = "shops", allEntries = true)
     public Shop create(ShopDTO dto) {
         Shop shop = Shop.builder()
                 .name(dto.getName())
@@ -44,6 +50,7 @@ public class ShopService {
         return shopRepository.save(shop);
     }
 
+    @CacheEvict(value = "shops", allEntries = true)
     public Shop update(UUID id, ShopDTO dto) {
         Shop shop = findById(id);
 
@@ -57,6 +64,7 @@ public class ShopService {
         return shopRepository.save(shop);
     }
 
+    @CacheEvict(value = "shops", allEntries = true)
     public void delete(UUID id) {
         shopRepository.deleteById(id);
     }
