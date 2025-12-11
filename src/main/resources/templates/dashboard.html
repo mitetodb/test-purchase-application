@@ -22,34 +22,74 @@
                 <span class="badge bg-gradient-primary" sec:authentication="principal.authorities"></span>
             </div>
 
-            <!-- Statistics Cards -->
+            <!-- Statistics Cards - Admin (All Statistics) -->
             <div sec:authorize="hasRole('ADMIN')" class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-card-icon">
                         <i class="fas fa-users"></i>
                     </div>
-                    <div class="stat-card-value">--</div>
+                    <div class="stat-card-value" th:text="${totalUsers}">--</div>
                     <div class="stat-card-label">Total Users</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-card-icon" style="background: var(--gradient-success);">
-                        <i class="fas fa-user-tie"></i>
-                    </div>
-                    <div class="stat-card-value">--</div>
-                    <div class="stat-card-label">Customers</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-card-icon" style="background: var(--gradient-warm);">
                         <i class="fas fa-shopping-cart"></i>
                     </div>
-                    <div class="stat-card-value">--</div>
+                    <div class="stat-card-value" th:text="${totalTestPurchases}">--</div>
                     <div class="stat-card-label">Test Purchases</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-icon" style="background: var(--gradient-success);">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div class="stat-card-value" th:text="${totalCustomers}">--</div>
+                    <div class="stat-card-label">Customers</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-card-icon" style="background: var(--gradient-secondary);">
                         <i class="fas fa-store"></i>
                     </div>
-                    <div class="stat-card-value">--</div>
+                    <div class="stat-card-value" th:text="${totalShops}">--</div>
+                    <div class="stat-card-label">Shops</div>
+                </div>
+            </div>
+
+            <!-- Statistics Cards - Account Manager & Sales Manager (Customers, Test Purchases, Shops) -->
+            <div sec:authorize="hasAnyRole('ACCOUNT_MANAGER', 'SALES_MANAGER')" class="stats-grid">
+
+                <div class="stat-card">
+                    <div class="stat-card-icon" style="background: var(--gradient-warm);">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="stat-card-value" th:text="${totalTestPurchases}">--</div>
+                    <div class="stat-card-label">Test Purchases</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-card-icon" style="background: var(--gradient-success);">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div class="stat-card-value" th:text="${totalCustomers}">--</div>
+                    <div class="stat-card-label">Customers</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-card-icon" style="background: var(--gradient-secondary);">
+                        <i class="fas fa-store"></i>
+                    </div>
+                    <div class="stat-card-value" th:text="${totalShops}">--</div>
+                    <div class="stat-card-label">Shops</div>
+                </div>
+            </div>
+
+            <!-- Statistics Cards - Customer & Mystery Shopper (Shops only) -->
+            <div sec:authorize="hasAnyRole('CUSTOMER', 'MYSTERY_SHOPPER')" class="stats-grid">
+
+                <div class="stat-card">
+                    <div class="stat-card-icon" style="background: var(--gradient-secondary);">
+                        <i class="fas fa-store"></i>
+                    </div>
+                    <div class="stat-card-value" th:text="${totalShops}">--</div>
                     <div class="stat-card-label">Shops</div>
                 </div>
             </div>
@@ -68,6 +108,17 @@
                             <h5>Manage Users</h5>
                             <p>View and manage all system users, roles, and permissions.</p>
                             <a th:href="@{/users}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-arrow-right me-1"></i> Open
+                            </a>
+                        </div>
+
+                        <div class="action-card" onclick="window.location.href='/testpurchases'">
+                            <div class="action-card-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <h5>Test Purchases</h5>
+                            <p>View and manage all test purchases in the system.</p>
+                            <a th:href="@{/testpurchases}" class="btn btn-primary btn-sm">
                                 <i class="fas fa-arrow-right me-1"></i> Open
                             </a>
                         </div>
@@ -94,16 +145,6 @@
                             </a>
                         </div>
 
-                        <div class="action-card" onclick="window.location.href='/testpurchases'">
-                            <div class="action-card-icon">
-                                <i class="fas fa-shopping-cart"></i>
-                            </div>
-                            <h5>Test Purchases</h5>
-                            <p>View and manage all test purchases in the system.</p>
-                            <a th:href="@{/testpurchases}" class="btn btn-primary btn-sm">
-                                <i class="fas fa-arrow-right me-1"></i> Open
-                            </a>
-                        </div>
                     </div>
                 </div>
 
@@ -111,6 +152,18 @@
                 <div sec:authorize="hasRole('ACCOUNT_MANAGER')">
                     <h4><i class="fas fa-briefcase me-2"></i>Account Management</h4>
                     <div class="action-cards">
+
+                        <div class="action-card" onclick="window.location.href='/testpurchases'">
+                            <div class="action-card-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <h5>Test Purchases</h5>
+                            <p>Monitor and manage test purchase orders.</p>
+                            <a th:href="@{/testpurchases}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-arrow-right me-1"></i> Open
+                            </a>
+                        </div>
+
                         <div class="action-card" onclick="window.location.href='/customers'">
                             <div class="action-card-icon">
                                 <i class="fas fa-user-tie"></i>
@@ -122,13 +175,13 @@
                             </a>
                         </div>
 
-                        <div class="action-card" onclick="window.location.href='/testpurchases'">
+                        <div class="action-card" onclick="window.location.href='/shops'">
                             <div class="action-card-icon">
-                                <i class="fas fa-shopping-cart"></i>
+                                <i class="fas fa-store"></i>
                             </div>
-                            <h5>Test Purchases</h5>
-                            <p>Monitor and manage test purchase orders.</p>
-                            <a th:href="@{/testpurchases}" class="btn btn-primary btn-sm">
+                            <h5>Shops</h5>
+                            <p>View shop information and performance metrics.</p>
+                            <a th:href="@{/shops}" class="btn btn-primary btn-sm">
                                 <i class="fas fa-arrow-right me-1"></i> Open
                             </a>
                         </div>
@@ -146,6 +199,17 @@
                             <h5>Test Purchases</h5>
                             <p>View and manage test purchase orders and sales data.</p>
                             <a th:href="@{/testpurchases}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-arrow-right me-1"></i> Open
+                            </a>
+                        </div>
+
+                        <div class="action-card" onclick="window.location.href='/customers'">
+                            <div class="action-card-icon">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            <h5>Manage Customers</h5>
+                            <p>View and manage customer accounts and relationships.</p>
+                            <a th:href="@{/customers}" class="btn btn-primary btn-sm">
                                 <i class="fas fa-arrow-right me-1"></i> Open
                             </a>
                         </div>
@@ -195,16 +259,6 @@
                 <div sec:authorize="hasRole('MYSTERY_SHOPPER')">
                     <h4><i class="fas fa-user-secret me-2"></i>My Assignments</h4>
                     <div class="action-cards">
-                        <div class="action-card" onclick="window.location.href='/ms/tasks'">
-                            <div class="action-card-icon">
-                                <i class="fas fa-tasks"></i>
-                            </div>
-                            <h5>My Assignments</h5>
-                            <p>View your assigned test purchase tasks and complete them.</p>
-                            <a th:href="@{/ms/tasks}" class="btn btn-primary btn-sm">
-                                <i class="fas fa-arrow-right me-1"></i> View Tasks
-                            </a>
-                        </div>
 
                         <div class="action-card" onclick="window.location.href='/testpurchases'">
                             <div class="action-card-icon">
