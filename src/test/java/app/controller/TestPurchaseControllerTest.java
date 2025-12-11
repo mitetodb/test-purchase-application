@@ -42,7 +42,7 @@ class TestPurchaseControllerTest {
     void testViewPageReturns200() throws Exception {
         TestPurchase tp = new TestPurchase();
         tp.setId(UUID.randomUUID());
-        tp.setNumber("TP-1000");
+        tp.setNumber("TP-1001");
         tp.setStatus(TestPurchaseStatus.INITIALISED);
 
         given(testPurchaseService.findByIdForCurrentUser(any(UUID.class)))
