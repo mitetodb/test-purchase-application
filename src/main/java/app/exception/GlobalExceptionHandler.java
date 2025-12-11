@@ -1,6 +1,7 @@
 package app.exception;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.ui.Model;
@@ -8,11 +9,13 @@ import org.springframework.validation.BindException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.UUID;
 
 @Slf4j
-@ControllerAdvice(basePackages = "app.controller")
+@ControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(EntityNotFoundException.class)
@@ -32,6 +35,19 @@ public class GlobalExceptionHandler {
 
         model.addAttribute("errorId", errorId);
         model.addAttribute("message", ex.getMessage());
+        return "error/not-found";
+    }
+
+    @ExceptionHandler({NoHandlerFoundException.class, NoResourceFoundException.class})
+    public String handleNotFound(HttpServletRequest request, Exception ex, Model model) {
+        String errorId = UUID.randomUUID().toString();
+        String requestedUrl = request.getRequestURI();
+        
+        log.warn("[{}] Page not found: {}", errorId, requestedUrl, ex);
+
+        model.addAttribute("errorId", errorId);
+        model.addAttribute("message", "The page you are looking for does not exist.");
+        model.addAttribute("requestedUrl", requestedUrl);
         return "error/not-found";
     }
 
@@ -71,7 +87,7 @@ public class GlobalExceptionHandler {
         log.error("[{}] Unexpected error", errorId, ex);
 
         model.addAttribute("errorId", errorId);
-        model.addAttribute("message", "Възникна неочаквана грешка. Моля, опитайте отново или се свържете с поддръжка.");
+        model.addAttribute("message", "An unexpected error occurred. Please try again or contact support.");
         return "error/general-error";
     }
 }
