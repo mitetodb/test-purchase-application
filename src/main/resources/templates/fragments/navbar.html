@@ -38,6 +38,11 @@
                             </a>
                         </li>
                         <li>
+                            <a class="dropdown-item" th:href="@{/testpurchases}">
+                                <i class="fas fa-user-tie me-2"></i> Test Purchases
+                            </a>
+                        </li>
+                        <li>
                             <a class="dropdown-item" th:href="@{/customers}">
                                 <i class="fas fa-user-tie me-2"></i> Customers
                             </a>
@@ -61,13 +66,18 @@
 
                     <ul class="dropdown-menu">
                         <li>
+                            <a class="dropdown-item" th:href="@{/testpurchases}">
+                                <i class="fas fa-shopping-cart me-2"></i> Test Purchases
+                            </a>
+                        </li>
+                        <li>
                             <a class="dropdown-item" th:href="@{/customers}">
                                 <i class="fas fa-user-tie me-2"></i> Customers
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item" th:href="@{/testpurchases}">
-                                <i class="fas fa-shopping-cart me-2"></i> Test Purchases
+                            <a class="dropdown-item" th:href="@{/shops}">
+                                <i class="fas fa-store me-2"></i> Shops
                             </a>
                         </li>
                     </ul>
@@ -89,6 +99,11 @@
                             </a>
                         </li>
                         <li>
+                            <a class="dropdown-item" th:href="@{/customers}">
+                                <i class="fas fa-user-tie me-2"></i> Customers
+                            </a>
+                        </li>
+                        <li>
                             <a class="dropdown-item" th:href="@{/shops}">
                                 <i class="fas fa-store me-2"></i> Shops
                             </a>
@@ -100,8 +115,8 @@
                 <!-- Mystery Shopper -->
                 <li class="nav-item"
                     sec:authorize="hasRole('MYSTERY_SHOPPER')">
-                    <a class="nav-link" th:href="@{/ms/tasks}">
-                        <i class="fas fa-tasks me-1"></i> My Assignments
+                    <a class="nav-link" th:href="@{/testpurchases}">
+                        <i class="fas fa-tasks me-1"></i> My Test Purchases
                     </a>
                 </li>
 

@@ -18,9 +18,9 @@ public interface TestPurchaseRepository extends JpaRepository<TestPurchase, UUID
     Optional<TestPurchase> findByIdWithRelations(UUID id);
 
     @Query("""
-    SELECT COALESCE(MAX(c.number), 0)
-    FROM TestPurchase c
-    """)
+        SELECT COALESCE(MAX(CAST(SUBSTRING(tp.number, 4) AS INTEGER)), 1000L)
+        FROM TestPurchase tp
+        """)
     Long findLastSequence();
 
     List<TestPurchase> findByMysteryShopper_Id(UUID mysteryShopperId);
