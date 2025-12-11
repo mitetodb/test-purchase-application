@@ -26,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class CustomerServiceTest {
@@ -98,12 +99,18 @@ class CustomerServiceTest {
         CustomerDTO dto = new CustomerDTO();
         dto.setName("New Customer");
         dto.setCountry(Country.BULGARIA);
+        dto.setBaseServiceFee(100.0);
 
         when(customerRepository.findLastSequence()).thenReturn(0L);
-        when(customerRepository.save(any(Customer.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(customerRepository.save(any(Customer.class))).thenAnswer(invocation -> {
+            Customer customer = invocation.getArgument(0);
+            if (customer.getId() == null) {
+                customer.setId(UUID.randomUUID());
+            }
+            return customer;
+        });
         when(userRepository.findByUsernameWithManagedCustomers(anyString())).thenReturn(Optional.of(adminUser));
-        when(userRepository.save(any(User.class))).thenReturn(adminUser);
-        doNothing().when(pricingCustomerClient).updateBaseFee(any(UUID.class), any());
+        lenient().doNothing().when(pricingCustomerClient).updateBaseFee(any(UUID.class), any());
 
         try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
             mockedSecurityUtils.when(SecurityUtils::getCurrentUsername).thenReturn("admin");
@@ -112,7 +119,9 @@ class CustomerServiceTest {
 
             assertThat(result.getName()).isEqualTo("New Customer");
             assertThat(result.getNumber()).isEqualTo("0001");
+            assertThat(result.getId()).isNotNull();
             verify(customerRepository).save(any(Customer.class));
+            verify(pricingCustomerClient).updateBaseFee(any(UUID.class), any());
         }
     }
 

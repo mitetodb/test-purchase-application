@@ -15,6 +15,7 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -35,7 +36,8 @@ class StatusSecurityTest {
         doNothing().when(testPurchaseService).changeStatus(any(UUID.class), any(), any());
 
         mockMvc.perform(post("/testpurchases/" + UUID.randomUUID() + "/change-status")
-                        .param("newStatus", "PRODUCT_ORDERED"))
+                        .param("newStatus", "PRODUCT_ORDERED")
+                        .with(csrf()))
                 .andExpect(status().is3xxRedirection());
     }
 

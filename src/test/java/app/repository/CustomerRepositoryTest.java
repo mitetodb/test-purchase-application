@@ -4,17 +4,26 @@ import app.model.entity.Customer;
 import app.model.enums.Country;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
+@org.springframework.boot.test.context.SpringBootTest
 @ActiveProfiles("test")
+@org.springframework.transaction.annotation.Transactional
 class CustomerRepositoryTest {
 
     @Autowired
     private CustomerRepository customerRepository;
+
+    @Autowired
+    private jakarta.persistence.EntityManager entityManager;
+
+    @org.junit.jupiter.api.BeforeEach
+    void setUp() {
+        // Force schema creation by accessing the database
+        entityManager.getMetamodel();
+    }
 
     @Test
     void testSaveAndFindCustomer() {

@@ -24,31 +24,38 @@ class ShopRepositoryTest {
                 .number("0001")
                 .build();
 
-        Shop saved = shopRepository.save(shop);
+        Shop saved = shopRepository.saveAndFlush(shop);
 
         assertThat(saved.getId()).isNotNull();
-        assertThat(shopRepository.findById(saved.getId())).isPresent();
+
+        var found = shopRepository.findById(saved.getId());
+        assertThat(found).isPresent();
+        assertThat(found.get().getNumber()).isEqualTo("0001");
+        assertThat(found.get().getName()).isEqualTo("Test Shop");
+        assertThat(found.get().getCountry()).isEqualTo(Country.BULGARIA);
     }
 
     @Test
     void testFindLastSequence() {
+        long base = shopRepository.findLastSequence();
+
         Shop shop1 = Shop.builder()
                 .name("Shop 1")
                 .country(Country.BULGARIA)
-                .number("0001")
+                .number(String.format("%04d", base + 1))
                 .build();
 
         Shop shop2 = Shop.builder()
                 .name("Shop 2")
                 .country(Country.BULGARIA)
-                .number("0002")
+                .number(String.format("%04d", base + 2))
                 .build();
 
-        shopRepository.save(shop1);
-        shopRepository.save(shop2);
+        shopRepository.saveAndFlush(shop1);
+        shopRepository.saveAndFlush(shop2);
 
         Long lastSeq = shopRepository.findLastSequence();
-        assertThat(lastSeq).isNotNull();
+        assertThat(lastSeq).isEqualTo(base + 2);
     }
 }
 

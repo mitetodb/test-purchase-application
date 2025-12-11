@@ -1,7 +1,6 @@
 package app.service;
 
 import app.client.PricingClient;
-import app.config.SecurityUtils;
 import app.model.dto.ItemDTO;
 import app.model.dto.PriceCalculationRequestDTO;
 import app.model.dto.PriceCalculationResponseDTO;
@@ -21,8 +20,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 import java.util.Optional;
@@ -131,18 +132,22 @@ class TestPurchaseServiceUnitTest {
                 .status(TestPurchaseStatus.INITIALISED)
                 .build();
 
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+        SecurityContextHolder.setContext(securityContext);
+
         when(testPurchaseRepository.findById(purchaseId)).thenReturn(Optional.of(purchase));
         when(testPurchaseRepository.save(any(TestPurchase.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn("admin");
         doNothing().when(statusHistoryService).recordStatusChange(any(), any(), any(), anyString(), anyString());
 
-        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
-            mockedSecurityUtils.when(SecurityUtils::getCurrentUsername).thenReturn("admin");
+        testPurchaseService.changeStatus(purchaseId, TestPurchaseStatus.PRODUCT_ORDERED, "Comment");
 
-            testPurchaseService.changeStatus(purchaseId, TestPurchaseStatus.PRODUCT_ORDERED, "Comment");
-
-            assertThat(purchase.getStatus()).isEqualTo(TestPurchaseStatus.PRODUCT_ORDERED);
-            verify(statusHistoryService).recordStatusChange(any(), any(), any(), anyString(), anyString());
-        }
+        assertThat(purchase.getStatus()).isEqualTo(TestPurchaseStatus.PRODUCT_ORDERED);
+        verify(statusHistoryService).recordStatusChange(any(), any(), any(), anyString(), anyString());
+        
+        SecurityContextHolder.clearContext();
     }
 }
 

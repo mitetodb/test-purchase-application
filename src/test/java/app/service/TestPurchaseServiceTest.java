@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@org.springframework.test.annotation.DirtiesContext(classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS)
 class TestPurchaseServiceTest {
 
     @Autowired
@@ -36,17 +37,30 @@ class TestPurchaseServiceTest {
     @Autowired
     private ShopRepository shopRepository;
 
+    @Autowired
+    private jakarta.persistence.EntityManagerFactory entityManagerFactory;
+
+    @org.junit.jupiter.api.BeforeEach
+    void setUp() {
+        // Force schema creation by accessing the database
+        try (jakarta.persistence.EntityManager em = entityManagerFactory.createEntityManager()) {
+            em.getMetamodel();
+        }
+    }
+
     @Test
     void testCreateTestPurchase() {
         Customer customer = new Customer();
         customer.setName("Apple");
         customer.setEmail("apple@example.com");
         customer.setCountry(Country.BULGARIA);
+        customer.setNumber("0001");
         customer = customerRepository.save(customer);
 
         Shop shop = new Shop();
         shop.setName("apple.bg");
         shop.setCountry(Country.BULGARIA);
+        shop.setNumber("0001");
         shop = shopRepository.save(shop);
 
         TestPurchaseCreateDTO dto = new TestPurchaseCreateDTO();

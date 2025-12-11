@@ -7,9 +7,9 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.UUID;
 
 public interface ShopRepository extends JpaRepository<Shop, UUID> {
-    @Query(
-            value = "SELECT COALESCE(MAX(CAST(number AS UNSIGNED)), 0) FROM shops",
-            nativeQuery = true
-    )
+    @Query("""
+    SELECT COALESCE(MAX(c.number), 0)
+    FROM Shop c
+    """)
     Long findLastSequence();
 }

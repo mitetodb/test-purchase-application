@@ -10,10 +10,10 @@ import java.util.UUID;
 
 public interface CustomerRepository extends JpaRepository<Customer, UUID> {
 
-    @Query(
-            value = "SELECT COALESCE(MAX(CAST(number AS UNSIGNED)), 0) FROM customers",
-            nativeQuery = true
-    )
+    @Query("""
+    SELECT COALESCE(MAX(c.number), 0)
+    FROM Customer c
+    """)
     Long findLastSequence();
 
     @Query("""

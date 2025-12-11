@@ -17,10 +17,10 @@ public interface TestPurchaseRepository extends JpaRepository<TestPurchase, UUID
         """)
     Optional<TestPurchase> findByIdWithRelations(UUID id);
 
-    @Query(
-            value = "SELECT COALESCE(MAX(CAST(SUBSTRING(number, 4) AS UNSIGNED)), 1000) FROM test_purchases",
-            nativeQuery = true
-    )
+    @Query("""
+    SELECT COALESCE(MAX(c.number), 0)
+    FROM TestPurchase c
+    """)
     Long findLastSequence();
 
     List<TestPurchase> findByMysteryShopper_Id(UUID mysteryShopperId);
