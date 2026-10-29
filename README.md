@@ -28,7 +28,7 @@ status workflow and history, attachments, and price calculation via a separate p
                     MySQL 8.4  (db: test_purchase_db, pricedb)  — no published ports
                          ▲
                cron: deploy/backup-mysql.sh (gzip, rotation)
-  optional: SMTP (ALL-INKL 465/SSL) · Mailpit (--profile mail, UI not public)
+  optional: SMTP (ALL-INKL 587/STARTTLS) · Mailpit (--profile mail, UI not public)
 ```
 
 ## Local run
@@ -73,7 +73,7 @@ Set a DNS A record for `testkauf.getinweb.de` pointing at the server before you 
 
 **Configuration** is env only (`.env.example` lists every variable). Key settings:
 `SPRING_PROFILES_ACTIVE=prod`, `APP_BASE_URL` (used in password-reset links), `PRICING_API_KEY` (sent as `X-API-Key`; it must match the pricing service),
-`ADMIN_PASSWORD` (the initial admin is created only when the users table is empty), `MAIL_ENABLED` (default `false`, so mail is a logged no-op; SMTP for ALL-INKL: `MAIL_HOST=w00d37b3.kasserver.com`, `MAIL_PORT=465` + `MAIL_SSL=true`, or `587` + `MAIL_STARTTLS=true`, `MAIL_USERNAME`/`MAIL_PASSWORD` from env, `MAIL_FROM=testkauf@getinweb.de`), `DEMO_DATA_ENABLED`, `SWAGGER_ENABLED`.
+`ADMIN_PASSWORD` (the initial admin is created only when the users table is empty), `MAIL_ENABLED` (default `false`, so mail is a logged no-op; SMTP for ALL-INKL: `MAIL_HOST=w00d37b3.kasserver.com`, `MAIL_PORT=587` + `MAIL_STARTTLS=true` (used on Hetzner, which blocks outbound 465), or `465` + `MAIL_SSL=true` elsewhere, `MAIL_USERNAME`/`MAIL_PASSWORD` from env, `MAIL_FROM=testkauf@getinweb.de`), `DEMO_DATA_ENABLED`, `SWAGGER_ENABLED`.
 
 **Database migrations.** Flyway runs `src/main/resources/db/migration`. `V1__baseline.sql` is the schema at the time Flyway was introduced.
 Existing databases are baselined at v1 automatically (`baseline-on-migrate`), and Hibernate runs with `ddl-auto=validate` in prod.
