@@ -204,7 +204,8 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
         tp.setStatus(newStatus);
         testPurchaseRepository.save(tp);
 
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth != null ? auth.getName() : "SYSTEM";
 
         statusHistoryService.recordStatusChange(tp, oldStatus, newStatus, username, comment);
     }

@@ -1,0 +1,124 @@
+# Production stack for https://testkauf.getinweb.de
+# Usage (from repo root):  cp .env.example deploy/.env && edit
+#   docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env up -d --build
+# Only the app is reachable from the host, and only on 127.0.0.1:${APP_HOST_PORT}.
+# MySQL, pricing-svc and Mailpit are on an internal network with NO published ports.
+name: testkauf
+
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    mem_limit: 768m
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set in deploy/.env}
+      DB_NAME: ${DB_NAME:-test_purchase_db}
+      DB_USERNAME: ${DB_USERNAME:?set in deploy/.env}
+      DB_PASSWORD: ${DB_PASSWORD:?set in deploy/.env}
+      PRICING_DB_NAME: ${PRICING_DB_NAME:-pricedb}
+      PRICING_DB_USERNAME: ${PRICING_DB_USERNAME:?set in deploy/.env}
+      PRICING_DB_PASSWORD: ${PRICING_DB_PASSWORD:?set in deploy/.env}
+    command: ["--innodb-buffer-pool-size=256M", "--max-connections=60"]
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d:ro
+    networks: [backend]
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+
+  pricing-svc:
+    image: ${PRICING_IMAGE:-testkauf/pricing-svc:local}
+    build:
+      context: ${PRICING_BUILD_CONTEXT:-../../price-calculation-microservice}
+    restart: unless-stopped
+    mem_limit: 384m
+    environment:
+      DB_URL: jdbc:mysql://db:3306/${PRICING_DB_NAME:-pricedb}?allowPublicKeyRetrieval=true&useSSL=false
+      DB_USERNAME: ${PRICING_DB_USERNAME}
+      DB_PASSWORD: ${PRICING_DB_PASSWORD}
+      PRICING_API_KEY: ${PRICING_API_KEY:?set in deploy/.env}
+      JAVA_OPTS: -XX:MaxRAMPercentage=75
+    depends_on:
+      db: { condition: service_healthy }
+    networks: [backend]
+    # no ports: reachable only as http://pricing-svc:8081/api inside the network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8081/api/actuator/health | grep -q UP"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+
+  app:
+    image: testkauf/test-purchase-app:local
+    build:
+      context: ..
+    restart: unless-stopped
+    mem_limit: 640m
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      DB_URL: jdbc:mysql://db:3306/${DB_NAME:-test_purchase_db}?allowPublicKeyRetrieval=true&useSSL=false
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      PRICING_API_BASE_URL: ${PRICING_API_BASE_URL:-http://pricing-svc:8081}
+      PRICING_API_KEY: ${PRICING_API_KEY}
+      APP_BASE_URL: ${APP_BASE_URL:-https://testkauf.getinweb.de}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
+      DEMO_DATA_ENABLED: ${DEMO_DATA_ENABLED:-false}
+      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-false}
+      MAIL_ENABLED: ${MAIL_ENABLED:-false}
+      MAIL_HOST: ${MAIL_HOST:-mailpit}
+      MAIL_PORT: ${MAIL_PORT:-1025}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH:-false}
+      MAIL_STARTTLS: ${MAIL_STARTTLS:-false}
+      MAIL_FROM: ${MAIL_FROM:-}
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      db: { condition: service_healthy }
+      pricing-svc: { condition: service_healthy }
+    networks: [backend, edge]
+    ports:
+      # Option A (default): host nginx proxies to 127.0.0.1:APP_HOST_PORT. Never 0.0.0.0.
+      - "127.0.0.1:${APP_HOST_PORT:-8090}:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/actuator/health | grep -q UP"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
+
+  # Optional dev mail catcher: docker compose ... --profile mail up -d
+  # UI is NOT published; view it via SSH tunnel: ssh -L 8025:<mailpit-ip>:8025 host  (or docker exec)
+  mailpit:
+    image: axllent/mailpit:v1.21
+    profiles: ["mail"]
+    restart: unless-stopped
+    mem_limit: 64m
+    networks: [backend]
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  backend:
+    internal: true      # no outbound/inbound internet; DB + pricing live only here
+  edge: {}              # gives the app egress (e.g. real SMTP) and the host port mapping
+  # Option B: join the existing proxy's docker network instead of a host port.
+  # Uncomment, set the name, add "proxy" to app.networks and remove app.ports.
+  # proxy:
+  #   external: true
+  #   name: existing_proxy_network
+
+volumes:
+  db-data:
+  uploads:

@@ -3,7 +3,7 @@
 
         <a class="navbar-brand d-flex align-items-center" th:href="@{/}">
             <i class="fas fa-shopping-bag me-2"></i>
-            <span>Test Purchase System</span>
+            <span th:text="#{app.name}">Test Purchase System</span>
         </a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
@@ -19,7 +19,7 @@
                 <li class="nav-item"
                     sec:authorize="isAuthenticated()">
                     <a class="nav-link" th:href="@{/dashboard}">
-                        <i class="fas fa-home me-1"></i> Dashboard
+                        <i class="fas fa-home me-1"></i> <span th:text="#{nav.dashboard}">Dashboard</span>
                     </a>
                 </li>
 
@@ -28,28 +28,28 @@
                     sec:authorize="hasRole('ADMIN')">
 
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-shield-alt me-1"></i> Admin
+                        <i class="fas fa-shield-alt me-1"></i> <span th:text="#{nav.admin}">Admin</span>
                     </a>
 
                     <ul class="dropdown-menu">
                         <li>
                             <a class="dropdown-item" th:href="@{/users}">
-                                <i class="fas fa-users me-2"></i> Users
+                                <i class="fas fa-users me-2"></i> <span th:text="#{nav.users}">Users</span>
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item" th:href="@{/testpurchases}">
-                                <i class="fas fa-user-tie me-2"></i> Test Purchases
+                                <i class="fas fa-user-tie me-2"></i> <span th:text="#{nav.testpurchases}">Test Purchases</span>
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item" th:href="@{/customers}">
-                                <i class="fas fa-user-tie me-2"></i> Customers
+                                <i class="fas fa-user-tie me-2"></i> <span th:text="#{nav.customers}">Customers</span>
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item" th:href="@{/shops}">
-                                <i class="fas fa-store me-2"></i> Shops
+                                <i class="fas fa-store me-2"></i> <span th:text="#{nav.shops}">Shops</span>
                             </a>
                         </li>
                     </ul>
@@ -61,23 +61,23 @@
                     sec:authorize="hasRole('ACCOUNT_MANAGER')">
 
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-briefcase me-1"></i> Management
+                        <i class="fas fa-briefcase me-1"></i> <span th:text="#{nav.management}">Management</span>
                     </a>
 
                     <ul class="dropdown-menu">
                         <li>
                             <a class="dropdown-item" th:href="@{/testpurchases}">
-                                <i class="fas fa-shopping-cart me-2"></i> Test Purchases
+                                <i class="fas fa-shopping-cart me-2"></i> <span th:text="#{nav.testpurchases}">Test Purchases</span>
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item" th:href="@{/customers}">
-                                <i class="fas fa-user-tie me-2"></i> Customers
+                                <i class="fas fa-user-tie me-2"></i> <span th:text="#{nav.customers}">Customers</span>
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item" th:href="@{/shops}">
-                                <i class="fas fa-store me-2"></i> Shops
+                                <i class="fas fa-store me-2"></i> <span th:text="#{nav.shops}">Shops</span>
                             </a>
                         </li>
                     </ul>
@@ -89,23 +89,23 @@
                     sec:authorize="hasRole('SALES_MANAGER')">
 
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-chart-line me-1"></i> Sales
+                        <i class="fas fa-chart-line me-1"></i> <span th:text="#{nav.sales}">Sales</span>
                     </a>
 
                     <ul class="dropdown-menu">
                         <li>
                             <a class="dropdown-item" th:href="@{/testpurchases}">
-                                <i class="fas fa-shopping-cart me-2"></i> Test Purchases
+                                <i class="fas fa-shopping-cart me-2"></i> <span th:text="#{nav.testpurchases}">Test Purchases</span>
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item" th:href="@{/customers}">
-                                <i class="fas fa-user-tie me-2"></i> Customers
+                                <i class="fas fa-user-tie me-2"></i> <span th:text="#{nav.customers}">Customers</span>
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item" th:href="@{/shops}">
-                                <i class="fas fa-store me-2"></i> Shops
+                                <i class="fas fa-store me-2"></i> <span th:text="#{nav.shops}">Shops</span>
                             </a>
                         </li>
                     </ul>
@@ -116,7 +116,7 @@
                 <li class="nav-item"
                     sec:authorize="hasRole('MYSTERY_SHOPPER')">
                     <a class="nav-link" th:href="@{/testpurchases}">
-                        <i class="fas fa-tasks me-1"></i> My Test Purchases
+                        <i class="fas fa-tasks me-1"></i> <span th:text="#{nav.my}">My Test Purchases</span>
                     </a>
                 </li>
 
@@ -124,7 +124,7 @@
                 <li class="nav-item"
                     sec:authorize="hasRole('CUSTOMER')">
                     <a class="nav-link" th:href="@{/testpurchases}">
-                        <i class="fas fa-shopping-cart me-1"></i> My Test Purchases
+                        <i class="fas fa-shopping-cart me-1"></i> <span th:text="#{nav.my}">My Test Purchases</span>
                     </a>
                 </li>
 
@@ -133,15 +133,27 @@
             <!-- Right side -->
             <ul class="navbar-nav">
 
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                       th:attr="aria-label=#{lang.label}">
+                        <i class="fas fa-globe me-1"></i> <span th:text="${#locale.language.toUpperCase()}">EN</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" th:href="@{''(lang='bg')}">Български</a></li>
+                        <li><a class="dropdown-item" th:href="@{''(lang='en')}">English</a></li>
+                        <li><a class="dropdown-item" th:href="@{''(lang='de')}">Deutsch</a></li>
+                    </ul>
+                </li>
+
                 <li class="nav-item" sec:authorize="isAnonymous()">
                     <a class="nav-link" th:href="@{/login}">
-                        <i class="fas fa-sign-in-alt me-1"></i> Login
+                        <i class="fas fa-sign-in-alt me-1"></i> <span th:text="#{nav.login}">Login</span>
                     </a>
                 </li>
 
                 <li class="nav-item" sec:authorize="isAnonymous()">
                     <a class="nav-link" th:href="@{/register}">
-                        <i class="fas fa-user-plus me-1"></i> Register
+                        <i class="fas fa-user-plus me-1"></i> <span th:text="#{nav.register}">Register</span>
                     </a>
                 </li>
 
@@ -155,7 +167,7 @@
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li>
                             <a class="dropdown-item" th:href="@{/profile}">
-                                <i class="fas fa-user me-2"></i> Profile
+                                <i class="fas fa-user me-2"></i> <span th:text="#{nav.profile}">Profile</span>
                             </a>
                         </li>
                         <li><hr class="dropdown-divider"></li>
@@ -163,7 +175,7 @@
                             <form th:action="@{/logout}" method="post">
                                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                                 <button class="dropdown-item" type="submit">
-                                    <i class="fas fa-sign-out-alt me-2"></i> Logout
+                                    <i class="fas fa-sign-out-alt me-2"></i> <span th:text="#{nav.logout}">Logout</span>
                                 </button>
                             </form>
                         </li>
