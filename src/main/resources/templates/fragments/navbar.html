@@ -7,7 +7,7 @@
         </a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation" th:aria-label="#{ui.toggle_navigation.6c71}">
             <span class="navbar-toggler-icon"></span>
         </button>
 
@@ -140,8 +140,8 @@
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><a class="dropdown-item" th:href="@{''(lang='bg')}">Български</a></li>
-                        <li><a class="dropdown-item" th:href="@{''(lang='en')}">English</a></li>
-                        <li><a class="dropdown-item" th:href="@{''(lang='de')}">Deutsch</a></li>
+                        <li><a class="dropdown-item" th:href="@{''(lang='en')}" th:text="#{ui.english.7846}">English</a></li>
+                        <li><a class="dropdown-item" th:href="@{''(lang='de')}" th:text="#{ui.deutsch.8f0c}">Deutsch</a></li>
                     </ul>
                 </li>
 

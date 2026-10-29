@@ -3,7 +3,7 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
 <head>
-    <title>Dashboard</title>
+    <title th:text="#{ui.dashboard.2938}">Dashboard</title>
 </head>
 <body>
 <main>
@@ -11,9 +11,9 @@
         <div class="col-12">
             <!-- Dashboard Header -->
             <div class="dashboard-header">
-                <h2 class="text-gradient">Dashboard</h2>
+                <h2 class="text-gradient" th:text="#{ui.dashboard.2938}">Dashboard</h2>
                 <p class="dashboard-welcome">
-                    Welcome back, <strong sec:authentication="name"></strong>!
+                    <th:block th:text="#{ui.welcome_back.a6b2}">Welcome back,</th:block> <strong sec:authentication="name"></strong>!
                 </p>
             </div>
 
@@ -29,28 +29,28 @@
                         <i class="fas fa-users"></i>
                     </div>
                     <div class="stat-card-value" th:text="${totalUsers}">--</div>
-                    <div class="stat-card-label">Total Users</div>
+                    <div class="stat-card-label" th:text="#{ui.total_users.7194}">Total Users</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-card-icon" style="background: var(--gradient-warm);">
                         <i class="fas fa-shopping-cart"></i>
                     </div>
                     <div class="stat-card-value" th:text="${totalTestPurchases}">--</div>
-                    <div class="stat-card-label">Test Purchases</div>
+                    <div class="stat-card-label" th:text="#{ui.test_purchases.b6c5}">Test Purchases</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-card-icon" style="background: var(--gradient-success);">
                         <i class="fas fa-user-tie"></i>
                     </div>
                     <div class="stat-card-value" th:text="${totalCustomers}">--</div>
-                    <div class="stat-card-label">Customers</div>
+                    <div class="stat-card-label" th:text="#{ui.customers.e6d0}">Customers</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-card-icon" style="background: var(--gradient-secondary);">
                         <i class="fas fa-store"></i>
                     </div>
                     <div class="stat-card-value" th:text="${totalShops}">--</div>
-                    <div class="stat-card-label">Shops</div>
+                    <div class="stat-card-label" th:text="#{ui.shops.12a5}">Shops</div>
                 </div>
             </div>
 
@@ -62,7 +62,7 @@
                         <i class="fas fa-shopping-cart"></i>
                     </div>
                     <div class="stat-card-value" th:text="${totalTestPurchases}">--</div>
-                    <div class="stat-card-label">Test Purchases</div>
+                    <div class="stat-card-label" th:text="#{ui.test_purchases.b6c5}">Test Purchases</div>
                 </div>
 
                 <div class="stat-card">
@@ -70,7 +70,7 @@
                         <i class="fas fa-user-tie"></i>
                     </div>
                     <div class="stat-card-value" th:text="${totalCustomers}">--</div>
-                    <div class="stat-card-label">Customers</div>
+                    <div class="stat-card-label" th:text="#{ui.customers.e6d0}">Customers</div>
                 </div>
 
                 <div class="stat-card">
@@ -78,7 +78,7 @@
                         <i class="fas fa-store"></i>
                     </div>
                     <div class="stat-card-value" th:text="${totalShops}">--</div>
-                    <div class="stat-card-label">Shops</div>
+                    <div class="stat-card-label" th:text="#{ui.shops.12a5}">Shops</div>
                 </div>
             </div>
 
@@ -90,7 +90,7 @@
                         <i class="fas fa-store"></i>
                     </div>
                     <div class="stat-card-value" th:text="${totalShops}">--</div>
-                    <div class="stat-card-label">Shops</div>
+                    <div class="stat-card-label" th:text="#{ui.shops.12a5}">Shops</div>
                 </div>
             </div>
 
@@ -99,16 +99,16 @@
 
                 <!-- Admin Quick Actions -->
                 <div sec:authorize="hasRole('ADMIN')">
-                    <h4><i class="fas fa-bolt me-2"></i>Admin Quick Actions</h4>
+                    <h4><i class="fas fa-bolt me-2"></i><th:block th:text="#{ui.admin_quick_actions.99a3}">Admin Quick Actions</th:block></h4>
                     <div class="action-cards">
                         <div class="action-card" onclick="window.location.href='/users'">
                             <div class="action-card-icon">
                                 <i class="fas fa-users"></i>
                             </div>
-                            <h5>Manage Users</h5>
-                            <p>View and manage all system users, roles, and permissions.</p>
+                            <h5 th:text="#{ui.manage_users.6831}">Manage Users</h5>
+                            <p th:text="#{ui.view_and_manage_all_system_users_roles_a.b95d}">View and manage all system users, roles, and permissions.</p>
                             <a th:href="@{/users}" class="btn btn-primary btn-sm">
-                                <i class="fas fa-arrow-right me-1"></i> Open
+                                <i class="fas fa-arrow-right me-1"></i> <th:block th:text="#{ui.open.c3bf}">Open</th:block>
                             </a>
                         </div>
 
@@ -116,10 +116,10 @@
                             <div class="action-card-icon">
                                 <i class="fas fa-shopping-cart"></i>
                             </div>
-                            <h5>Test Purchases</h5>
-                            <p>View and manage all test purchases in the system.</p>
+                            <h5 th:text="#{ui.test_purchases.b6c5}">Test Purchases</h5>
+                            <p th:text="#{ui.view_and_manage_all_test_purchases_in_th.2037}">View and manage all test purchases in the system.</p>
                             <a th:href="@{/testpurchases}" class="btn btn-primary btn-sm">
-                                <i class="fas fa-arrow-right me-1"></i> Open
+                                <i class="fas fa-arrow-right me-1"></i> <th:block th:text="#{ui.open.c3bf}">Open</th:block>
                             </a>
                         </div>
 
@@ -127,10 +127,10 @@
                             <div class="action-card-icon">
                                 <i class="fas fa-user-tie"></i>
                             </div>
-                            <h5>Manage Customers</h5>
-                            <p>View and manage customer accounts and information.</p>
+                            <h5 th:text="#{ui.manage_customers.c404}">Manage Customers</h5>
+                            <p th:text="#{ui.view_and_manage_customer_accounts_and_in.32f5}">View and manage customer accounts and information.</p>
                             <a th:href="@{/customers}" class="btn btn-primary btn-sm">
-                                <i class="fas fa-arrow-right me-1"></i> Open
+                                <i class="fas fa-arrow-right me-1"></i> <th:block th:text="#{ui.open.c3bf}">Open</th:block>
                             </a>
                         </div>
 
@@ -138,10 +138,10 @@
                             <div class="action-card-icon">
                                 <i class="fas fa-store"></i>
                             </div>
-                            <h5>Manage Shops</h5>
-                            <p>View and manage shop information and settings.</p>
+                            <h5 th:text="#{ui.manage_shops.e601}">Manage Shops</h5>
+                            <p th:text="#{ui.view_and_manage_shop_information_and_set.92b6}">View and manage shop information and settings.</p>
                             <a th:href="@{/shops}" class="btn btn-primary btn-sm">
-                                <i class="fas fa-arrow-right me-1"></i> Open
+                                <i class="fas fa-arrow-right me-1"></i> <th:block th:text="#{ui.open.c3bf}">Open</th:block>
                             </a>
                         </div>
 
@@ -150,17 +150,17 @@
 
                 <!-- Account Manager Quick Actions -->
                 <div sec:authorize="hasRole('ACCOUNT_MANAGER')">
-                    <h4><i class="fas fa-briefcase me-2"></i>Account Management</h4>
+                    <h4><i class="fas fa-briefcase me-2"></i><th:block th:text="#{ui.account_management.09f0}">Account Management</th:block></h4>
                     <div class="action-cards">
 
                         <div class="action-card" onclick="window.location.href='/testpurchases'">
                             <div class="action-card-icon">
                                 <i class="fas fa-shopping-cart"></i>
                             </div>
-                            <h5>Test Purchases</h5>
-                            <p>Monitor and manage test purchase orders.</p>
+                            <h5 th:text="#{ui.test_purchases.b6c5}">Test Purchases</h5>
+                            <p th:text="#{ui.monitor_and_manage_test_purchase_orders.1ebf}">Monitor and manage test purchase orders.</p>
                             <a th:href="@{/testpurchases}" class="btn btn-primary btn-sm">
-                                <i class="fas fa-arrow-right me-1"></i> Open
+                                <i class="fas fa-arrow-right me-1"></i> <th:block th:text="#{ui.open.c3bf}">Open</th:block>
                             </a>
                         </div>
 
@@ -168,10 +168,10 @@
                             <div class="action-card-icon">
                                 <i class="fas fa-user-tie"></i>
                             </div>
-                            <h5>Manage Customers</h5>
-                            <p>View and manage customer accounts and relationships.</p>
+                            <h5 th:text="#{ui.manage_customers.c404}">Manage Customers</h5>
+                            <p th:text="#{ui.view_and_manage_customer_accounts_and_re.fbc0}">View and manage customer accounts and relationships.</p>
                             <a th:href="@{/customers}" class="btn btn-primary btn-sm">
-                                <i class="fas fa-arrow-right me-1"></i> Open
+                                <i class="fas fa-arrow-right me-1"></i> <th:block th:text="#{ui.open.c3bf}">Open</th:block>
                             </a>
                         </div>
 
@@ -179,10 +179,10 @@
                             <div class="action-card-icon">
                                 <i class="fas fa-store"></i>
                             </div>
-                            <h5>Shops</h5>
-                            <p>View shop information and performance metrics.</p>
+                            <h5 th:text="#{ui.shops.12a5}">Shops</h5>
+                            <p th:text="#{ui.view_shop_information_and_performance_me.12de}">View shop information and performance metrics.</p>
                             <a th:href="@{/shops}" class="btn btn-primary btn-sm">
-                                <i class="fas fa-arrow-right me-1"></i> Open
+                                <i class="fas fa-arrow-right me-1"></i> <th:block th:text="#{ui.open.c3bf}">Open</th:block>
                             </a>
                         </div>
                     </div>
@@ -190,16 +190,16 @@
 
                 <!-- Sales Manager Quick Actions -->
                 <div sec:authorize="hasRole('SALES_MANAGER')">
-                    <h4><i class="fas fa-chart-line me-2"></i>Sales Management</h4>
+                    <h4><i class="fas fa-chart-line me-2"></i><th:block th:text="#{ui.sales_management.5570}">Sales Management</th:block></h4>
                     <div class="action-cards">
                         <div class="action-card" onclick="window.location.href='/testpurchases'">
                             <div class="action-card-icon">
                                 <i class="fas fa-shopping-cart"></i>
                             </div>
-                            <h5>Test Purchases</h5>
-                            <p>View and manage test purchase orders and sales data.</p>
+                            <h5 th:text="#{ui.test_purchases.b6c5}">Test Purchases</h5>
+                            <p th:text="#{ui.view_and_manage_test_purchase_orders_and.b0de}">View and manage test purchase orders and sales data.</p>
                             <a th:href="@{/testpurchases}" class="btn btn-primary btn-sm">
-                                <i class="fas fa-arrow-right me-1"></i> Open
+                                <i class="fas fa-arrow-right me-1"></i> <th:block th:text="#{ui.open.c3bf}">Open</th:block>
                             </a>
                         </div>
 
@@ -207,10 +207,10 @@
                             <div class="action-card-icon">
                                 <i class="fas fa-user-tie"></i>
                             </div>
-                            <h5>Manage Customers</h5>
-                            <p>View and manage customer accounts and relationships.</p>
+                            <h5 th:text="#{ui.manage_customers.c404}">Manage Customers</h5>
+                            <p th:text="#{ui.view_and_manage_customer_accounts_and_re.fbc0}">View and manage customer accounts and relationships.</p>
                             <a th:href="@{/customers}" class="btn btn-primary btn-sm">
-                                <i class="fas fa-arrow-right me-1"></i> Open
+                                <i class="fas fa-arrow-right me-1"></i> <th:block th:text="#{ui.open.c3bf}">Open</th:block>
                             </a>
                         </div>
 
@@ -218,10 +218,10 @@
                             <div class="action-card-icon">
                                 <i class="fas fa-store"></i>
                             </div>
-                            <h5>Shops</h5>
-                            <p>View shop information and performance metrics.</p>
+                            <h5 th:text="#{ui.shops.12a5}">Shops</h5>
+                            <p th:text="#{ui.view_shop_information_and_performance_me.12de}">View shop information and performance metrics.</p>
                             <a th:href="@{/shops}" class="btn btn-primary btn-sm">
-                                <i class="fas fa-arrow-right me-1"></i> Open
+                                <i class="fas fa-arrow-right me-1"></i> <th:block th:text="#{ui.open.c3bf}">Open</th:block>
                             </a>
                         </div>
                     </div>
@@ -229,16 +229,16 @@
 
                 <!-- Customer Quick Actions -->
                 <div sec:authorize="hasRole('CUSTOMER')">
-                    <h4><i class="fas fa-shopping-bag me-2"></i>My Test Purchases</h4>
+                    <h4><i class="fas fa-shopping-bag me-2"></i><th:block th:text="#{ui.my_test_purchases.8592}">My Test Purchases</th:block></h4>
                     <div class="action-cards">
                         <div class="action-card" onclick="window.location.href='/testpurchases'">
                             <div class="action-card-icon">
                                 <i class="fas fa-shopping-cart"></i>
                             </div>
-                            <h5>View Test Purchases</h5>
-                            <p>View all your test purchase orders and their status.</p>
+                            <h5 th:text="#{ui.view_test_purchases.d000}">View Test Purchases</h5>
+                            <p th:text="#{ui.view_all_your_test_purchase_orders_and_t.329a}">View all your test purchase orders and their status.</p>
                             <a th:href="@{/testpurchases}" class="btn btn-primary btn-sm">
-                                <i class="fas fa-arrow-right me-1"></i> View All
+                                <i class="fas fa-arrow-right me-1"></i> <th:block th:text="#{ui.view_all.d8d7}">View All</th:block>
                             </a>
                         </div>
 
@@ -246,10 +246,10 @@
                             <div class="action-card-icon">
                                 <i class="fas fa-plus-circle"></i>
                             </div>
-                            <h5>Create New Test Purchase</h5>
-                            <p>Submit a new test purchase order.</p>
+                            <h5 th:text="#{ui.create_new_test_purchase.b71f}">Create New Test Purchase</h5>
+                            <p th:text="#{ui.submit_a_new_test_purchase_order.2c55}">Submit a new test purchase order.</p>
                             <a th:href="@{/testpurchases/add}" class="btn btn-success btn-sm">
-                                <i class="fas fa-plus me-1"></i> Create New
+                                <i class="fas fa-plus me-1"></i> <th:block th:text="#{ui.create_new.49e5}">Create New</th:block>
                             </a>
                         </div>
                     </div>
@@ -257,17 +257,17 @@
 
                 <!-- Mystery Shopper Quick Actions -->
                 <div sec:authorize="hasRole('MYSTERY_SHOPPER')">
-                    <h4><i class="fas fa-user-secret me-2"></i>My Assignments</h4>
+                    <h4><i class="fas fa-user-secret me-2"></i><th:block th:text="#{ui.my_assignments.4342}">My Assignments</th:block></h4>
                     <div class="action-cards">
 
                         <div class="action-card" onclick="window.location.href='/testpurchases'">
                             <div class="action-card-icon">
                                 <i class="fas fa-shopping-cart"></i>
                             </div>
-                            <h5>Test Purchases</h5>
-                            <p>View all test purchases assigned to you.</p>
+                            <h5 th:text="#{ui.test_purchases.b6c5}">Test Purchases</h5>
+                            <p th:text="#{ui.view_all_test_purchases_assigned_to_you.475a}">View all test purchases assigned to you.</p>
                             <a th:href="@{/testpurchases}" class="btn btn-primary btn-sm">
-                                <i class="fas fa-arrow-right me-1"></i> View All
+                                <i class="fas fa-arrow-right me-1"></i> <th:block th:text="#{ui.view_all.d8d7}">View All</th:block>
                             </a>
                         </div>
                     </div>

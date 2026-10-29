@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8" />
-    <title>Status Update</title>
+    <title th:text="#{ui.status_update.20ce}">Status Update</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
@@ -10,25 +10,25 @@
 
 <div style="max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 6px;">
 
-    <h2>Status Update for Test Purchase <span th:text="${tpNumber}"></span></h2>
+    <h2><th:block th:text="#{ui.status_update_for_test_purchase.65cd}">Status Update for Test Purchase</th:block> <span th:text="${tpNumber}"></span></h2>
 
     <p>
-        The status has changed from
-        <strong th:text="${oldStatus}"></strong> to
+        <th:block th:text="#{ui.the_status_has_changed_from.69ab}">The status has changed from</th:block>
+        <strong th:text="${oldStatus}"></strong> <th:block th:text="#{ui.to.01b6}">to</th:block>
         <strong th:text="${newStatus}"></strong>.
     </p>
 
     <p th:if="${comment}">
-        <em>Comment:</em> <span th:text="${comment}"></span>
+        <em th:text="#{ui.comment.240f}">Comment:</em> <span th:text="${comment}"></span>
     </p>
 
     <p>
-        Changed by: <strong th:text="${username}"></strong>
+        <th:block th:text="#{ui.changed_by.fb66}">Changed by:</th:block> <strong th:text="${username}"></strong>
     </p>
 
     <hr/>
 
-    <p style="font-size: 0.9em; color: #555;">
+    <p style="font-size: 0.9em; color: #555;" th:text="#{ui.this_is_an_automated_message_from_the_te.c71c}">
         This is an automated message from the Test Purchase System.
     </p>
 

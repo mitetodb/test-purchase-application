@@ -68,7 +68,7 @@ services:
       PRICING_API_KEY: ${PRICING_API_KEY}
       APP_BASE_URL: ${APP_BASE_URL:-https://testkauf.getinweb.de}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
-      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-testkauf@getinweb.de}
       DEMO_DATA_ENABLED: ${DEMO_DATA_ENABLED:-false}
       SWAGGER_ENABLED: ${SWAGGER_ENABLED:-false}
       MAIL_ENABLED: ${MAIL_ENABLED:-false}
@@ -78,6 +78,7 @@ services:
       MAIL_PASSWORD: ${MAIL_PASSWORD:-}
       MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH:-false}
       MAIL_STARTTLS: ${MAIL_STARTTLS:-false}
+      MAIL_SSL: ${MAIL_SSL:-false}
       MAIL_FROM: ${MAIL_FROM:-}
     volumes:
       - uploads:/app/uploads

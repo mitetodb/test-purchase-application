@@ -3,7 +3,7 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
 <head>
-    <title>Register - Test Purchase System</title>
+    <title th:text="#{ui.register_test_purchase_system.152a}">Register - Test Purchase System</title>
 </head>
 <body>
 <main>
@@ -13,8 +13,8 @@
                 <div class="mb-3">
                     <i class="fas fa-user-plus" style="font-size: 3rem; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;"></i>
                 </div>
-                <h2>Create Account</h2>
-                <p class="text-muted">Join our test purchase management platform</p>
+                <h2 th:text="#{ui.create_account.7394}">Create Account</h2>
+                <p class="text-muted" th:text="#{ui.join_our_test_purchase_management_platfo.aee7}">Join our test purchase management platform</p>
             </div>
 
             <!-- Error Message -->
@@ -28,13 +28,13 @@
 
                 <div class="form-group">
                     <label for="username" class="form-label">
-                        <i class="fas fa-user me-2"></i>Username
+                        <i class="fas fa-user me-2"></i><th:block th:text="#{ui.username.f603}">Username</th:block>
                     </label>
                     <input type="text"
                            class="form-control"
                            id="username"
                            th:field="*{username}"
-                           placeholder="Choose a username"
+                           placeholder="Choose a username" th:placeholder="#{ui.choose_a_username.e4a9}"
                            required
                            autofocus/>
                     <div th:if="${#fields.hasErrors('username')}" class="text-danger mt-1">
@@ -44,13 +44,13 @@
 
                 <div class="form-group">
                     <label for="email" class="form-label">
-                        <i class="fas fa-envelope me-2"></i>Email Address
+                        <i class="fas fa-envelope me-2"></i><th:block th:text="#{ui.email_address.643a}">Email Address</th:block>
                     </label>
                     <input type="email"
                            class="form-control"
                            id="email"
                            th:field="*{email}"
-                           placeholder="Enter your email"
+                           placeholder="Enter your email" th:placeholder="#{ui.enter_your_email.95d3}"
                            required/>
                     <div th:if="${#fields.hasErrors('email')}" class="text-danger mt-1">
                         <small><i class="fas fa-exclamation-triangle me-1"></i><span th:errors="*{email}"></span></small>
@@ -59,13 +59,13 @@
 
                 <div class="form-group">
                     <label for="password" class="form-label">
-                        <i class="fas fa-lock me-2"></i>Password
+                        <i class="fas fa-lock me-2"></i><th:block th:text="#{ui.password.dc64}">Password</th:block>
                     </label>
                     <input type="password"
                            class="form-control"
                            id="password"
                            th:field="*{password}"
-                           placeholder="Create a strong password"
+                           placeholder="Create a strong password" th:placeholder="#{ui.create_a_strong_password.cda3}"
                            required/>
                     <div th:if="${#fields.hasErrors('password')}" class="text-danger mt-1">
                         <small><i class="fas fa-exclamation-triangle me-1"></i><span th:errors="*{password}"></span></small>
@@ -74,13 +74,13 @@
 
                 <div class="form-group">
                     <label for="confirmPassword" class="form-label">
-                        <i class="fas fa-lock me-2"></i>Confirm Password
+                        <i class="fas fa-lock me-2"></i><th:block th:text="#{ui.confirm_password.887f}">Confirm Password</th:block>
                     </label>
                     <input type="password"
                            class="form-control"
                            id="confirmPassword"
                            th:field="*{confirmPassword}"
-                           placeholder="Re-enter your password"
+                           placeholder="Re-enter your password" th:placeholder="#{ui.re_enter_your_password.795a}"
                            required/>
                     <div th:if="${#fields.hasErrors('confirmPassword')}" class="text-danger mt-1">
                         <small><i class="fas fa-exclamation-triangle me-1"></i><span th:errors="*{confirmPassword}"></span></small>
@@ -89,13 +89,13 @@
 
                 <div class="form-group">
                     <label for="country" class="form-label">
-                        <i class="fas fa-globe me-2"></i>Country
+                        <i class="fas fa-globe me-2"></i><th:block th:text="#{ui.country.5971}">Country</th:block>
                     </label>
                     <select id="country"
                             class="form-control"
                             th:field="*{country}"
                             required>
-                        <option value="" disabled>Select your country</option>
+                        <option value="" disabled th:text="#{ui.select_your_country.a7bb}">Select your country</option>
                         <option th:each="country : ${T(app.model.enums.Country).values()}"
                                 th:value="${country}"
                                 th:text="${country.getDisplayName()}">
@@ -107,14 +107,14 @@
                 </div>
 
                 <button type="submit" class="btn btn-primary w-100 mb-3">
-                    <i class="fas fa-user-plus me-2"></i>Create Account
+                    <i class="fas fa-user-plus me-2"></i><th:block th:text="#{ui.create_account.7394}">Create Account</th:block>
                 </button>
 
                 <div class="text-center">
                     <p class="mb-0">
-                        Already have an account?
+                        <th:block th:text="#{ui.already_have_an_account.21bd}">Already have an account?</th:block>
                         <a th:href="@{/login}" class="text-decoration-none fw-bold" style="color: var(--primary-color);">
-                            <i class="fas fa-sign-in-alt me-1"></i>Sign in here
+                            <i class="fas fa-sign-in-alt me-1"></i><th:block th:text="#{ui.sign_in_here.9c03}">Sign in here</th:block>
                         </a>
                     </p>
                 </div>

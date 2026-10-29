@@ -1,166 +1,47 @@
 # Test Purchase Application
 
-A comprehensive system for managing test purchases (Mystery Shopping orders) used by companies that perform Mystery Shopping services for various clients. The application includes a separate Price Calculation microservice that provides REST API for cost calculations.
+Web application for managing **test purchases** (mystery shopping orders): customers, shops, test purchase orders with items,
+status workflow and history, attachments, and price calculation via a separate pricing microservice.
 
-## Technology Stack
-
-- **Java**: 17
-- **Spring Boot**: 3.4.0
-- **Build Tool**: Maven
-- **Database**: MySQL 8
-- **Frontend**: Spring MVC + Thymeleaf
-- **Security**: Spring Security
-- **Caching**: Spring Cache
-- **Scheduling**: Spring Scheduling
-- **Inter-service Communication**: Spring Cloud OpenFeign
-- **Email**: Spring Mail
-
-## Architecture
-
-The solution consists of two independent Spring Boot applications:
-
-1. **Main Application** (Port 8080) - Core backend system with web interface
-2. **Price Calculation Microservice** (Port 8081) - REST API for price calculations
+**Live:** https://testkauf.getinweb.de · Pricing service: [price-calculation-microservice](https://github.com/mitetodb/price-calculation-microservice)
 
 ## Features
+- Roles: Admin, Account Manager, Sales Manager, Customer, Mystery Shopper (Spring Security, role-based UI)
+- Test purchases: create/edit, items, status changes with history and optional email notification
+- Customers & shops management, user management, profile with avatar upload
+- Price calculation (service fee, postage) via the pricing microservice (Feign + `X-API-Key`)
+- Attachments (PDF/images), password reset by email (optional SMTP)
+- UI in **Bulgarian, English, German** (`?lang=bg|en|de`, navbar switcher, cookie)
+- Flyway migrations, actuator health, OpenAPI (springdoc), MySQL backups
 
-### Domain Entities
-- **Customer** - Client companies that order mystery shopping services
-- **Shop** - Retail locations where test purchases are made
-- **TestPurchase** - Test purchase orders with items and status tracking
-- **User** - Application users with different roles
-- **Item** - Products purchased in test purchases
-- **Attachment** - Documents and files attached to test purchases
-
-### Functionalities
-
-#### Test Purchase Management
-1. Create new test purchase orders
-2. Edit existing test purchases
-3. Delete test purchases
-4. Change test purchase status with history tracking
-5. View test purchase details with attachments and history
-
-#### Customer Management
-6. Create new customers
-7. Edit customer information
-8. Delete customers
-9. View customer details and associated test purchases
-
-#### Shop Management
-10. Create new shops
-11. Edit shop information
-12. Delete shops
-
-#### Attachment Management
-13. Upload attachments to test purchases
-14. Delete attachments (admin only)
-
-### Security Features
-
-- **Authentication**: Form-based login
-- **Authorization**: Role-based access control
-- **Roles**: 
-  - ADMIN - Full system access
-  - ACCOUNT_MANAGER - Manages assigned customers
-  - SALES_MANAGER - Manages shops and sales
-  - CUSTOMER - Views own test purchases
-  - MYSTERY_SHOPPER - Creates and manages assigned test purchases
-- **CSRF Protection**: Enabled
-- **Password Reset**: Email-based password reset functionality
-- **User Management**: Admins can manage roles, block/unblock users
-
-### Technical Features
-
-- **Caching**: Implemented for Shops and Customers using Spring Cache
-- **Scheduling**: 
-  - Daily cleanup of expired password reset tokens (cron)
-  - Periodic statistics update for old test purchases (fixed delay)
-- **Error Handling**: Custom error pages for 404, 403, 400, 500 errors
-- **Validation**: Comprehensive validation on DTOs, entities, and service layers
-- **Logging**: AOP-based action logging and service-level logging
-
-## Integrations
-
-### Price Calculation Microservice
-- **Feign Client**: Used for inter-service communication
-- **Endpoints Used**:
-  - POST `/api/pricing/calculate` - Calculate test purchase fees
-  - PUT `/api/pricing/customers/{id}/base-fee` - Update customer base fee
-  - DELETE `/api/pricing/customers/{id}/base-fee` - Delete customer base fee
-  - GET `/api/pricing/customers/{id}/base-fee` - Get customer base fee
-
-## Setup Instructions
-
-### Prerequisites
-- Java 17
-- Maven 3.6+
-- Docker (for MySQL)
-- MySQL 8
-
-### Database Setup
-
-1. Start MySQL with Docker:
-```bash
-docker run --name mysql8_db -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=testpurchase_app -d mysql:8
+## Architecture
+```
+ Browser ──HTTPS──> host nginx (80/443, Let's Encrypt)
+                         │  proxy_pass 127.0.0.1:8090
+                         ▼
+               ┌──────────────────────┐        docker network "backend" (internal)
+               │ app  (Spring Boot 3, │──Feign + X-API-Key──> pricing-svc :8081/api
+               │ Thymeleaf, Java 17)  │                          │
+               └─────────┬────────────┘                          │
+                         │ JDBC                                  │ JDBC
+                         ▼                                       ▼
+                    MySQL 8.4  (db: test_purchase_db, pricedb)  — no published ports
+                         ▲
+               cron: deploy/backup-mysql.sh (gzip, rotation)
+  optional: SMTP (ALL-INKL 465/SSL) · Mailpit (--profile mail, UI not public)
 ```
 
-### Application Setup
-
-1. **Start Price Calculation Microservice** (Port 8081):
+## Local run
+Requirements: Java 17, Maven 3.9, MySQL 8 (or Docker).
 ```bash
-cd price-calculation-microservice
+cp .env.example .env                    # fill in values; never commit .env
+docker compose up -d --build            # app on http://localhost:8080 (+ MySQL on 127.0.0.1:3307, pricing-svc)
+# or without Docker for the app:
+export DB_URL=jdbc:mysql://localhost:3306/test_purchase_db DB_USERNAME=... DB_PASSWORD=... ADMIN_PASSWORD=...
 mvn spring-boot:run
+scripts/ci.sh                           # secret scan + tests + compose check (DOCKER_BUILD=1 for image)
 ```
-
-2. **Start Main Application** (Port 8080):
-```bash
-cd test-purchase-application
-mvn spring-boot:run
-```
-
-### Default Admin Account
-- Username: `admin`
-- Password: `123123`
-- Created automatically on first startup if no users exist
-
-## Repository Links
-
-- **Main Application**: https://github.com/mitetodb/test-purchase-application
-- **Price Calculation Microservice**: https://github.com/mitetodb/price-calculation-microservice
-
-## Testing
-
-The application includes:
-- Unit tests for services
-- Integration tests for repositories
-- API tests for controllers
-- Security tests
-
-Run tests with:
-```bash
-mvn test
-```
-
-## Project Structure
-
-```
-src/main/java/app/
-├── client/          # Feign clients for microservice communication
-├── config/          # Configuration classes
-├── controller/      # MVC controllers
-├── exception/       # Custom exceptions and handlers
-├── model/           # Entities, DTOs, enums
-├── repository/      # JPA repositories
-├── security/        # Security configuration
-└── service/         # Business logic services
-```
-
-## License
-
-This project is part of a Spring Advanced course assignment.
-
----
+Admin: set `ADMIN_PASSWORD` before the first start (created only if the users table is empty).
 
 ## Production deployment (testkauf.getinweb.de)
 
@@ -171,7 +52,8 @@ MySQL and pricing-svc publish **no ports**. The app is bound only to `127.0.0.1:
 Mailpit is available as an optional profile (`--profile mail`), and its UI is not published.
 
 ```bash
-# on the server, with both repos side by side, e.g. /opt/testkauf/{test-purchase-application,price-calculation-microservice}
+# quickest: as root on the server ->  bash deploy/server-setup.sh --certbot   (idempotent)
+# manual: with both repos side by side, e.g. /opt/testkauf/{test-purchase-application,price-calculation-microservice}
 cd test-purchase-application
 cp .env.example deploy/.env && chmod 600 deploy/.env   # fill in strong secrets (openssl rand -base64 32)
 docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env up -d --build
@@ -183,11 +65,15 @@ See `deploy/nginx/testkauf.getinweb.de.conf`:
 - **Option A (host nginx):** copy the vhost to `/etc/nginx/sites-available`, enable it, then run `certbot --nginx -d testkauf.getinweb.de`. The upstream is `127.0.0.1:8090`.
 - **Option B (proxy in Docker):** add the proxy's external network to `app` (see the commented `proxy` network), remove `app.ports`, and point the proxy at `http://app:8080`.
 
-Set a DNS A/AAAA record for `testkauf.getinweb.de` pointing at the server before you request the certificate.
+> **Shared host / IPv6:** after `certbot --nginx`, delete any `listen [::]:443 ssl ipv6only=on` / `listen [::]:80` lines it added to *our* site file. If another site on the same nginx has an AAAA record but no IPv6 listener, our IPv6 listener becomes the IPv6 default server and that site's IPv6 visitors receive the testkauf certificate (TLS name mismatch). `deploy/server-setup.sh` strips them automatically.
+
+> **Clone permissions:** clone with a normal umask (022). With umask 077 the MySQL container (uid 999) cannot read `deploy/mysql-init` and the DB never becomes healthy.
+
+Set a DNS A record for `testkauf.getinweb.de` pointing at the server before you request the certificate.
 
 **Configuration** is env only (`.env.example` lists every variable). Key settings:
 `SPRING_PROFILES_ACTIVE=prod`, `APP_BASE_URL` (used in password-reset links), `PRICING_API_KEY` (sent as `X-API-Key`; it must match the pricing service),
-`ADMIN_PASSWORD` (the initial admin is created only when the users table is empty), `MAIL_ENABLED` (default `false`, so mail is a logged no-op), `DEMO_DATA_ENABLED`, `SWAGGER_ENABLED`.
+`ADMIN_PASSWORD` (the initial admin is created only when the users table is empty), `MAIL_ENABLED` (default `false`, so mail is a logged no-op; SMTP for ALL-INKL: `MAIL_HOST=w00d37b3.kasserver.com`, `MAIL_PORT=465` + `MAIL_SSL=true`, or `587` + `MAIL_STARTTLS=true`, `MAIL_USERNAME`/`MAIL_PASSWORD` from env, `MAIL_FROM=testkauf@getinweb.de`), `DEMO_DATA_ENABLED`, `SWAGGER_ENABLED`.
 
 **Database migrations.** Flyway runs `src/main/resources/db/migration`. `V1__baseline.sql` is the schema at the time Flyway was introduced.
 Existing databases are baselined at v1 automatically (`baseline-on-migrate`), and Hibernate runs with `ddl-auto=validate` in prod.

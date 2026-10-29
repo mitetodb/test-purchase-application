@@ -4,7 +4,7 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
 <head>
-    <title>Test Purchases</title>
+    <title th:text="#{ui.test_purchases.b6c5}">Test Purchases</title>
 </head>
 <body>
 <main>
@@ -12,12 +12,12 @@
     <div class="page-header">
         <div>
             <h2 class="text-gradient mb-1">
-                <i class="fas fa-shopping-cart me-2"></i>Test Purchases
+                <i class="fas fa-shopping-cart me-2"></i><th:block th:text="#{ui.test_purchases.b6c5}">Test Purchases</th:block>
             </h2>
-            <p class="text-muted mb-0">Manage and track all test purchase orders</p>
+            <p class="text-muted mb-0" th:text="#{ui.manage_and_track_all_test_purchase_order.4c0a}">Manage and track all test purchase orders</p>
         </div>
         <a th:href="@{/testpurchases/add}" class="btn btn-primary">
-            <i class="fas fa-plus me-2"></i>Create Test Purchase
+            <i class="fas fa-plus me-2"></i><th:block th:text="#{ui.create_test_purchase.c4dd}">Create Test Purchase</th:block>
         </a>
     </div>
     <div id="export-buttons-tp" class="mb-3"></div>
@@ -26,29 +26,29 @@
         <thead>
         <tr>
             <th>#</th>
-            <th>Customer</th>
-            <th>Shop</th>
-            <th>Country</th>
-            <th>Category</th>
-            <th>Type</th>
-            <th>Total Price</th>
-            <th>Status</th>
-            <th>Created On</th>
-            <th sec:authorize="hasRole('ADMIN')">Updated By</th>
-            <th>Actions</th>
+            <th th:text="#{ui.customer.ce26}">Customer</th>
+            <th th:text="#{ui.shop.9f82}">Shop</th>
+            <th th:text="#{ui.country.5971}">Country</th>
+            <th th:text="#{ui.category.3adb}">Category</th>
+            <th th:text="#{ui.type.a1fa}">Type</th>
+            <th th:text="#{ui.total_price.f354}">Total Price</th>
+            <th th:text="#{ui.status.ec53}">Status</th>
+            <th th:text="#{ui.created_on.1b60}">Created On</th>
+            <th sec:authorize="hasRole('ADMIN')" th:text="#{ui.updated_by.eb4d}">Updated By</th>
+            <th th:text="#{ui.actions.06df}">Actions</th>
         </tr>
 
         <tr>
             <th><input class="form-control form-control-sm column-filter" placeholder="Search #"></th>
-            <th><input class="form-control form-control-sm column-filter" placeholder="Search Customer"></th>
-            <th><input class="form-control form-control-sm column-filter" placeholder="Search Shop"></th>
-            <th><input class="form-control form-control-sm column-filter" placeholder="Search Country"></th>
-            <th><input class="form-control form-control-sm column-filter" placeholder="Search Category"></th>
-            <th><input class="form-control form-control-sm column-filter" placeholder="Search Type"></th>
-            <th><input class="form-control form-control-sm column-filter" placeholder="Search Price"></th>
-            <th><input class="form-control form-control-sm column-filter" placeholder="Search Status"></th>
-            <th><input class="form-control form-control-sm column-filter" placeholder="Search Created"></th>
-            <th sec:authorize="hasRole('ADMIN')"><input class="form-control form-control-sm column-filter" placeholder="Search Updated"></th>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search Customer" th:placeholder="#{ui.search_customer.8b4a}"></th>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search Shop" th:placeholder="#{ui.search_shop.c179}"></th>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search Country" th:placeholder="#{ui.search_country.08b5}"></th>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search Category" th:placeholder="#{ui.search_category.4218}"></th>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search Type" th:placeholder="#{ui.search_type.612c}"></th>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search Price" th:placeholder="#{ui.search_price.96e1}"></th>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search Status" th:placeholder="#{ui.search_status.3301}"></th>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search Created" th:placeholder="#{ui.search_created.eb09}"></th>
+            <th sec:authorize="hasRole('ADMIN')"><input class="form-control form-control-sm column-filter" placeholder="Search Updated" th:placeholder="#{ui.search_updated.6899}"></th>
             <th></th>
         </tr>
         </thead>
@@ -68,17 +68,17 @@
             <td>
                 <div class="d-flex gap-2">
                     <a th:href="@{'/testpurchases/view/' + ${p.id}}" class="btn btn-sm btn-info">
-                        <i class="fas fa-eye me-1"></i>View
+                        <i class="fas fa-eye me-1"></i><th:block th:text="#{ui.view.4351}">View</th:block>
                     </a>
                     <a th:href="@{'/testpurchases/edit/' + ${p.id}}" class="btn btn-sm btn-warning">
-                        <i class="fas fa-edit me-1"></i>Edit
+                        <i class="fas fa-edit me-1"></i><th:block th:text="#{ui.edit.7dce}">Edit</th:block>
                     </a>
 
                     <form th:if="${#authorization.expression('hasRole(''ADMIN'')')}"
                           th:action="@{'/testpurchases/delete/' + ${p.id}}" method="post" style="display:inline;">
                         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                         <button class="btn btn-sm btn-danger" type="submit" onclick="return confirm('Are you sure you want to delete this test purchase?');">
-                            <i class="fas fa-trash me-1"></i>Delete
+                            <i class="fas fa-trash me-1"></i><th:block th:text="#{ui.delete.f2a6}">Delete</th:block>
                         </button>
                     </form>
                 </div>

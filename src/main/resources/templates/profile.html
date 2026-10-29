@@ -3,12 +3,12 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
 <head>
-    <title>My Profile</title>
+    <title th:text="#{ui.my_profile.e895}">My Profile</title>
 </head>
 <body>
 <main>
 
-    <h2>My Profile</h2>
+    <h2 th:text="#{ui.my_profile.e895}">My Profile</h2>
 
     <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
 
@@ -24,45 +24,45 @@
                 <img th:if="*{imageUrl != null}"
                      th:src="*{imageUrl}"
                      class="img-thumbnail mb-2"
-                     alt="Avatar"
+                     alt="Avatar" th:alt="#{ui.avatar.3203}"
                      style="max-width: 150px; max-height: 150px;">
 
                 <div th:if="*{imageUrl == null}" class="border rounded-circle d-inline-block"
-                     style="width: 120px; height: 120px; line-height: 120px; text-align:center;">
+                     style="width: 120px; height: 120px; line-height: 120px; text-align:center;" th:text="#{ui.no_image.9dd7}">
                     No image
                 </div>
 
                 <div class="mt-2">
                     <input type="file" name="imageFile" class="form-control form-control-sm">
-                    <small class="text-muted">Upload new profile picture</small>
+                    <small class="text-muted" th:text="#{ui.upload_new_profile_picture.dc33}">Upload new profile picture</small>
                 </div>
             </div>
 
             <div class="col-md-9">
                 <div class="mb-3">
-                    <label class="form-label">Username</label>
+                    <label class="form-label" th:text="#{ui.username.f603}">Username</label>
                     <input th:field="*{username}" class="form-control" readonly/>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Role</label>
+                    <label class="form-label" th:text="#{ui.role.bbba}">Role</label>
                     <input th:field="*{role}" class="form-control" readonly/>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Created on:</label>
+                    <label class="form-label" th:text="#{ui.created_on.7864}">Created on:</label>
                     <input th:field="*{createdOn}" class="form-control" readonly/>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Email</label>
+                    <label class="form-label" th:text="#{ui.email.ce8a}">Email</label>
                     <input th:field="*{email}" class="form-control"/>
                     <div class="text-danger" th:if="${#fields.hasErrors('email')}"
                          th:errors="*{email}"></div>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Country</label>
+                    <label class="form-label" th:text="#{ui.country.5971}">Country</label>
                     <select th:field="*{country}" class="form-control">
                         <option th:each="c : ${countries}"
                                 th:value="${c}"
@@ -70,7 +70,7 @@
                     </select>
                 </div>
 
-                <button class="btn btn-primary" type="submit">Save Profile</button>
+                <button class="btn btn-primary" type="submit" th:text="#{ui.save_profile.c320}">Save Profile</button>
             </div>
         </div>
     </form>
