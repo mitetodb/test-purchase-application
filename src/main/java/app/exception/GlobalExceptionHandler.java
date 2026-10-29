@@ -39,11 +39,12 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({NoHandlerFoundException.class, NoResourceFoundException.class})
+    @org.springframework.web.bind.annotation.ResponseStatus(org.springframework.http.HttpStatus.NOT_FOUND)
     public String handleNotFound(HttpServletRequest request, Exception ex, Model model) {
         String errorId = UUID.randomUUID().toString();
         String requestedUrl = request.getRequestURI();
         
-        log.warn("[{}] Page not found: {}", errorId, requestedUrl, ex);
+        log.warn("[{}] Page not found: {}", errorId, requestedUrl);
 
         model.addAttribute("errorId", errorId);
         model.addAttribute("message", "The page you are looking for does not exist.");

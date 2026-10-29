@@ -8,7 +8,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 
 @Slf4j
 @Aspect
@@ -22,7 +21,7 @@ public class ActionLoggingAspect {
         log.info("➡️ BEFORE: User [{}] calls: {} with args: {}",
                 username,
                 jp.getSignature().toShortString(),
-                Arrays.toString(jp.getArgs()));
+                LogSanitizer.sanitizeArgs(jp.getSignature() instanceof org.aspectj.lang.reflect.CodeSignature cs ? cs.getParameterNames() : null, jp.getArgs()));
     }
 
     // log for response
@@ -32,7 +31,7 @@ public class ActionLoggingAspect {
         log.info("✔️ AFTER RETURN: User [{}] finished: {} returned: {}",
                 username,
                 jp.getSignature().toShortString(),
-                result);
+                LogSanitizer.sanitize(result));
     }
 
     // log for errors in controllers
@@ -42,7 +41,7 @@ public class ActionLoggingAspect {
         log.error("❌ Controller error: user [{}], method [{}], message: {}",
                 username,
                 jp.getSignature().toShortString(),
-                ex.getMessage(),
+                LogSanitizer.sanitize(ex.getMessage()),
                 ex);
     }
 
@@ -66,7 +65,7 @@ public class ActionLoggingAspect {
             log.error("🔥 SERVICE ERROR by [{}] in {} | Message: {}",
                     username,
                     pjp.getSignature().toShortString(),
-                    ex.getMessage(),
+                    LogSanitizer.sanitize(ex.getMessage()),
                     ex);
             throw ex;
         }
