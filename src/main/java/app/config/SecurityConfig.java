@@ -29,7 +29,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/login", "/register", "/forgot-password", "/reset-password" ,
                                 "/css/**", "/js/**", "/images/**", "/avatars/**",
-                                "/access-denied").permitAll()
+                                "/access-denied", "/favicon.ico", "/error",
+                                "/actuator/health", "/actuator/health/**", "/actuator/info",
+                                "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
                         .requestMatchers("/users","/users/**").hasRole("ADMIN")
                         .requestMatchers("/profile").authenticated()
                         .requestMatchers("/dashboard").authenticated()

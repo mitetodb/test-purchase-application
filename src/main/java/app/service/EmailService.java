@@ -3,6 +3,8 @@ package app.service;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -12,12 +14,19 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EmailService {
 
     private final JavaMailSender javaMailSender;
     private final SpringTemplateEngine templateEngine;
+
+    @Value("${app.mail.enabled:false}")
+    private boolean mailEnabled;
+
+    @Value("${app.mail.from:}")
+    private String mailFrom;
 
     @Async
     public void sendStatusChangeEmail(String toEmail,
@@ -62,6 +71,10 @@ public class EmailService {
                                String templateName,
                                Map<String, Object> variables) {
 
+        if (!mailEnabled) {
+            log.info("Mail disabled (app.mail.enabled=false); skipping '{}' email", templateName);
+            return;
+        }
         Context ctx = new Context();
         variables.forEach(ctx::setVariable);
 
@@ -72,6 +85,7 @@ public class EmailService {
         try {
             MimeMessageHelper helper = new MimeMessageHelper(mime, "UTF-8");
             helper.setTo(to);
+            if (!mailFrom.isBlank()) helper.setFrom(mailFrom);
             helper.setSubject(subject);
             helper.setText(htmlContent, true);
 

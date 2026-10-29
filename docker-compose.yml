@@ -1,28 +1,47 @@
+# Local development stack. Secrets come from .env (copy .env.example). For prod use deploy/docker-compose.prod.yml.
 services:
-  # main application
-  test-purchase-app:
-    build: .
-    container_name: test-purchase-app
-    ports:
-      - "8080:8080"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-    depends_on:
-      - test-purchase-db
-      - pricing-svc
-
-  # database
   test-purchase-db:
-    image: mysql:8.0
-    container_name: test-purchase-db
+    image: mysql:8.4
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: test_purchase_db
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set in .env}
+      DB_NAME: ${DB_NAME:-test_purchase_db}
+      DB_USERNAME: ${DB_USERNAME:?set in .env}
+      DB_PASSWORD: ${DB_PASSWORD:?set in .env}
+      PRICING_DB_NAME: ${PRICING_DB_NAME:-pricedb}
+      PRICING_DB_USERNAME: ${PRICING_DB_USERNAME:?set in .env}
+      PRICING_DB_PASSWORD: ${PRICING_DB_PASSWORD:?set in .env}
+    volumes:
+      - dev-db:/var/lib/mysql
+      - ./deploy/mysql-init:/docker-entrypoint-initdb.d:ro
     ports:
-      - "3307:3306"
-
-  # rest api
+      - "127.0.0.1:3307:3306"   # localhost only, dev convenience
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 10s
+      retries: 10
   pricing-svc:
-     image: pricing-svc-image:latest
-     ports:
-       - "8081:8081"
+    build: ${PRICING_BUILD_CONTEXT_DEV:-../price-calculation-microservice}
+    environment:
+      DB_URL: jdbc:mysql://test-purchase-db:3306/${PRICING_DB_NAME:-pricedb}?allowPublicKeyRetrieval=true&useSSL=false
+      DB_USERNAME: ${PRICING_DB_USERNAME}
+      DB_PASSWORD: ${PRICING_DB_PASSWORD}
+      PRICING_API_KEY: ${PRICING_API_KEY:?set in .env}
+    depends_on:
+      test-purchase-db: { condition: service_healthy }
+  app:
+    build: .
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_URL: jdbc:mysql://test-purchase-db:3306/${DB_NAME:-test_purchase_db}?allowPublicKeyRetrieval=true&useSSL=false
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      PRICING_API_KEY: ${PRICING_API_KEY}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      DEMO_DATA_ENABLED: ${DEMO_DATA_ENABLED:-true}
+      SWAGGER_ENABLED: "true"
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      test-purchase-db: { condition: service_healthy }
+volumes:
+  dev-db:
