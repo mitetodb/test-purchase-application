@@ -70,6 +70,7 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-testkauf@getinweb.de}
       DEMO_DATA_ENABLED: ${DEMO_DATA_ENABLED:-false}
+      DEMO_PURCHASES: ${DEMO_PURCHASES:-0}
       SWAGGER_ENABLED: ${SWAGGER_ENABLED:-false}
       MAIL_ENABLED: ${MAIL_ENABLED:-false}
       MAIL_HOST: ${MAIL_HOST:-mailpit}
