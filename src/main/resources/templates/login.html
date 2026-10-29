@@ -3,7 +3,7 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
 <head>
-    <title>Login - Test Purchase System</title>
+    <title th:text="#{ui.login_test_purchase_system.6645}">Login - Test Purchase System</title>
 </head>
 <body>
 <main>
@@ -14,25 +14,25 @@
                     <i class="fas fa-shopping-bag" style="font-size: 3rem; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;"></i>
                 </div>
                 <h2 th:text="#{login.title}">Welcome Back</h2>
-                <p class="text-muted">Sign in to your account</p>
+                <p class="text-muted" th:text="#{ui.sign_in_to_your_account.41c7}">Sign in to your account</p>
             </div>
 
             <!-- Error Message -->
             <div th:if="${param.error}" class="alert alert-danger" role="alert">
                 <i class="fas fa-exclamation-circle me-2"></i>
-                Invalid username or password. Please try again.
+                <th:block th:text="#{ui.invalid_username_or_password_please_try.0848}">Invalid username or password. Please try again.</th:block>
             </div>
 
             <!-- Logout Message -->
             <div th:if="${param.logout}" class="alert alert-success" role="alert">
                 <i class="fas fa-check-circle me-2"></i>
-                You have been logged out successfully.
+                <th:block th:text="#{ui.you_have_been_logged_out_successfully.ab54}">You have been logged out successfully.</th:block>
             </div>
 
             <!-- Registration Success Message -->
             <div th:if="${param.registered}" class="alert alert-success" role="alert">
                 <i class="fas fa-check-circle me-2"></i>
-                Registration successful! Please login with your credentials.
+                <th:block th:text="#{ui.registration_successful_please_login_wit.67df}">Registration successful! Please login with your credentials.</th:block>
             </div>
 
             <form th:action="@{/login}" method="post" class="login-form">
@@ -46,7 +46,7 @@
                            class="form-control"
                            id="username"
                            name="username"
-                           placeholder="Enter your username"
+                           placeholder="Enter your username" th:placeholder="#{ui.enter_your_username.dd62}"
                            required
                            autofocus/>
                 </div>
@@ -59,14 +59,14 @@
                            class="form-control"
                            id="password"
                            name="password"
-                           placeholder="Enter your password"
+                           placeholder="Enter your password" th:placeholder="#{ui.enter_your_password.e8d2}"
                            required/>
                 </div>
 
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="rememberMe" name="remember-me">
-                        <label class="form-check-label" for="rememberMe">
+                        <label class="form-check-label" for="rememberMe" th:text="#{ui.remember_me.8785}">
                             Remember me
                         </label>
                     </div>
@@ -81,7 +81,7 @@
 
                 <div class="text-center">
                     <p class="mb-0">
-                        Don't have an account?
+                        <th:block th:text="#{ui.don_t_have_an_account.a5f6}">Don't have an account?</th:block>
                         <a th:href="@{/register}" class="text-decoration-none fw-bold" style="color: var(--primary-color);">
                             <i class="fas fa-user-plus me-1"></i><span th:text="#{login.register}">Register here</span>
                         </a>

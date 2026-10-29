@@ -3,16 +3,16 @@
       th:replace="~{layout :: layout(~{::title}, ~{::main})}"
       xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Error 400</title>
+    <title th:text="#{ui.error_400.e374}">Error 400</title>
 </head>
 <body>
 <main>
-    <h2>Oops, something went wrong</h2>
+    <h2 th:text="#{ui.oops_something_went_wrong.177d}">Oops, something went wrong</h2>
     <p th:text="${message}">400 bad request.</p>
     <p th:if="${errorId}">
-        Error ID: <strong th:text="${errorId}"></strong>
+        <th:block th:text="#{ui.error_id.fbf0}">Error ID:</th:block> <strong th:text="${errorId}"></strong>
     </p>
-    <a th:href="@{/}" class="btn btn-primary mt-3">Back to home</a>
+    <a th:href="@{/}" class="btn btn-primary mt-3" th:text="#{ui.back_to_home.6110}">Back to home</a>
 </main>
 </body>
 </html>

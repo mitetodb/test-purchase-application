@@ -4,13 +4,13 @@
       xmlns:th="http://www.thymeleaf.org">
 
 <head>
-    <title>Edit User</title>
+    <title th:text="#{ui.edit_user.65d7}">Edit User</title>
 </head>
 
 <body>
 <main>
 
-    <h2>Edit User</h2>
+    <h2 th:text="#{ui.edit_user.65d7}">Edit User</h2>
 
     <form th:action="@{|/users/edit/${userEditDTO.id}|}"
       th:object="${userEditDTO}"
@@ -19,17 +19,17 @@
     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
     <div class="mb-3">
-        <label>Username (cannot change)</label>
+        <label th:text="#{ui.username_cannot_change.b730}">Username (cannot change)</label>
         <input class="form-control" th:field="*{username}" readonly>
     </div>
 
     <div class="mb-3">
-        <label>Email</label>
+        <label th:text="#{ui.email.ce8a}">Email</label>
         <input class="form-control" type="email" th:field="*{email}">
     </div>
 
     <div class="mb-3">
-        <label>Country</label>
+        <label th:text="#{ui.country.5971}">Country</label>
         <select class="form-control" th:field="*{country}">
             <option th:each="c : ${T(app.model.enums.Country).values()}"
                     th:value="${c}"
@@ -38,7 +38,7 @@
     </div>
 
     <div class="mb-3">
-        <label>Role</label>
+        <label th:text="#{ui.role.bbba}">Role</label>
         <select class="form-control" th:field="*{role}">
             <option th:each="r : ${T(app.model.enums.Role).values()}"
                     th:value="${r}"
@@ -48,13 +48,13 @@
 
     <div class="mb-3">
         <label>
-            <input type="checkbox" th:field="*{active}"> Active
+            <input type="checkbox" th:field="*{active}"> <th:block th:text="#{ui.active.4d3d}">Active</th:block>
         </label>
     </div>
 
     <div class="form-group"
           th:if="${userEditDTO.role == T(app.model.enums.Role).ACCOUNT_MANAGER}">
-        <label for="managedCustomers">Managed Customers</label>
+        <label for="managedCustomers" th:text="#{ui.managed_customers.7918}">Managed Customers</label>
         <select id="managedCustomers"
                 class="form-control"
                 multiple="multiple"
@@ -64,12 +64,12 @@
                     th:text="${c.name}">
             </option>
         </select>
-        <small class="form-text text-muted">
+        <small class="form-text text-muted" th:text="#{ui.hold_ctrl_cmd_on_mac_to_select_multiple.447e}">
             Hold Ctrl (Cmd on Mac) to select multiple customers.
         </small>
     </div>
 
-    <button type="submit" class="btn btn-primary">Save</button>
+    <button type="submit" class="btn btn-primary" th:text="#{ui.save.c9cc}">Save</button>
 </form>
 
 </main>

@@ -4,39 +4,39 @@
       xmlns:th="http://www.thymeleaf.org">
 
 <head>
-    <title>Create User</title>
+    <title th:text="#{ui.create_user.266a}">Create User</title>
 </head>
 
 <body>
 <main>
 
-    <h2>Create User</h2>
+    <h2 th:text="#{ui.create_user.266a}">Create User</h2>
 
     <form th:action="@{/users/add}" th:object="${userCreateDTO}" method="post">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
         <div class="mb-3">
-            <label>Username</label>
+            <label th:text="#{ui.username.f603}">Username</label>
             <input class="form-control" th:field="*{username}" required>
         </div>
 
         <div class="mb-3">
-            <label>Email</label>
+            <label th:text="#{ui.email.ce8a}">Email</label>
             <input class="form-control" type="email" th:field="*{email}" required>
         </div>
 
         <div class="mb-3">
-            <label>Password</label>
+            <label th:text="#{ui.password.dc64}">Password</label>
             <input class="form-control" type="password" th:field="*{password}" required>
         </div>
 
         <div class="mb-3">
-            <label>Confirm Password</label>
+            <label th:text="#{ui.confirm_password.887f}">Confirm Password</label>
             <input class="form-control" type="password" th:field="*{confirmPassword}" required>
         </div>
 
         <div class="mb-3">
-            <label>Country</label>
+            <label th:text="#{ui.country.5971}">Country</label>
             <select class="form-control" th:field="*{country}">
                 <option th:each="c : ${T(app.model.enums.Country).values()}"
                         th:value="${c}"
@@ -45,7 +45,7 @@
         </div>
 
         <div class="mb-3">
-            <label>Role</label>
+            <label th:text="#{ui.role.bbba}">Role</label>
             <select class="form-control" th:field="*{role}">
                 <option th:each="r : ${T(app.model.enums.Role).values()}"
                         th:value="${r}"
@@ -55,12 +55,12 @@
 
         <div class="mb-3">
             <label>
-                <input type="checkbox" th:field="*{active}"> Active
+                <input type="checkbox" th:field="*{active}"> <th:block th:text="#{ui.active.4d3d}">Active</th:block>
             </label>
         </div>
 
-        <button class="btn btn-success">Create</button>
-        <a th:href="@{/users}" class="btn btn-secondary">Cancel</a>
+        <button class="btn btn-success" th:text="#{ui.create.686e}">Create</button>
+        <a th:href="@{/users}" class="btn btn-secondary" th:text="#{ui.cancel.ea47}">Cancel</a>
 
     </form>
 

@@ -90,7 +90,11 @@ public class EmailService {
             helper.setText(htmlContent, true);
 
             javaMailSender.send(mime);
+            log.info("Mail sent: template='{}'", templateName);
 
+        } catch (org.springframework.mail.MailException e) {
+            log.warn("Mail send failed: template='{}', cause={}", templateName, e.getClass().getSimpleName() + ": " + e.getMostSpecificCause().getMessage());
+            throw e;
         } catch (MessagingException e) {
             throw new RuntimeException("Failed to send email", e);
         }

@@ -4,15 +4,15 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
 <head>
-    <title>Customers</title>
+    <title th:text="#{ui.customers.e6d0}">Customers</title>
 </head>
 
 <body>
 <main>
 
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Customers</h2>
-        <a th:href="@{/customers/add}" class="btn btn-primary mb-3">Add Customer</a>
+        <h2 th:text="#{ui.customers.e6d0}">Customers</h2>
+        <a th:href="@{/customers/add}" class="btn btn-primary mb-3" th:text="#{ui.add_customer.daaa}">Add Customer</a>
     </div>
     <div id="export-buttons-customers" class="mb-3"></div>
 
@@ -20,23 +20,23 @@
         <thead>
         <tr>
             <th class="sortable">#</th>
-            <th class="sortable">Name</th>
-            <th class="sortable">Category</th>
-            <th class="sortable">Country</th>
-            <th class="sortable">Email</th>
-            <th class="sortable">Service Fee</th>
-            <th sec:authorize="hasRole('ADMIN')" class="sortable">Updated By</th>
-            <th>Actions</th>
+            <th class="sortable" th:text="#{ui.name.49ee}">Name</th>
+            <th class="sortable" th:text="#{ui.category.3adb}">Category</th>
+            <th class="sortable" th:text="#{ui.country.5971}">Country</th>
+            <th class="sortable" th:text="#{ui.email.ce8a}">Email</th>
+            <th class="sortable" th:text="#{ui.service_fee.a90d}">Service Fee</th>
+            <th sec:authorize="hasRole('ADMIN')" class="sortable" th:text="#{ui.updated_by.eb4d}">Updated By</th>
+            <th th:text="#{ui.actions.06df}">Actions</th>
         </tr>
 
         <tr>
             <th><input class="form-control form-control-sm column-filter" placeholder="Search #"></th>
-            <th><input class="form-control form-control-sm column-filter" placeholder="Search Name"></th>
-            <th><input class="form-control form-control-sm column-filter" placeholder="Search Category"></th>
-            <th><input class="form-control form-control-sm column-filter" placeholder="Search Country"></th>
-            <th><input class="form-control form-control-sm column-filter" placeholder="Search Email"></th>
-            <th><input class="form-control form-control-sm column-filter" placeholder="Service Fee"></th>
-            <th sec:authorize="hasRole('ADMIN')"><input class="form-control form-control-sm column-filter" placeholder="Search Updated"></th>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search Name" th:placeholder="#{ui.search_name.7c48}"></th>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search Category" th:placeholder="#{ui.search_category.4218}"></th>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search Country" th:placeholder="#{ui.search_country.08b5}"></th>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Search Email" th:placeholder="#{ui.search_email.c7b1}"></th>
+            <th><input class="form-control form-control-sm column-filter" placeholder="Service Fee" th:placeholder="#{ui.service_fee.a90d}"></th>
+            <th sec:authorize="hasRole('ADMIN')"><input class="form-control form-control-sm column-filter" placeholder="Search Updated" th:placeholder="#{ui.search_updated.6899}"></th>
             <th></th>
         </tr>
         </thead>
@@ -52,13 +52,13 @@
             <td sec:authorize="hasRole('ADMIN')" th:text="${c.updatedByUser}"></td>
             <td>
                 <a th:if="${#authorization.expression('hasAnyRole(''ADMIN'',''ACCOUNT_MANAGER'',''SALES_MANAGER'')')}"
-                   th:href="@{'/customers/edit/' + ${c.id}}" class="btn btn-warning btn-sm">Edit</a>
+                   th:href="@{'/customers/edit/' + ${c.id}}" class="btn btn-warning btn-sm" th:text="#{ui.edit.7dce}">Edit</a>
 
                 <form th:if="${#authorization.expression('hasRole(''ADMIN'')')}"
                       th:action="@{'/customers/delete/' + ${c.id}}"
                       method="post" style="display:inline;">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                    <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+                    <button class="btn btn-danger btn-sm" type="submit" th:text="#{ui.delete.f2a6}">Delete</button>
                 </form>
             </td>
         </tr>
