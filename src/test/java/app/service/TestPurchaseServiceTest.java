@@ -25,6 +25,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 @org.springframework.test.annotation.DirtiesContext(classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS)
 class TestPurchaseServiceTest {
 
+    @org.springframework.boot.test.mock.mockito.MockBean
+    private app.client.PricingClient pricingClient;
+
+    @org.junit.jupiter.api.BeforeEach
+    void stubPricing() {
+        app.model.dto.PriceCalculationResponseDTO r = new app.model.dto.PriceCalculationResponseDTO();
+        r.setTestPurchaseFee(150.0);
+        r.setPostageFee(10.0);
+        r.setProductPrice(99.0);
+        org.mockito.Mockito.when(pricingClient.calculatePrice(org.mockito.ArgumentMatchers.any())).thenReturn(r);
+    }
+
     @Autowired
     private TestPurchaseService testPurchaseService;
 
