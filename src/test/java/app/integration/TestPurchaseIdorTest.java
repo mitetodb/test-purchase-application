@@ -30,11 +30,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Integration tests for cross-company and cross-Account-Manager IDOR protection.
  * Uses real seeded users and data, NOT mocks of AccessControlService.
- * NOT @Transactional to match production behavior.
+ * Uses unique test data to avoid collisions.
  */
 @SpringBootTest(classes = TestPurchaseApplication.class)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@org.springframework.test.annotation.DirtiesContext(classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS)
 class TestPurchaseIdorTest {
 
     @Autowired
@@ -72,42 +73,48 @@ class TestPurchaseIdorTest {
     private TestPurchase testPurchase2;
 
     @BeforeEach
-    @org.springframework.transaction.annotation.Transactional
     void setup() {
+        setupTestData();
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    void setupTestData() {
+        String uuid = java.util.UUID.randomUUID().toString().substring(0, 8);
+        
         // Create account managers
-        accountManager1 = createUser("accmgr1_idor", Role.ACCOUNT_MANAGER);
-        accountManager2 = createUser("accmgr2_idor", Role.ACCOUNT_MANAGER);
+        accountManager1 = createUser("accmgr1_idor_" + uuid, Role.ACCOUNT_MANAGER);
+        accountManager2 = createUser("accmgr2_idor_" + uuid, Role.ACCOUNT_MANAGER);
 
         // Create sales managers
-        salesManager1 = createUser("salesmgr1_idor", Role.SALES_MANAGER);
-        salesManager2 = createUser("salesmgr2_idor", Role.SALES_MANAGER);
+        salesManager1 = createUser("salesmgr1_idor_" + uuid, Role.SALES_MANAGER);
+        salesManager2 = createUser("salesmgr2_idor_" + uuid, Role.SALES_MANAGER);
 
         // Create shop
-        shop = createShop("Shop IDOR Test");
+        shop = createShop("Shop IDOR Test " + uuid);
 
         // Create customers - customer1 managed by accountManager1 and salesManager1
-        customer1 = createCustomer("Customer 1 IDOR", accountManager1, salesManager1);
-        customer2 = createCustomer("Customer 2 IDOR", accountManager2, salesManager2);
+        customer1 = createCustomer("Customer 1 IDOR " + uuid, accountManager1, salesManager1);
+        customer2 = createCustomer("Customer 2 IDOR " + uuid, accountManager2, salesManager2);
 
-        // Link managers to customers
+        // Link managers to customers in many-to-many relationship
         accountManager1.getManagedCustomers().add(customer1);
-        userRepository.save(accountManager1);
+        accountManager1 = userRepository.save(accountManager1);
 
         accountManager2.getManagedCustomers().add(customer2);
-        userRepository.save(accountManager2);
+        accountManager2 = userRepository.save(accountManager2);
 
         // Create customer role users
-        customerUser1 = createUser("customer1_idor", Role.CUSTOMER);
+        customerUser1 = createUser("customer1_idor_" + uuid, Role.CUSTOMER);
         customerUser1.setCustomer(customer1);
         userRepository.save(customerUser1);
 
-        customerUser2 = createUser("customer2_idor", Role.CUSTOMER);
+        customerUser2 = createUser("customer2_idor_" + uuid, Role.CUSTOMER);
         customerUser2.setCustomer(customer2);
         userRepository.save(customerUser2);
 
         // Create test purchases
-        testPurchase1 = createTestPurchase("TP-IDOR-001", customer1);
-        testPurchase2 = createTestPurchase("TP-IDOR-002", customer2);
+        testPurchase1 = createTestPurchase("TP-IDOR-001-" + uuid, customer1);
+        testPurchase2 = createTestPurchase("TP-IDOR-002-" + uuid, customer2);
     }
 
     private User createUser(String username, Role role) {
@@ -222,6 +229,17 @@ class TestPurchaseIdorTest {
 
     @Test
     void accountManager1CannotEditTestPurchaseFromCustomer2() throws Exception {
+        // Verify setup: accountManager1 should manage customer1, not customer2
+        User am1 = userRepository.findByIdWithManagedCustomers(accountManager1.getId()).orElseThrow();
+        org.junit.jupiter.api.Assertions.assertTrue(
+            am1.getManagedCustomers().stream().anyMatch(c -> c.getId().equals(customer1.getId())),
+            "AccountManager1 should manage customer1"
+        );
+        org.junit.jupiter.api.Assertions.assertFalse(
+            am1.getManagedCustomers().stream().anyMatch(c -> c.getId().equals(customer2.getId())),
+            "AccountManager1 should NOT manage customer2"
+        );
+        
         mockMvc.perform(get("/testpurchases/edit/" + testPurchase2.getId())
                         .with(user(accountManager1.getUsername()).roles("ACCOUNT_MANAGER")))
                 .andExpect(status().isForbidden());

@@ -30,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = TestPurchaseApplication.class)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@org.springframework.test.annotation.DirtiesContext(classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS)
 class PageRenderingTest {
 
     @Autowired
@@ -63,21 +64,27 @@ class PageRenderingTest {
     private TestPurchase testPurchase2;
 
     @BeforeEach
-    @org.springframework.transaction.annotation.Transactional
     void setup() {
-        // Create users
-        adminUser = createUser("admin_render", Role.ADMIN, null);
-        accountManagerUser = createUser("accmgr_render", Role.ACCOUNT_MANAGER, null);
-        salesManagerUser = createUser("salesmgr_render", Role.SALES_MANAGER, null);
-        customerUser = createUser("customer_render", Role.CUSTOMER, null);
-        mysteryShopperUser = createUser("mystery_render", Role.MYSTERY_SHOPPER, null);
+        setupTestData();
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    void setupTestData() {
+        String uuid = java.util.UUID.randomUUID().toString().substring(0, 8);
+        
+        // Create users with unique names
+        adminUser = createUser("admin_render_" + uuid, Role.ADMIN, null);
+        accountManagerUser = createUser("accmgr_render_" + uuid, Role.ACCOUNT_MANAGER, null);
+        salesManagerUser = createUser("salesmgr_render_" + uuid, Role.SALES_MANAGER, null);
+        customerUser = createUser("customer_render_" + uuid, Role.CUSTOMER, null);
+        mysteryShopperUser = createUser("mystery_render_" + uuid, Role.MYSTERY_SHOPPER, null);
 
         // Create shop
-        shop1 = createShop("Shop Render Test");
+        shop1 = createShop("Shop Render Test " + uuid);
 
         // Create customers
-        customer1 = createCustomer("Customer 1 Render", accountManagerUser, salesManagerUser);
-        customer2 = createCustomer("Customer 2 Render", null, null);
+        customer1 = createCustomer("Customer 1 Render " + uuid, accountManagerUser, salesManagerUser);
+        customer2 = createCustomer("Customer 2 Render " + uuid, null, null);
 
         // Link account manager to customer1
         accountManagerUser.getManagedCustomers().add(customer1);
@@ -88,8 +95,8 @@ class PageRenderingTest {
         userRepository.save(customerUser);
 
         // Create test purchases
-        testPurchase1 = createTestPurchase("TP-RENDER-001", customer1, mysteryShopperUser);
-        testPurchase2 = createTestPurchase("TP-RENDER-002", customer2, null);
+        testPurchase1 = createTestPurchase("TP-RENDER-001-" + uuid, customer1, mysteryShopperUser);
+        testPurchase2 = createTestPurchase("TP-RENDER-002-" + uuid, customer2, null);
     }
 
     private User createUser(String username, Role role, Customer customer) {

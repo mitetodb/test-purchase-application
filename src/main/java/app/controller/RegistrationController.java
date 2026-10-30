@@ -20,6 +20,10 @@ public class RegistrationController {
         
         if (token == null || token.isBlank()) {
             model.addAttribute("invitationRequired", true);
+            // Still add empty DTO to avoid template errors
+            if (!model.containsAttribute("registrationDTO")) {
+                model.addAttribute("registrationDTO", new RegistrationDTO());
+            }
             return "register";
         }
 

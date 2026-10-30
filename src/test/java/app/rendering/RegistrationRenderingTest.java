@@ -35,6 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = TestPurchaseApplication.class)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@org.springframework.test.annotation.DirtiesContext(classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS)
 class RegistrationRenderingTest {
 
     @Autowired
@@ -56,12 +57,18 @@ class RegistrationRenderingTest {
     private String validToken;
 
     @BeforeEach
-    @org.springframework.transaction.annotation.Transactional
     void setup() throws Exception {
-        // Create admin user
+        setupTestData();
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    void setupTestData() throws Exception {
+        String uuid = java.util.UUID.randomUUID().toString().substring(0, 8);
+        
+        // Create admin user with unique email
         adminUser = User.builder()
-                .username("admin_registration")
-                .email("admin@test.com")
+                .username("admin_registration_" + uuid)
+                .email("admin_registration_" + uuid + "@test.com")
                 .password(passwordEncoder.encode("password"))
                 .role(Role.ADMIN)
                 .active(true)

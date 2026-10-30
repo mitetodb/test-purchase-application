@@ -31,6 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = TestPurchaseApplication.class)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@org.springframework.test.annotation.DirtiesContext(classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS)
 class MysteryShopperAssignmentIntegrationTest {
 
     @Autowired
@@ -62,27 +63,33 @@ class MysteryShopperAssignmentIntegrationTest {
     private TestPurchase testPurchase;
 
     @BeforeEach
-    @org.springframework.transaction.annotation.Transactional
     void setup() {
-        // Create users
-        adminUser = createUser("admin_assign", Role.ADMIN);
-        accountManagerUser = createUser("accmgr_assign", Role.ACCOUNT_MANAGER);
-        salesManagerUser = createUser("salesmgr_assign", Role.SALES_MANAGER);
-        customerUser = createUser("customer_assign", Role.CUSTOMER);
-        mysteryShopperUser = createUser("mystery_assign", Role.MYSTERY_SHOPPER);
+        setupTestData();
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    void setupTestData() {
+        String uuid = java.util.UUID.randomUUID().toString().substring(0, 8);
+        
+        // Create users with unique names
+        adminUser = createUser("admin_assign_" + uuid, Role.ADMIN);
+        accountManagerUser = createUser("accmgr_assign_" + uuid, Role.ACCOUNT_MANAGER);
+        salesManagerUser = createUser("salesmgr_assign_" + uuid, Role.SALES_MANAGER);
+        customerUser = createUser("customer_assign_" + uuid, Role.CUSTOMER);
+        mysteryShopperUser = createUser("mystery_assign_" + uuid, Role.MYSTERY_SHOPPER);
 
         // Create shop
-        shop = createShop("Shop Assignment Test");
+        shop = createShop("Shop Assignment Test " + uuid);
 
         // Create customer
-        customer = createCustomer("Customer Assignment", accountManagerUser, null);
+        customer = createCustomer("Customer Assignment " + uuid, accountManagerUser, null);
 
         // Link account manager to customer
         accountManagerUser.getManagedCustomers().add(customer);
-        userRepository.save(accountManagerUser);
+        accountManagerUser = userRepository.save(accountManagerUser);
 
         // Create test purchase
-        testPurchase = createTestPurchase("TP-ASSIGN-001", customer);
+        testPurchase = createTestPurchase("TP-ASSIGN-001-" + uuid, customer);
     }
 
     private User createUser(String username, Role role) {
