@@ -151,6 +151,7 @@ class IdorSecurityTest {
                 .status(TestPurchaseStatus.INITIALISED)
                 .productPrice(100.0)
                 .serviceFee(10.0)
+                .postageFee(5.0)
                 .active(true)
                 .build();
         return testPurchaseRepository.save(tp);

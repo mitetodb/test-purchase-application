@@ -70,6 +70,7 @@ class AccountManagerScopeTest {
         // Create two customers
         managedCustomer = new Customer();
         managedCustomer.setName("Managed Customer");
+        managedCustomer.setNumber("C100");
         managedCustomer.setCountry(Country.GERMANY);
         managedCustomer.setCategory("GOLD");
         managedCustomer.setActive(true);
@@ -77,6 +78,7 @@ class AccountManagerScopeTest {
 
         unmanagedCustomer = new Customer();
         unmanagedCustomer.setName("Unmanaged Customer");
+        unmanagedCustomer.setNumber("C200");
         unmanagedCustomer.setCountry(Country.GERMANY);
         unmanagedCustomer.setCategory("SILVER");
         unmanagedCustomer.setActive(true);

@@ -33,6 +33,9 @@ public class SecurityConfig {
                                 "/actuator/health", "/actuator/health/**", "/actuator/info",
                                 "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
                         .requestMatchers("/users","/users/**").hasRole("ADMIN")
+                        .requestMatchers("/customers","/customers/**").hasAnyRole("ADMIN","ACCOUNT_MANAGER","SALES_MANAGER")
+                        .requestMatchers("/shops","/shops/**").hasAnyRole("ADMIN","ACCOUNT_MANAGER")
+                        .requestMatchers("/invites","/invites/**").hasAnyRole("ADMIN","ACCOUNT_MANAGER")
                         .requestMatchers("/profile").authenticated()
                         .requestMatchers("/dashboard").authenticated()
                         .requestMatchers("/testpurchases/**").authenticated()
