@@ -76,10 +76,12 @@ Als Administrator haben Sie volle Kontrolle über alle Benutzer im System.
 
 **Rollen:**
 - **Administrator**: Vollständiger Systemzugriff (wie Sie!)
-- **Kundenbetreuer**: Kunden- und Testkaufverwaltung, Mystery Shopper zuweisen
-- **Vertriebsleiter**: Käufe anzeigen und Berichte erstellen (keine Shopper-Namen sichtbar)
-- **Kunde**: Eigene Testkäufe erstellen und verfolgen
+- **Kundenbetreuer**: Verwaltung zugewiesener Kunden und Testkäufe, Mystery Shopper zuweisen
+- **Vertriebsleiter**: Käufe eigener Kunden anzeigen und Berichte erstellen (keine Shopper-Namen sichtbar)
+- **Kunde**: Testkäufe des eigenen Unternehmens erstellen und verfolgen
 - **Mystery Shopper**: Zugewiesene Testkäufe durchführen
+
+**Hinweis:** Der öffentliche `/register`-Endpunkt weist aus Sicherheitsgründen standardmäßig die Mystery-Shopper-Rolle zu. Nur Administratoren können Benutzer mit anderen Rollen erstellen.
 
 ### Benutzer bearbeiten
 

@@ -76,10 +76,12 @@ As an Admin, you have full control over all users in the system.
 
 **Roles:**
 - **Admin**: Full system access (like you!)
-- **Account Manager**: Manage customers and test purchases, assign mystery shoppers
-- **Sales Manager**: View purchases and generate reports (cannot see shopper names)
-- **Customer**: Create and track their own test purchases
+- **Account Manager**: Manage assigned customers and test purchases, assign mystery shoppers
+- **Sales Manager**: View owned customers' purchases and generate reports (cannot see shopper names)
+- **Customer**: Create and track their company's test purchases
 - **Mystery Shopper**: Execute assigned test purchases
+
+**Note:** The public `/register` endpoint assigns the Mystery Shopper role by default for security. Only Admins can create users with other roles.
 
 ### Editing a User
 

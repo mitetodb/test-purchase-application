@@ -51,9 +51,9 @@ If you prefer to run the application directly:
 # Set environment variables
 export DB_URL=jdbc:mysql://localhost:3306/test_purchase_db
 export DB_USERNAME=root
-export DB_PASSWORD=your_password
-export ADMIN_PASSWORD=admin123
-export PRICING_API_KEY=your_api_key
+export DB_PASSWORD=<database-password>
+export ADMIN_PASSWORD=<choose-a-strong-password>  # min 12 characters
+export PRICING_API_KEY=<your-api-key>
 
 # Run the application
 mvn spring-boot:run

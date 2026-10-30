@@ -1,20 +1,44 @@
 # Roles and Permissions
 
-This document defines the five roles in the Test Purchase Application and their permissions.
+This document defines the five roles in the Test Purchase Application and their permissions, as enforced by server-side access control (see PR #21).
 
 ## Roles Overview
 
 | Role | Purpose | Key Responsibilities |
 |------|---------|---------------------|
 | **Admin** | System administrator | Full system access, user management, hard deletes |
-| **Account Manager** | Customer relationship management | Manage customers, assign mystery shoppers |
-| **Sales Manager** | Sales oversight | View test purchases, generate reports (no shopper names) |
-| **Customer** | Request test purchases | Create and track their own test purchases (no shopper names) |
-| **Mystery Shopper** | Execute test purchases | View assigned purchases, upload results |
+| **Account Manager** | Customer relationship management | Manage assigned customers, assign mystery shoppers |
+| **Sales Manager** | Sales oversight | View assigned customers' purchases, generate reports (no shopper names) |
+| **Customer** | Request test purchases | Create and track company's test purchases (no shopper names) |
+| **Mystery Shopper** | Execute test purchases | View and update assigned purchases, upload results |
 
 ## Permission Matrix
 
-### Users and Authentication
+Server-side role-based access control is enforced in controllers, services, and repository queries.
+
+### Test Purchases
+
+| Permission | Admin | Account Manager | Sales Manager | Customer | Mystery Shopper |
+|-----------|:-----:|:---------------:|:-------------:|:--------:|:---------------:|
+| View test purchases | ✅ All | ✅ Managed customers' | ✅ Owned customers' | ✅ Own company's | ✅ Assigned only |
+| Create test purchase | ✅ | ✅ | ❌ | ✅ (company only) | ❌ |
+| Edit test purchase | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Delete test purchase | ✅ Hard delete | ⚠️ Soft delete | ⚠️ Soft delete | ⚠️ Soft delete | ⚠️ Soft delete |
+| **Change status** | ✅ | ✅ | ❌ | ❌ | ✅ **Own assignments** |
+| **Assign mystery shopper** | ✅ | ✅ | ❌ | ❌ | ❌ |
+| **See mystery shopper name** | ✅ | ✅ | ❌ | ❌ | ✅ (own) |
+
+### Customers
+
+| Permission | Admin | Account Manager | Sales Manager | Customer | Mystery Shopper |
+|-----------|:-----:|:---------------:|:-------------:|:--------:|:---------------:|
+| View customers | ✅ All | ✅ Managed only | ✅ Owned only | ❌ | ❌ |
+| Create customer | ✅ | ✅ (auto-managed) | ✅ (auto-owned) | ❌ | ❌ |
+| Edit customer | ✅ | ✅ **Managed only** | ✅ **Owned only** | ❌ | ❌ |
+| Delete customer | ✅ Hard delete | ⚠️ Soft delete | ⚠️ Soft delete | ❌ | ❌ |
+| Set pricing | ✅ | ✅ | ✅ | ❌ | ❌ |
+
+### Users and System
 
 | Permission | Admin | Account Manager | Sales Manager | Customer | Mystery Shopper |
 |-----------|:-----:|:---------------:|:-------------:|:--------:|:---------------:|
@@ -27,18 +51,7 @@ This document defines the five roles in the Test Purchase Application and their 
 | Upload avatar | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Change own password | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Reset password (any user) | ✅ | ❌ | ❌ | ❌ | ❌ |
-
-### Customers
-
-| Permission | Admin | Account Manager | Sales Manager | Customer | Mystery Shopper |
-|-----------|:-----:|:---------------:|:-------------:|:--------:|:---------------:|
-| View all customers | ✅ | ✅ | ✅ | ❌ | ❌ |
-| View own customer profile | ❌ | ❌ | ❌ | ✅ | ❌ |
-| Create customer | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Edit any customer | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Deactivate customer | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Hard delete customer | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Assign account manager | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Hard delete (any entity) | ✅ | ❌ | ❌ | ❌ | ❌ |
 
 ### Shops
 
@@ -50,59 +63,40 @@ This document defines the five roles in the Test Purchase Application and their 
 | Deactivate shop | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Hard delete shop | ✅ | ❌ | ❌ | ❌ | ❌ |
 
-### Test Purchases
-
-| Permission | Admin | Account Manager | Sales Manager | Customer | Mystery Shopper |
-|-----------|:-----:|:---------------:|:-------------:|:--------:|:---------------:|
-| View all purchases | ✅ | ✅ | ✅ | ❌ | ❌ |
-| View own purchases | ❌ | ❌ | ❌ | ✅ | ❌ |
-| View assigned purchases | ❌ | ❌ | ❌ | ❌ | ✅ |
-| **See mystery shopper name** | ✅ | ✅ | ❌ | ❌ | ✅ |
-| Create purchase | ✅ | ✅ | ❌ | ✅ | ❌ |
-| Edit any purchase | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Edit own purchase (if Customer) | ❌ | ❌ | ❌ | ✅* | ❌ |
-| **Assign mystery shopper** | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Change status (any) | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Update assigned purchase | ❌ | ❌ | ❌ | ❌ | ✅* |
-| Deactivate purchase | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Hard delete purchase | ✅ | ❌ | ❌ | ❌ | ❌ |
-
-\* *With status restrictions*
-
 ### Items (Purchase Line Items)
 
 | Permission | Admin | Account Manager | Sales Manager | Customer | Mystery Shopper |
 |-----------|:-----:|:---------------:|:-------------:|:--------:|:---------------:|
-| View items (any purchase) | ✅ | ✅ | ✅ | ❌ | ❌ |
-| View items (own/assigned) | ❌ | ❌ | ❌ | ✅ | ✅ |
+| View items (any purchase) | ✅ | ✅ Managed | ✅ Owned | ❌ | ❌ |
+| View items (own/assigned) | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Add/edit/delete items | ✅ | ✅ | ❌ | ✅* | ❌ |
 
-\* *Customers: only on their own purchases*
+\* *Customers: only on their company's purchases*
 
 ### Attachments
 
 | Permission | Admin | Account Manager | Sales Manager | Customer | Mystery Shopper |
 |-----------|:-----:|:---------------:|:-------------:|:--------:|:---------------:|
-| View attachments (any) | ✅ | ✅ | ✅ | ❌ | ❌ |
-| View attachments (own/assigned) | ❌ | ❌ | ❌ | ✅ | ✅ |
+| View attachments (any) | ✅ | ✅ Managed | ✅ Owned | ❌ | ❌ |
+| View attachments (own/assigned) | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Upload attachment | ✅ | ✅ | ❌ | ✅ | ✅ |
 | Delete attachment (any) | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Delete attachment (own) | ❌ | ❌ | ❌ | ✅ | ✅ |
+| Delete attachment (own) | ✅ | ✅ | ❌ | ✅ | ✅ |
 
 ### Status History
 
 | Permission | Admin | Account Manager | Sales Manager | Customer | Mystery Shopper |
 |-----------|:-----:|:---------------:|:-------------:|:--------:|:---------------:|
-| View history (any purchase) | ✅ | ✅ | ✅ | ❌ | ❌ |
-| View history (own/assigned) | ❌ | ❌ | ❌ | ✅ | ✅ |
+| View history (any purchase) | ✅ | ✅ Managed | ✅ Owned | ❌ | ❌ |
+| View history (own/assigned) | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ### Reports and Analytics
 
 | Permission | Admin | Account Manager | Sales Manager | Customer | Mystery Shopper |
 |-----------|:-----:|:---------------:|:-------------:|:--------:|:---------------:|
 | Generate system reports | ✅ | ✅ | ✅ | ❌ | ❌ |
-| View customer analytics | ✅ | ✅ | ✅ | ❌ | ❌ |
-| View own statistics | ❌ | ❌ | ❌ | ✅ | ✅ |
+| View customer analytics | ✅ | ✅ Managed | ✅ Owned | ❌ | ❌ |
+| View own statistics | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ### System Administration
 
@@ -112,6 +106,27 @@ This document defines the five roles in the Test Purchase Application and their 
 | View system health | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Manage system settings | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Access audit logs | ✅ | ❌ | ❌ | ❌ | ❌ |
+
+## Key Security Features
+
+### IDOR Protection
+Each role can only access their authorized resources, tested with comprehensive IDOR (Insecure Direct Object Reference) tests.
+
+### Soft Delete
+Non-admin roles deactivate records via `active` flags; inactive records are filtered from queries. Only Admin can hard delete (permanently remove from database).
+
+### Registration Security
+The public `/register` endpoint assigns `MYSTERY_SHOPPER` role server-side. The client cannot escalate privileges (see [#20](https://github.com/mitetodb/test-purchase-application/issues/20)).
+
+### Mystery Shopper Privacy
+`SALES_MANAGER` and `CUSTOMER` roles never see mystery shopper names in views or API responses. This preserves the integrity of mystery shopping.
+
+### Ownership Links
+
+The system tracks ownership relationships:
+- `User.customer` links CUSTOMER role users to their company
+- `Customer.salesManager` links customers to their sales manager  
+- `User.managedCustomers` links ACCOUNT_MANAGER to their managed customers
 
 ## Special Rules
 
@@ -138,6 +153,42 @@ This document defines the five roles in the Test Purchase Application and their 
 - **Account Manager**: Needs to manage assignments and relationships
 - **Mystery Shopper**: Can see their own name and assignments
 
+### Mystery Shopper Can Change Status
+
+**Mystery Shoppers can change status on their own assignments**, typically:
+- ASSIGNED → IN_PROGRESS (when starting work)
+- IN_PROGRESS → COMPLETED (when finishing work)
+
+This allows them to update progress without Account Manager intervention.
+
+### Account Manager Scope
+
+**Account Managers can only:**
+- View test purchases for customers they manage
+- Edit customers they manage
+- Create new customers (automatically become managed by them)
+
+They cannot access other Account Managers' customers or purchases.
+
+### Sales Manager Scope
+
+**Sales Managers can only:**
+- View test purchases for customers they own
+- Edit customers they own
+- Create new customers (automatically become owned by them)
+
+They cannot change status, assign shoppers, or edit purchases.
+
+### Customer Scope
+
+**Customers can only:**
+- View test purchases for their own company
+- Create test purchases for their company
+- Cannot see mystery shopper names
+- Cannot change status or edit purchases after creation
+
+The `User.customer` link determines which company they belong to.
+
 ### Delete vs. Deactivate
 
 **Hard Delete (Physical Delete)**
@@ -145,24 +196,14 @@ This document defines the five roles in the Test Purchase Application and their 
 - Permanently removes data from the database
 - Used sparingly, typically for data cleanup or compliance
 
-**Deactivate (Soft Delete)**
-- **Admin, Account Manager** can deactivate users, customers, shops, test purchases
-- Records remain in the database with `active = false` or `status = 'INACTIVE'`
+**Soft Delete (Deactivate)**
+- **Admin, Account Manager, Sales Manager** can soft delete records they can access
+- Records remain in database with `active = false`
 - Preferred method for "deleting" in normal operations
 - Allows data recovery and maintains audit trails
 
-**For all other roles:**
-- "Delete" operations are actually deactivations
-- They cannot permanently remove data
-- Ensures data integrity and compliance
-
-### Customer Editing Restrictions
-
-Customers can edit their own test purchases **only under certain conditions**:
-- Before the purchase is assigned to a mystery shopper
-- Before the purchase status is finalized
-- Cannot change assigned mystery shopper (they don't see this field)
-- Cannot change certain status transitions
+**For other roles:**
+- They cannot delete at all, or soft deletes are scoped to their access
 
 ### Status Workflow Permissions
 
@@ -185,23 +226,24 @@ Admin
   └─ Full system access, can perform any action
   
 Account Manager
-  └─ Customer relationship management
+  └─ Manage assigned customers
      └─ Assign mystery shoppers
-     └─ Manage test purchases
+     └─ Manage test purchases for managed customers
      
 Sales Manager
-  └─ Read-only oversight
-     └─ View purchases (no shopper names)
+  └─ Read-mostly oversight
+     └─ View purchases for owned customers (no shopper names)
      └─ Generate reports
      
 Customer
   └─ Self-service test purchases
-     └─ Create and track own purchases
+     └─ Create and track company purchases
      └─ Cannot see shopper assignments
      
 Mystery Shopper
   └─ Execute assigned work
      └─ View and update assigned purchases
+     └─ Change status on own assignments
      └─ Upload results and attachments
 ```
 
@@ -218,8 +260,8 @@ public void deleteUser(UUID id) { ... }
 @PreAuthorize("hasAnyRole('ADMIN', 'ACCOUNT_MANAGER')")
 public void assignMysteryShopperToPurchase(...) { ... }
 
-@PreAuthorize("hasRole('CUSTOMER')")
-public void createTestPurchase(...) { ... }
+@PreAuthorize("hasRole('MYSTERY_SHOPPER')")
+public void updateAssignedPurchaseStatus(...) { ... }
 ```
 
 ### Database-Level Security
@@ -228,11 +270,20 @@ public void createTestPurchase(...) { ... }
 - No user can change their own role through the application
 - Only Admin can modify role assignments
 
+### Repository Query Filtering
+
+Repositories filter results based on the current user's role and relationships:
+- Account Managers see only managed customers' data
+- Sales Managers see only owned customers' data
+- Customers see only their company's data
+- Mystery Shoppers see only assigned purchases
+
 ### UI-Level Security
 
 - Navigation menus and buttons are conditionally rendered based on role
 - Thymeleaf security expressions: `sec:authorize="hasRole('ADMIN')"`
 - Direct URL access is still blocked by Spring Security filters
+- Mystery shopper names are hidden in templates for restricted roles
 
 ## Future Enhancements
 

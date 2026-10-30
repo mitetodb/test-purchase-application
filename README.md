@@ -6,7 +6,7 @@ status workflow and history, attachments, and price calculation via a separate p
 **Live:** https://testkauf.getinweb.de · Pricing service: [price-calculation-microservice](https://github.com/mitetodb/price-calculation-microservice)
 
 ## Features
-- Roles: Admin, Account Manager, Sales Manager, Customer, Mystery Shopper (Spring Security, role-based UI)
+- Roles: Admin, Account Manager, Sales Manager, Customer, Mystery Shopper (Spring Security, server-side RBAC)
 - Test purchases: create/edit, items, status changes with history and optional email notification
 - Customers & shops management, user management, profile with avatar upload
 - Price calculation (service fee, postage) via the pricing microservice (Feign + `X-API-Key`)
@@ -55,6 +55,8 @@ Server-side role-based access control enforced in controllers, services, and rep
   - `User.managedCustomers` links ACCOUNT_MANAGER to their managed customers
 - **Account Manager Scope**: ACCOUNT_MANAGER can only create/edit test purchases and customers that they manage (enforced in service layer with IDOR tests)
 
+See [docs/ROLES.md](docs/ROLES.md) for the complete permission matrix.
+
 ## Architecture
 ```
  Browser ──HTTPS──> host nginx (80/443, Let's Encrypt)
@@ -78,11 +80,11 @@ Requirements: Java 17, Maven 3.9, MySQL 8 (or Docker).
 cp .env.example .env                    # fill in values; never commit .env
 docker compose up -d --build            # app on http://localhost:8080 (+ MySQL on 127.0.0.1:3307, pricing-svc)
 # or without Docker for the app:
-export DB_URL=jdbc:mysql://localhost:3306/test_purchase_db DB_USERNAME=... DB_PASSWORD=... ADMIN_PASSWORD=...
+export DB_URL=jdbc:mysql://localhost:3306/test_purchase_db DB_USERNAME=root DB_PASSWORD=<database-password> ADMIN_PASSWORD=<strong-password>
 mvn spring-boot:run
 scripts/ci.sh                           # secret scan + tests + compose check (DOCKER_BUILD=1 for image)
 ```
-Admin: set `ADMIN_PASSWORD` before the first start (created only if the users table is empty).
+Admin: set `ADMIN_PASSWORD` (min 12 characters) before the first start (created only if the users table is empty).
 
 ## Production deployment (testkauf.getinweb.de)
 
@@ -114,7 +116,7 @@ Set a DNS A record for `testkauf.getinweb.de` pointing at the server before you 
 
 **Configuration** is env only (`.env.example` lists every variable). Key settings:
 `SPRING_PROFILES_ACTIVE=prod`, `APP_BASE_URL` (used in password-reset links), `PRICING_API_KEY` (sent as `X-API-Key`; it must match the pricing service),
-`ADMIN_PASSWORD` (the initial admin is created only when the users table is empty), `MAIL_ENABLED` (default `false`, so mail is a logged no-op; SMTP for ALL-INKL: `MAIL_HOST=w00d37b3.kasserver.com`, `MAIL_PORT=587` + `MAIL_STARTTLS=true` (used on Hetzner, which blocks outbound 465), or `465` + `MAIL_SSL=true` elsewhere, `MAIL_USERNAME`/`MAIL_PASSWORD` from env, `MAIL_FROM=testkauf@getinweb.de`), `DEMO_DATA_ENABLED`, `SWAGGER_ENABLED`.
+`ADMIN_PASSWORD` (the initial admin is created only when the users table is empty; min 12 characters required), `MAIL_ENABLED` (default `false`, so mail is a logged no-op; SMTP for ALL-INKL: `MAIL_HOST=w00d37b3.kasserver.com`, `MAIL_PORT=587` + `MAIL_STARTTLS=true` (used on Hetzner, which blocks outbound 465), or `465` + `MAIL_SSL=true` elsewhere, `MAIL_USERNAME`/`MAIL_PASSWORD` from env, `MAIL_FROM=testkauf@getinweb.de`), `DEMO_DATA_ENABLED`, `SWAGGER_ENABLED`.
 
 **Database migrations.** Flyway runs `src/main/resources/db/migration`. `V1__baseline.sql` is the schema at the time Flyway was introduced.
 Existing databases are baselined at v1 automatically (`baseline-on-migrate`), and Hibernate runs with `ddl-auto=validate` in prod.

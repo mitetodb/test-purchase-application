@@ -7,7 +7,7 @@ Willkommen! Dieses Handbuch ist für **Kundenbetreuer**, die Kundenbeziehungen u
 Als **Kundenbetreuer** können Sie:
 
 ✅ **Folgendes tun:**
-- Alle Kunden anzeigen und verwalten
+- Ihnen zugewiesene Kunden anzeigen und verwalten
 - Sich selbst oder andere als Kundenbetreuer Kunden zuweisen
 - Testkäufe für Ihre Kunden erstellen und verwalten
 - **Mystery Shopper zu Testkäufen zuweisen**

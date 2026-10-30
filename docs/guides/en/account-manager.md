@@ -46,7 +46,7 @@ Click the globe icon in the navigation and select:
 As an **Account Manager**, you:
 
 ✅ **Can do:**
-- View and manage all customers
+- View and manage customers assigned to you
 - Assign yourself or others as account managers to customers
 - Create and manage test purchases for your customers
 - **Assign mystery shoppers** to test purchases
@@ -79,7 +79,7 @@ Your dashboard shows:
 ### Viewing Customers
 
 1. Click **Customers** in the navigation
-2. See all customers (not just yours)
+2. See customers assigned to you (and others for coordination)
 3. Search by name, email, or VAT number
 4. Filter by account manager or status
 
@@ -105,9 +105,11 @@ Your dashboard shows:
 3. Change the assigned Account Manager if needed
 4. Click **Save**
 
+**Note:** You can only edit customers you manage, unless you're reassigning them.
+
 ### Managing Your Customer Portfolio
 
-**Best practice:** Focus on customers assigned to you, but you have access to all customers for coordination.
+**Best practice:** Focus on customers assigned to you. You can see other customers for coordination but can only edit your managed customers.
 
 **To see your customers:**
 1. Go to **Customers**
