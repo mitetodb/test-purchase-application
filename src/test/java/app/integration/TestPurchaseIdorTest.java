@@ -35,7 +35,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = TestPurchaseApplication.class)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@org.springframework.test.annotation.DirtiesContext(classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS)
 class TestPurchaseIdorTest {
 
     @Autowired
@@ -59,6 +58,9 @@ class TestPurchaseIdorTest {
     @Autowired
     private TestPurchaseService testPurchaseService;
 
+    @Autowired
+    private jakarta.persistence.EntityManager entityManager;
+
     private User accountManager1;
     private User accountManager2;
     private User salesManager1;
@@ -79,7 +81,7 @@ class TestPurchaseIdorTest {
 
     @org.springframework.transaction.annotation.Transactional
     void setupTestData() {
-        String uuid = java.util.UUID.randomUUID().toString().substring(0, 8);
+        String uuid = Integer.toHexString((int)(Math.random() * 65536)); // 4-char hex
         
         // Create account managers
         accountManager1 = createUser("accmgr1_idor_" + uuid, Role.ACCOUNT_MANAGER);
@@ -112,9 +114,13 @@ class TestPurchaseIdorTest {
         customerUser2.setCustomer(customer2);
         userRepository.save(customerUser2);
 
-        // Create test purchases
-        testPurchase1 = createTestPurchase("TP-IDOR-001-" + uuid, customer1);
-        testPurchase2 = createTestPurchase("TP-IDOR-002-" + uuid, customer2);
+        // Create test purchases with shorter numbers to fit VARCHAR(20)
+        testPurchase1 = createTestPurchase("TPI1" + uuid, customer1);
+        testPurchase2 = createTestPurchase("TPI2" + uuid, customer2);
+        
+        // Flush to ensure all data is persisted
+        entityManager.flush();
+        entityManager.clear();
     }
 
     private User createUser(String username, Role role) {

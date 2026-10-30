@@ -35,7 +35,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = TestPurchaseApplication.class)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@org.springframework.test.annotation.DirtiesContext(classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS)
 class RegistrationRenderingTest {
 
     @Autowired
@@ -63,7 +62,7 @@ class RegistrationRenderingTest {
 
     @org.springframework.transaction.annotation.Transactional
     void setupTestData() throws Exception {
-        String uuid = java.util.UUID.randomUUID().toString().substring(0, 8);
+        String uuid = Integer.toHexString((int)(Math.random() * 65536)); // 4-char hex
         
         // Create admin user with unique email
         adminUser = User.builder()

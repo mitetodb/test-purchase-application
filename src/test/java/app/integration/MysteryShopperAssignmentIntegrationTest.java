@@ -31,7 +31,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = TestPurchaseApplication.class)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@org.springframework.test.annotation.DirtiesContext(classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS)
 class MysteryShopperAssignmentIntegrationTest {
 
     @Autowired
@@ -88,8 +87,8 @@ class MysteryShopperAssignmentIntegrationTest {
         accountManagerUser.getManagedCustomers().add(customer);
         accountManagerUser = userRepository.save(accountManagerUser);
 
-        // Create test purchase
-        testPurchase = createTestPurchase("TP-ASSIGN-001-" + uuid, customer);
+        // Create test purchase with shorter number to fit VARCHAR(20)
+        testPurchase = createTestPurchase("TPA" + uuid, customer);
     }
 
     private User createUser(String username, Role role) {

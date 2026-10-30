@@ -30,7 +30,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = TestPurchaseApplication.class)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@org.springframework.test.annotation.DirtiesContext(classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS)
 class PageRenderingTest {
 
     @Autowired
@@ -70,7 +69,7 @@ class PageRenderingTest {
 
     @org.springframework.transaction.annotation.Transactional
     void setupTestData() {
-        String uuid = java.util.UUID.randomUUID().toString().substring(0, 8);
+        String uuid = Integer.toHexString((int)(Math.random() * 65536)); // 4-char hex
         
         // Create users with unique names
         adminUser = createUser("admin_render_" + uuid, Role.ADMIN, null);
@@ -94,9 +93,9 @@ class PageRenderingTest {
         customerUser.setCustomer(customer1);
         userRepository.save(customerUser);
 
-        // Create test purchases
-        testPurchase1 = createTestPurchase("TP-RENDER-001-" + uuid, customer1, mysteryShopperUser);
-        testPurchase2 = createTestPurchase("TP-RENDER-002-" + uuid, customer2, null);
+        // Create test purchases with shorter numbers to fit VARCHAR(20)
+        testPurchase1 = createTestPurchase("TPR1" + uuid, customer1, mysteryShopperUser);
+        testPurchase2 = createTestPurchase("TPR2" + uuid, customer2, null);
     }
 
     private User createUser(String username, Role role, Customer customer) {
