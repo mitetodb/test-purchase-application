@@ -62,12 +62,8 @@ class MysteryShopperAssignmentIntegrationTest {
     private TestPurchase testPurchase;
 
     @BeforeEach
-    void setup() {
-        setupTestData();
-    }
-
     @org.springframework.transaction.annotation.Transactional
-    void setupTestData() {
+    void setup() {
         String uuid = java.util.UUID.randomUUID().toString().substring(0, 8);
         
         // Create users with unique names

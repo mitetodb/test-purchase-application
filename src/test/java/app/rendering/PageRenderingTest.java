@@ -63,12 +63,8 @@ class PageRenderingTest {
     private TestPurchase testPurchase2;
 
     @BeforeEach
-    void setup() {
-        setupTestData();
-    }
-
     @org.springframework.transaction.annotation.Transactional
-    void setupTestData() {
+    void setup() {
         String uuid = Integer.toHexString((int)(Math.random() * 65536)); // 4-char hex
         
         // Create users with unique names

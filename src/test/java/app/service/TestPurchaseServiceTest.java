@@ -67,6 +67,8 @@ class TestPurchaseServiceTest {
         
         // Clean up test data from previous tests to ensure count assertions work
         testPurchaseRepository.deleteAll();
+        // Clear many-to-many relationships before deleting customers
+        userRepository.clearAllAccountManagerCustomerRelationships();
         customerRepository.deleteAll();
         shopRepository.deleteAll();
         
