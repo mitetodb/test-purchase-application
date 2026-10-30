@@ -82,7 +82,7 @@ Als Administrator haben Sie volle Kontrolle über alle Benutzer im System.
 - **Mystery Shopper**: Zugewiesene Testkäufe durchführen
 
 **Mystery Shopper einladen:**
-Mystery Shopper können sich nicht selbst registrieren. Administratoren und Kundenbetreuer laden sie über einmalige Einladungslinks ein, die ablaufen. Nur Administratoren können Benutzer mit den Rollen Administrator, Kundenbetreuer, Vertriebsleiter oder Kunde erstellen.
+Mystery Shopper können sich nicht selbst registrieren. Administratoren und Kundenbetreuer laden sie über einmalige Einladungslinks ein, die nach 7 Tagen ablaufen. Nur Administratoren können Benutzer mit den Rollen Administrator, Kundenbetreuer, Vertriebsleiter oder Kunde erstellen.
 
 ### Benutzer bearbeiten
 

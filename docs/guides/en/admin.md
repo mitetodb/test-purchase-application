@@ -82,7 +82,7 @@ As an Admin, you have full control over all users in the system.
 - **Mystery Shopper**: Execute assigned test purchases
 
 **Inviting Mystery Shoppers:**
-Mystery Shoppers cannot self-register. Admins and Account Managers invite them via one-time invite links that expire. Only Admins can create users with Admin, Account Manager, Sales Manager, or Customer roles.
+Mystery Shoppers cannot self-register. Admins and Account Managers invite them via one-time invite links that expire after 7 days. Only Admins can create users with Admin, Account Manager, Sales Manager, or Customer roles.
 
 ### Editing a User
 
@@ -111,7 +111,7 @@ Mystery Shoppers join by invitation only:
 2. Enter the shopper's email address
 3. Click **Send Invitation**
 4. A one-time invite link is emailed to them
-5. The link expires after a set time (typically 48 hours)
+5. The link expires after 7 days
 6. The shopper clicks the link to set up their account
 
 Only Admins and Account Managers can send mystery shopper invitations.

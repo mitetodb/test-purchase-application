@@ -117,7 +117,7 @@ Non-admin roles deactivate records via `active` flags; inactive records are filt
 **Users are never deleted**, only deactivated. Even Admins cannot delete user records—they can only set `active = false`.
 
 ### Registration Security
-Mystery Shoppers join by invitation only. Admins and Account Managers send one-time invite links that expire. There is no public self-registration endpoint.
+Mystery Shoppers join by invitation only. Admins and Account Managers send one-time invite links that expire after 7 days. There is no public self-registration endpoint.
 
 ### Mystery Shopper Privacy
 `SALES_MANAGER` and `CUSTOMER` roles never see mystery shopper names in views or API responses. This preserves the integrity of mystery shopping.
