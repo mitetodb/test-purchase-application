@@ -69,7 +69,7 @@ public void assignMysteryShopperToPurchase(...) { ... }
   - No file type validation beyond extension check
   - No file size limits enforced
   - No antivirus scanning
-  - See [#9 Upload Validation](https://github.com/mitetodb/test-purchase-application/issues/9)
+  - See [#9 Upload validation by magic bytes with an allowlist](https://github.com/mitetodb/test-purchase-application/issues/9)
 
 ### Session Management
 
@@ -96,7 +96,7 @@ public void assignMysteryShopperToPurchase(...) { ... }
   - No comprehensive audit logging
   - No failed login tracking
   - No alerting on security events
-  - See [#14 Audit Logging](https://github.com/mitetodb/test-purchase-application/issues/14)
+  - See [#13 Full audit log for clients, prices and users](https://github.com/mitetodb/test-purchase-application/issues/13)
 
 ### Email Security
 
@@ -116,48 +116,52 @@ public void assignMysteryShopperToPurchase(...) { ... }
 
 ### High Priority (See MASTERPLAN.md)
 
-1. **[#19 RBAC Enforcement](https://github.com/mitetodb/test-purchase-application/issues/19)**
+1. **[#19 Role-based access control enforced on the server](https://github.com/mitetodb/test-purchase-application/issues/19)**
    - Some endpoints may not have proper authorization checks
    - Need comprehensive security audit
    - Add integration tests for all role combinations
 
-2. **[#20 Registration Role Assignment](https://github.com/mitetodb/test-purchase-application/issues/20)**
+2. **[#20 Public /register allows role=ADMIN](https://github.com/mitetodb/test-purchase-application/issues/20)**
    - Potential privilege escalation during user registration
    - Role should be assigned by admin, not during self-registration
 
-3. **[#7 Rate Limiting and Account Lockout](https://github.com/mitetodb/test-purchase-application/issues/7)**
+3. **[#7 Login rate limiting and account lockout](https://github.com/mitetodb/test-purchase-application/issues/7)**
    - No protection against brute force login attempts
    - No account lockout after failed attempts
    - No rate limiting on authentication endpoints
 
-4. **[#8 Password Policy and TOTP 2FA](https://github.com/mitetodb/test-purchase-application/issues/8)**
+4. **[#8 Password policy (min 12) and TOTP 2FA for Admin and Account Manager](https://github.com/mitetodb/test-purchase-application/issues/8)**
    - No password complexity requirements
    - No password expiration
    - No two-factor authentication (TOTP)
    - Admins and Account Managers should require 2FA
 
-5. **[#9 Upload Validation](https://github.com/mitetodb/test-purchase-application/issues/9)**
+5. **[#9 Upload validation by magic bytes with an allowlist](https://github.com/mitetodb/test-purchase-application/issues/9)**
    - No MIME type validation (beyond file extension)
    - No file size limits
    - No antivirus scanning
    - No image dimension limits
    - Risk of malicious file uploads
 
-6. **[#10 Upload Backups](https://github.com/mitetodb/test-purchase-application/issues/10)**
+6. **[#10 Backups of uploaded files plus an off-server copy](https://github.com/mitetodb/test-purchase-application/issues/10)**
    - Database backups don't include uploaded files
    - No disaster recovery for user uploads
    - Files stored on local filesystem only
 
 ### Medium Priority
 
-7. **[#14 Audit Logging](https://github.com/mitetodb/test-purchase-application/issues/14)**
+7. **[#13 Full audit log for clients, prices and users](https://github.com/mitetodb/test-purchase-application/issues/13)**
    - No comprehensive audit trail
    - Cannot track who changed what and when
    - Needed for compliance and incident investigation
 
-8. **[#15 API Rate Limiting per User](https://github.com/mitetodb/test-purchase-application/issues/15)**
-   - No per-user API quotas
-   - Risk of resource abuse
+8. **[#14 CSP and security header cleanup](https://github.com/mitetodb/test-purchase-application/issues/14)**
+   - Content Security Policy not fully configured
+   - Missing or incomplete security headers
+
+9. **[#15 Pagination and filters](https://github.com/mitetodb/test-purchase-application/issues/15)**
+   - Large result sets may impact performance
+   - Need efficient pagination and filtering
 
 ## Security Best Practices
 
@@ -201,7 +205,7 @@ public void assignMysteryShopperToPurchase(...) { ... }
    - Database backups run nightly via cron
    - Test restore procedure periodically
    - Store backups off-site for disaster recovery
-   - Plan for file upload backups (see [#10](https://github.com/mitetodb/test-purchase-application/issues/10))
+   - Plan for file upload backups (see [#10 Backups of uploaded files plus an off-server copy](https://github.com/mitetodb/test-purchase-application/issues/10))
 
 6. **Limit Access**
    - Use SSH keys instead of passwords
@@ -331,7 +335,7 @@ public void assignMysteryShopperToPurchase(...) { ... }
 - Encryption in transit (HTTPS)
 - Encryption at rest (MySQL data files)
 - Access control (role-based)
-- Audit logging (planned: [#14](https://github.com/mitetodb/test-purchase-application/issues/14))
+- Audit logging (planned: [#13 Full audit log for clients, prices and users](https://github.com/mitetodb/test-purchase-application/issues/13))
 
 ### Data Retention
 
@@ -352,17 +356,18 @@ See [MASTERPLAN.md](MASTERPLAN.md) for the complete security improvement roadmap
 
 ### Immediate (High Priority)
 
-1. Implement rate limiting and account lockout - [#7](https://github.com/mitetodb/test-purchase-application/issues/7)
-2. Add password complexity requirements and TOTP 2FA - [#8](https://github.com/mitetodb/test-purchase-application/issues/8)
-3. Implement comprehensive upload validation - [#9](https://github.com/mitetodb/test-purchase-application/issues/9)
-4. Set up automated upload backups - [#10](https://github.com/mitetodb/test-purchase-application/issues/10)
-5. Complete RBAC security audit - [#19](https://github.com/mitetodb/test-purchase-application/issues/19)
-6. Fix registration role assignment - [#20](https://github.com/mitetodb/test-purchase-application/issues/20)
+1. Implement rate limiting and account lockout - [#7 Login rate limiting and account lockout](https://github.com/mitetodb/test-purchase-application/issues/7)
+2. Add password complexity requirements and TOTP 2FA - [#8 Password policy (min 12) and TOTP 2FA for Admin and Account Manager](https://github.com/mitetodb/test-purchase-application/issues/8)
+3. Implement comprehensive upload validation - [#9 Upload validation by magic bytes with an allowlist](https://github.com/mitetodb/test-purchase-application/issues/9)
+4. Set up automated upload backups - [#10 Backups of uploaded files plus an off-server copy](https://github.com/mitetodb/test-purchase-application/issues/10)
+5. Complete RBAC security audit - [#19 Role-based access control enforced on the server](https://github.com/mitetodb/test-purchase-application/issues/19)
+6. Fix registration role assignment - [#20 Public /register allows role=ADMIN](https://github.com/mitetodb/test-purchase-application/issues/20)
 
 ### Soon (Medium Priority)
 
-7. Add comprehensive audit logging - [#14](https://github.com/mitetodb/test-purchase-application/issues/14)
-8. Implement per-user API rate limiting - [#15](https://github.com/mitetodb/test-purchase-application/issues/15)
+7. Add comprehensive audit logging - [#13 Full audit log for clients, prices and users](https://github.com/mitetodb/test-purchase-application/issues/13)
+8. Improve security headers - [#14 CSP and security header cleanup](https://github.com/mitetodb/test-purchase-application/issues/14)
+9. Add pagination and filters - [#15 Pagination and filters](https://github.com/mitetodb/test-purchase-application/issues/15)
 
 ### Future
 

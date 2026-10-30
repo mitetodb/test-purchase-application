@@ -238,6 +238,6 @@ public void createTestPurchase(...) { ... }
 
 See [MASTERPLAN.md](MASTERPLAN.md) for planned improvements:
 
-- [#19 RBAC Refinements](https://github.com/mitetodb/test-purchase-application/issues/19) - More granular permissions
-- [#14 Audit Logging](https://github.com/mitetodb/test-purchase-application/issues/14) - Track all permission-based actions
-- [#8 TOTP 2FA](https://github.com/mitetodb/test-purchase-application/issues/8) - Additional authentication for sensitive roles
+- [#19 Role-based access control enforced on the server](https://github.com/mitetodb/test-purchase-application/issues/19) - More granular permissions
+- [#13 Full audit log for clients, prices and users](https://github.com/mitetodb/test-purchase-application/issues/13) - Track all permission-based actions
+- [#8 Password policy (min 12) and TOTP 2FA for Admin and Account Manager](https://github.com/mitetodb/test-purchase-application/issues/8) - Additional authentication for sensitive roles
