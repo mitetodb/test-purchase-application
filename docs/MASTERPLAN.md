@@ -2,6 +2,8 @@
 
 This document outlines the development roadmap for the Test Purchase Application, organized by priority.
 
+See [ORIGINAL_VISION.md](ORIGINAL_VISION.md) for the original project goals and feature implementation status.
+
 ## High Priority
 
 Critical security and operational improvements that should be implemented first:
@@ -22,6 +24,7 @@ Important features and improvements for better usability and monitoring:
 - [#13 Full audit log for clients, prices and users](https://github.com/mitetodb/test-purchase-application/issues/13) - Track all user actions and data changes
 - [#14 CSP and security header cleanup](https://github.com/mitetodb/test-purchase-application/issues/14) - Security headers and content security policy
 - [#15 Pagination and filters](https://github.com/mitetodb/test-purchase-application/issues/15) - Improve data navigation and filtering
+- [#23 Concurrency-safe sequential numbers for test purchases, customers and shops](https://github.com/mitetodb/test-purchase-application/issues/23) - Prevent race conditions in sequential numbering
 
 ## Later
 
@@ -30,6 +33,7 @@ Future enhancements that can be scheduled after core improvements:
 - [#16 Deadlines and email reminders](https://github.com/mitetodb/test-purchase-application/issues/16) - Deadline management and automated reminders
 - [#17 Scored questionnaire and client trends dashboard](https://github.com/mitetodb/test-purchase-application/issues/17) - Enhanced client analytics and questionnaires
 - [#18 Alerts on health.getinweb.de for missing backup or 5xx errors](https://github.com/mitetodb/test-purchase-application/issues/18) - Health monitoring and alerting
+- [#24 Appointment/visit booking for mystery shoppers](https://github.com/mitetodb/test-purchase-application/issues/24) - Schedule and manage shop visit appointments
 
 ## Implementation Notes
 

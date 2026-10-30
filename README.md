@@ -136,6 +136,7 @@ Comprehensive documentation is available in the [`docs/`](docs/) directory:
 
 ### Project Documentation
 
+- **[Original Vision](docs/ORIGINAL_VISION.md)** - Original project goals and feature implementation status
 - **[Master Plan](docs/MASTERPLAN.md)** - Development roadmap organized by priority (High, Medium, Later)
 - **[Architecture](docs/ARCHITECTURE.md)** - System architecture with Mermaid diagrams, components, and data flows
 - **[Roles & Permissions](docs/ROLES.md)** - Complete permission matrix for all five roles
