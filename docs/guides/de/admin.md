@@ -81,7 +81,8 @@ Als Administrator haben Sie volle Kontrolle über alle Benutzer im System.
 - **Kunde**: Testkäufe des eigenen Unternehmens erstellen und verfolgen
 - **Mystery Shopper**: Zugewiesene Testkäufe durchführen
 
-**Hinweis:** Der öffentliche `/register`-Endpunkt weist aus Sicherheitsgründen standardmäßig die Mystery-Shopper-Rolle zu. Nur Administratoren können Benutzer mit anderen Rollen erstellen.
+**Mystery Shopper einladen:**
+Mystery Shopper können sich nicht selbst registrieren. Administratoren und Kundenbetreuer laden sie über einmalige Einladungslinks ein, die ablaufen. Nur Administratoren können Benutzer mit den Rollen Administrator, Kundenbetreuer, Vertriebsleiter oder Kunde erstellen.
 
 ### Benutzer bearbeiten
 

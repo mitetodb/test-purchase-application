@@ -50,6 +50,7 @@ As an **Account Manager**, you:
 - Assign yourself or others as account managers to customers
 - Create and manage test purchases for your customers
 - **Assign mystery shoppers** to test purchases
+- **Invite mystery shoppers** via one-time invite links
 - **See mystery shopper names** (unlike Sales Managers and Customers)
 - Change test purchase status
 - View all shops
@@ -58,8 +59,8 @@ As an **Account Manager**, you:
 - View status history and attachments
 
 ❌ **Cannot do:**
-- Create or manage users (Admin only)
-- Hard delete data (only deactivate)
+- Create users with Admin, Sales Manager, or Customer roles (Admin only)
+- Hard delete data (only Admin; you can soft delete)
 - Access system administration features
 - Change system settings
 
@@ -125,7 +126,7 @@ When a customer is no longer active:
 
 The customer remains in the database but is marked inactive.
 
-**Note:** You cannot permanently delete customers (Admin only).
+**Note:** You can soft delete (deactivate) customers, but only Admin can permanently delete them. Users are never deleted—only deactivated.
 
 ## Test Purchase Management
 

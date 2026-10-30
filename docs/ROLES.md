@@ -6,7 +6,7 @@ This document defines the five roles in the Test Purchase Application and their 
 
 | Role | Purpose | Key Responsibilities |
 |------|---------|---------------------|
-| **Admin** | System administrator | Full system access, user management, hard deletes |
+| **Admin** | System administrator | Full system access, user management, can hard delete entities |
 | **Account Manager** | Customer relationship management | Manage assigned customers, assign mystery shoppers |
 | **Sales Manager** | Sales oversight | View assigned customers' purchases, generate reports (no shopper names) |
 | **Customer** | Request test purchases | Create and track company's test purchases (no shopper names) |
@@ -44,14 +44,13 @@ Server-side role-based access control is enforced in controllers, services, and 
 |-----------|:-----:|:---------------:|:-------------:|:--------:|:---------------:|
 | View all users | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Create users | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Invite mystery shoppers | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Edit any user | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Deactivate user | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Hard delete user | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Edit own profile | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Upload avatar | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Change own password | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Reset password (any user) | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Hard delete (any entity) | ✅ | ❌ | ❌ | ❌ | ❌ |
 
 ### Shops
 
@@ -115,8 +114,10 @@ Each role can only access their authorized resources, tested with comprehensive 
 ### Soft Delete
 Non-admin roles deactivate records via `active` flags; inactive records are filtered from queries. Only Admin can hard delete (permanently remove from database).
 
+**Users are never deleted**, only deactivated. Even Admins cannot delete user records—they can only set `active = false`.
+
 ### Registration Security
-The public `/register` endpoint assigns `MYSTERY_SHOPPER` role server-side. The client cannot escalate privileges (see [#20](https://github.com/mitetodb/test-purchase-application/issues/20)).
+Mystery Shoppers join by invitation only. Admins and Account Managers send one-time invite links that expire. There is no public self-registration endpoint.
 
 ### Mystery Shopper Privacy
 `SALES_MANAGER` and `CUSTOMER` roles never see mystery shopper names in views or API responses. This preserves the integrity of mystery shopping.
@@ -192,9 +193,10 @@ The `User.customer` link determines which company they belong to.
 ### Delete vs. Deactivate
 
 **Hard Delete (Physical Delete)**
-- **Only Admin** can hard delete any entity
+- **Only Admin** can hard delete entities (customers, test purchases, shops)
 - Permanently removes data from the database
-- Used sparingly, typically for data cleanup or compliance
+- **Users are never deleted**—only deactivated (`active = false`)
+- Used sparingly for data cleanup
 
 **Soft Delete (Deactivate)**
 - **Admin, Account Manager, Sales Manager** can soft delete records they can access

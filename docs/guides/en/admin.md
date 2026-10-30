@@ -81,7 +81,8 @@ As an Admin, you have full control over all users in the system.
 - **Customer**: Create and track their company's test purchases
 - **Mystery Shopper**: Execute assigned test purchases
 
-**Note:** The public `/register` endpoint assigns the Mystery Shopper role by default for security. Only Admins can create users with other roles.
+**Inviting Mystery Shoppers:**
+Mystery Shoppers cannot self-register. Admins and Account Managers invite them via one-time invite links that expire. Only Admins can create users with Admin, Account Manager, Sales Manager, or Customer roles.
 
 ### Editing a User
 
@@ -100,15 +101,20 @@ Deactivated users cannot log in but their data is preserved.
 
 To reactivate: Check **Active** and save.
 
-### Deleting a User (Permanent)
+**Note:** Users are never permanently deleted—only deactivated. This preserves audit trails and data integrity.
 
-**Warning:** This permanently removes the user from the database. Use deactivation instead when possible.
+### Inviting Mystery Shoppers
 
-1. Go to **Users** → Find the user
-2. Click **Delete**
-3. Confirm the action
+Mystery Shoppers join by invitation only:
 
-**Note:** You are the only role that can permanently delete data.
+1. Go to **Users** → **Invite Mystery Shopper**
+2. Enter the shopper's email address
+3. Click **Send Invitation**
+4. A one-time invite link is emailed to them
+5. The link expires after a set time (typically 48 hours)
+6. The shopper clicks the link to set up their account
+
+Only Admins and Account Managers can send mystery shopper invitations.
 
 ### Resetting a User's Password
 
@@ -160,8 +166,10 @@ Account Managers can now manage test purchases for this customer.
 
 ### Deactivating/Deleting Customers
 
-- **Deactivate**: Uncheck **Active** when editing
-- **Delete (permanent)**: Click **Delete** button and confirm
+- **Deactivate**: Uncheck **Active** when editing (preferred method)
+- **Delete (permanent)**: Click **Delete** button and confirm (removes customer record permanently)
+
+**Note:** Only customers, shops, and test purchases can be hard deleted. Users are never deleted—only deactivated.
 
 ## Shop Management
 
@@ -191,8 +199,8 @@ Shops are the locations where mystery shopping occurs.
 
 ### Deactivating/Deleting Shops
 
-- **Deactivate**: Uncheck **Active**
-- **Delete**: Click **Delete** (permanent)
+- **Deactivate**: Uncheck **Active** (preferred method)
+- **Delete**: Click **Delete** (permanently removes shop record)
 
 ## Test Purchase Management
 
@@ -361,8 +369,9 @@ Environment configuration is in `deploy/.env` on the server:
 
 ### Data Protection
 
-- Only hard-delete when absolutely necessary
-- Use deactivation (soft delete) by default
+- Hard-delete customers, shops, or purchases only when absolutely necessary
+- **Users are never deleted**—only deactivated
+- Use deactivation (soft delete) by default for all entities
 - Keep backups secure
 - Limit access to sensitive data
 

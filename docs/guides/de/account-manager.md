@@ -11,6 +11,7 @@ Als **Kundenbetreuer** können Sie:
 - Sich selbst oder andere als Kundenbetreuer Kunden zuweisen
 - Testkäufe für Ihre Kunden erstellen und verwalten
 - **Mystery Shopper zu Testkäufen zuweisen**
+- **Mystery Shopper über einmalige Einladungslinks einladen**
 - **Mystery-Shopper-Namen sehen** (im Gegensatz zu Vertriebsleitern und Kunden)
 - Testkaufstatus ändern
 - Alle Geschäfte anzeigen
