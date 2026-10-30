@@ -37,6 +37,12 @@ public class Customer {
     @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
     private List<TestPurchase> testPurchases;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sales_manager_id")
+    private User salesManager;
+
+    private boolean active = true;
+
     private LocalDateTime createdOn;
     private LocalDateTime updatedOn;
 

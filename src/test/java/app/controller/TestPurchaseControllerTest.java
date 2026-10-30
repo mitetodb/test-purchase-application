@@ -1,5 +1,6 @@
 package app.controller;
 
+import app.model.dto.TestPurchaseViewDTO;
 import app.model.entity.TestPurchase;
 import app.model.enums.TestPurchaseStatus;
 import app.service.AttachmentService;
@@ -36,6 +37,9 @@ class TestPurchaseControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
+    private app.client.PricingClient pricingClient;
+
+    @MockBean
     private TestPurchaseService testPurchaseService;
 
     @MockBean
@@ -50,15 +54,19 @@ class TestPurchaseControllerTest {
     @MockBean
     private StatusHistoryService statusHistoryService;
 
+    @MockBean
+    private app.service.UserService userService;
+
     @Test
     void testViewPageReturns200() throws Exception {
-        TestPurchase tp = new TestPurchase();
-        tp.setId(UUID.randomUUID());
-        tp.setNumber("TP-1001");
-        tp.setStatus(TestPurchaseStatus.INITIALISED);
+        UUID testPurchaseId = UUID.randomUUID();
+        TestPurchaseViewDTO dto = new TestPurchaseViewDTO();
+        dto.setId(testPurchaseId);
+        dto.setNumber("TP-1001");
+        dto.setStatus(TestPurchaseStatus.INITIALISED);
 
         given(testPurchaseService.findByIdForCurrentUser(any(UUID.class)))
-                .willReturn(tp);
+                .willReturn(dto);
         given(attachmentService.getByTestPurchase(any(UUID.class)))
                 .willReturn(List.of());
         given(statusHistoryService.getHistory(any(UUID.class)))
@@ -66,7 +74,7 @@ class TestPurchaseControllerTest {
         given(customerService.findAllForCurrentUser()).willReturn(List.of());
         given(shopService.findAll()).willReturn(List.of());
 
-        mockMvc.perform(get("/testpurchases/view/" + tp.getId()))
+        mockMvc.perform(get("/testpurchases/view/" + testPurchaseId))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("purchase"))
                 .andExpect(model().attributeExists("attachments"))

@@ -2,6 +2,7 @@ package app.controller;
 
 import app.model.dto.TestPurchaseCreateDTO;
 import app.model.dto.TestPurchaseEditDTO;
+import app.model.dto.TestPurchaseViewDTO;
 import app.model.entity.TestPurchase;
 import app.model.enums.TestPurchaseStatus;
 import app.service.*;
@@ -26,10 +27,11 @@ public class TestPurchaseController {
     private final ShopService shopService;
     private final AttachmentService attachmentService;
     private final StatusHistoryService statusHistoryService;
+    private final UserService userService;
 
     @GetMapping
     public String list(Model model) {
-        List<TestPurchase> purchases = testPurchaseService.findAllForCurrentUser();
+        List<TestPurchaseViewDTO> purchases = testPurchaseService.findAllForCurrentUser();
         model.addAttribute("purchases", purchases);
         return "testpurchases/testpurchases-list";
     }
@@ -87,7 +89,7 @@ public class TestPurchaseController {
     @GetMapping("/edit/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','ACCOUNT_MANAGER')")
     public String showEditForm(@PathVariable UUID id, Model model) {
-        var purchase = testPurchaseService.findById(id);
+        var purchase = testPurchaseService.findByIdForEdit(id);
 
         TestPurchaseEditDTO dto = new TestPurchaseEditDTO();
         dto.setId(purchase.getId());
@@ -138,11 +140,12 @@ public class TestPurchaseController {
 
     @GetMapping("/view/{id}")
     public String view(@PathVariable UUID id, Model model) {
-        TestPurchase purchase = testPurchaseService.findByIdForCurrentUser(id);
+        TestPurchaseViewDTO purchase = testPurchaseService.findByIdForCurrentUser(id);
         model.addAttribute("purchase", purchase);
         model.addAttribute("attachments", attachmentService.getByTestPurchase(id));
         model.addAttribute("history", statusHistoryService.getHistory(id));
         model.addAttribute("statuses", TestPurchaseStatus.values());
+        model.addAttribute("mysteryShoppers", userService.findAllMysteryShoppers());
         return "testpurchases/testpurchase-view";
     }
 
@@ -154,6 +157,14 @@ public class TestPurchaseController {
 
         testPurchaseService.changeStatus(id, newStatus, comment);
 
+        return "redirect:/testpurchases/view/" + id;
+    }
+
+    @PostMapping("/{id}/assign-mystery-shopper")
+    @PreAuthorize("hasAnyRole('ADMIN','ACCOUNT_MANAGER')")
+    public String assignMysteryShopper(@PathVariable UUID id,
+                                       @RequestParam(required = false) UUID mysteryShopperId) {
+        testPurchaseService.assignMysteryShopperToTestPurchase(id, mysteryShopperId);
         return "redirect:/testpurchases/view/" + id;
     }
 

@@ -30,5 +30,6 @@ public class RegistrationDTO {
     @Enumerated(EnumType.STRING)
     private Country country;
 
-    private Role role = Role.CUSTOMER;
+    // Invite token from URL query parameter
+    private String inviteToken;
 }

@@ -12,7 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
-@EnableMethodSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
@@ -33,9 +33,13 @@ public class SecurityConfig {
                                 "/actuator/health", "/actuator/health/**", "/actuator/info",
                                 "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
                         .requestMatchers("/users","/users/**").hasRole("ADMIN")
+                        .requestMatchers("/customers","/customers/**").hasAnyRole("ADMIN","ACCOUNT_MANAGER","SALES_MANAGER")
+                        .requestMatchers("/shops","/shops/**").hasAnyRole("ADMIN","ACCOUNT_MANAGER")
+                        .requestMatchers("/invites","/invites/**").hasAnyRole("ADMIN","ACCOUNT_MANAGER")
+                        .requestMatchers("/testpurchases/*/assign-mystery-shopper").hasAnyRole("ADMIN","ACCOUNT_MANAGER")
+                        .requestMatchers("/testpurchases/**").authenticated()
                         .requestMatchers("/profile").authenticated()
                         .requestMatchers("/dashboard").authenticated()
-                        .requestMatchers("/testpurchases/**").authenticated()
                         .requestMatchers("/attachments/delete/**").hasRole("ADMIN")
                         .requestMatchers("/attachments/upload").authenticated()
                         .requestMatchers("/attachments/**").authenticated()

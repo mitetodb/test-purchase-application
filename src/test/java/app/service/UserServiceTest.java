@@ -42,6 +42,9 @@ class UserServiceTest {
     private TestPurchaseRepository testPurchaseRepository;
 
     @Mock
+    private InviteTokenService inviteTokenService;
+
+    @Mock
     private PasswordEncoder passwordEncoder;
 
     @InjectMocks
@@ -90,9 +93,12 @@ class UserServiceTest {
         dto.setPassword("password123");
         dto.setConfirmPassword("password123");
         dto.setEmail("newuser@example.com");
-        dto.setRole(Role.MYSTERY_SHOPPER);
         dto.setCountry(Country.BULGARIA);
+        dto.setInviteToken("valid-token");
 
+        // Mock invite token validation
+        doNothing().when(inviteTokenService).validateAndConsumeToken("valid-token");
+        
         when(userRepository.findByUsername("newuser")).thenReturn(Optional.empty());
         when(securityConfig.passwordEncoder()).thenReturn(passwordEncoder);
         when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
@@ -102,7 +108,9 @@ class UserServiceTest {
 
         assertThat(result.getUsername()).isEqualTo("newuser");
         assertThat(result.getEmail()).isEqualTo("newuser@example.com");
+        assertThat(result.getRole()).isEqualTo(Role.MYSTERY_SHOPPER);
         assertThat(result.isActive()).isTrue();
+        verify(inviteTokenService).validateAndConsumeToken("valid-token");
         verify(userRepository).save(any(User.class));
     }
 
@@ -112,7 +120,9 @@ class UserServiceTest {
         dto.setUsername("existinguser");
         dto.setPassword("password123");
         dto.setConfirmPassword("password123");
+        dto.setInviteToken("valid-token");
 
+        doNothing().when(inviteTokenService).validateAndConsumeToken("valid-token");
         when(userRepository.findByUsername("existinguser")).thenReturn(Optional.of(user));
 
         assertThatThrownBy(() -> userService.register(dto))
@@ -126,12 +136,32 @@ class UserServiceTest {
         dto.setUsername("newuser");
         dto.setPassword("password123");
         dto.setConfirmPassword("different");
+        dto.setInviteToken("valid-token");
 
+        doNothing().when(inviteTokenService).validateAndConsumeToken("valid-token");
         when(userRepository.findByUsername("newuser")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.register(dto))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Passwords do not match.");
+    }
+
+    @Test
+    void testRegisterWithoutTokenFails() {
+        RegistrationDTO dto = new RegistrationDTO();
+        dto.setUsername("newuser");
+        dto.setPassword("password123");
+        dto.setConfirmPassword("password123");
+        dto.setEmail("newuser@example.com");
+        dto.setCountry(Country.BULGARIA);
+        dto.setInviteToken(null);
+
+        doThrow(new IllegalArgumentException("Invite token is required"))
+                .when(inviteTokenService).validateAndConsumeToken(null);
+
+        assertThatThrownBy(() -> userService.register(dto))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Invite token is required");
     }
 
     @Test
@@ -193,4 +223,3 @@ class UserServiceTest {
         assertThat(result).isEqualTo(user);
     }
 }
-

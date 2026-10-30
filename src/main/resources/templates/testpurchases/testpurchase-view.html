@@ -160,6 +160,22 @@
         </form>
     </div>
 
+    <div th:if="${#authorization.expression('hasAnyRole(''ADMIN'',''ACCOUNT_MANAGER'')')}" class="mt-4">
+        <h5>Assign Mystery Shopper</h5>
+        <form th:action="@{'/testpurchases/' + ${purchase.id} + '/assign-mystery-shopper'}" method="post">
+            <select name="mysteryShopperId" class="form-select mb-2">
+                <option value="">-- Unassign --</option>
+                <option th:each="ms : ${mysteryShoppers}"
+                        th:value="${ms.id}"
+                        th:text="${ms.username + ' (' + ms.email + ')'}"
+                        th:selected="${purchase.mysteryShopper != null && purchase.mysteryShopper.id == ms.id}">
+                </option>
+            </select>
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button class="btn btn-primary">Assign</button>
+        </form>
+    </div>
+
     <a th:href="@{/testpurchases}" class="btn btn-secondary mt-3" th:text="#{ui.back.0557}">Back</a>
 </main>
 </body>

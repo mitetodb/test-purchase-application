@@ -17,7 +17,7 @@ import java.util.UUID;
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/shops")
-@PreAuthorize("hasAnyRole('ADMIN','ACCOUNT_MANAGER','SALES_MANAGER')")
+@PreAuthorize("hasAnyRole('ADMIN','ACCOUNT_MANAGER')")
 public class ShopController {
 
     private final ShopService shopService;

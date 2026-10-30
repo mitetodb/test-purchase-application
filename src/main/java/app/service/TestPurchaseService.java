@@ -3,6 +3,7 @@ package app.service;
 import app.model.dto.PriceCalculationResponseDTO;
 import app.model.dto.TestPurchaseCreateDTO;
 import app.model.dto.TestPurchaseEditDTO;
+import app.model.dto.TestPurchaseViewDTO;
 import app.model.entity.TestPurchase;
 import app.model.enums.TestPurchaseStatus;
 
@@ -23,9 +24,13 @@ public interface TestPurchaseService {
 
     void changeStatus(UUID id, TestPurchaseStatus newStatus, String comment);
 
-    List<TestPurchase> findAllForCurrentUser();
+    List<TestPurchaseViewDTO> findAllForCurrentUser();
 
-    TestPurchase findByIdForCurrentUser(UUID id);
+    TestPurchaseViewDTO findByIdForCurrentUser(UUID id);
+
+    TestPurchase findByIdForEdit(UUID id);
 
     PriceCalculationResponseDTO previewPrice(TestPurchaseCreateDTO dto);
+
+    void assignMysteryShopperToTestPurchase(UUID testPurchaseId, UUID mysteryShopperId);
 }

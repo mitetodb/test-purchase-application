@@ -112,7 +112,7 @@ public class UserController {
 
     @PostMapping("/delete/{id}")
     public String delete(@PathVariable UUID id) {
-        userRepository.deleteById(id);
+        userService.deactivateUser(id);
         return "redirect:/users";
     }
 }

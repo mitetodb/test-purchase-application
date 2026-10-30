@@ -40,11 +40,12 @@ class DemoPurchaseSeederTest {
         r.setPostageFee(15.0);
         when(pricingClient.calculatePrice(any())).thenReturn(r);
         if (userService.countUsers() == 0) {
-            app.model.dto.RegistrationDTO u = new app.model.dto.RegistrationDTO();
+            app.model.dto.UserCreateDTO u = new app.model.dto.UserCreateDTO();
             u.setUsername("admin"); u.setPassword("test-admin-pw"); u.setConfirmPassword("test-admin-pw");
             u.setEmail("admin@example.com"); u.setRole(app.model.enums.Role.ADMIN);
             u.setCountry(app.model.enums.Country.BULGARIA);
-            userService.register(u);
+            u.setActive(true);
+            userService.createUser(u);
         }
         long before = purchases.count();
         seeder.run();

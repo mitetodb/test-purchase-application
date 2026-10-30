@@ -40,6 +40,9 @@ class CustomerServiceTest {
     @Mock
     private PricingCustomerClient pricingCustomerClient;
 
+    @Mock
+    private AccessControlService accessControlService;
+
     @InjectMocks
     private CustomerServiceImpl customerService;
 
@@ -55,6 +58,7 @@ class CustomerServiceTest {
                 .name("Test Customer")
                 .country(Country.BULGARIA)
                 .number("0001")
+                .active(true)
                 .build();
 
         adminUser = User.builder()
@@ -66,13 +70,13 @@ class CustomerServiceTest {
 
     @Test
     void testFindAll() {
-        when(customerRepository.findAll()).thenReturn(List.of(customer));
+        when(customerRepository.findAllActive()).thenReturn(List.of(customer));
 
         List<Customer> result = customerService.findAll();
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0)).isEqualTo(customer);
-        verify(customerRepository).findAll();
+        verify(customerRepository).findAllActive();
     }
 
     @Test
@@ -109,7 +113,8 @@ class CustomerServiceTest {
             }
             return customer;
         });
-        when(userRepository.findByUsernameWithManagedCustomers(anyString())).thenReturn(Optional.of(adminUser));
+        when(accessControlService.getCurrentUserWithManagedCustomers()).thenReturn(adminUser);
+        when(accessControlService.getCurrentUser()).thenReturn(adminUser);
         lenient().doNothing().when(pricingCustomerClient).updateBaseFee(any(UUID.class), any());
 
         try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
@@ -128,8 +133,8 @@ class CustomerServiceTest {
     @Test
     void testDelete() {
         when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
-        when(userRepository.findByUsernameWithManagedCustomers(anyString()))
-                .thenReturn(Optional.of(adminUser));
+        when(accessControlService.canHardDelete()).thenReturn(true);
+        when(accessControlService.getCurrentUser()).thenReturn(adminUser);
         doNothing().when(pricingCustomerClient).deleteBaseFee(any(UUID.class));
 
         try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {

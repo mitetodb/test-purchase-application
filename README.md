@@ -14,6 +14,47 @@ status workflow and history, attachments, and price calculation via a separate p
 - UI in **Bulgarian, English, German** (`?lang=bg|en|de`, navbar switcher, cookie)
 - Flyway migrations, actuator health, OpenAPI (springdoc), MySQL backups
 
+## Roles and Permissions
+
+Server-side role-based access control enforced in controllers, services, and repository queries:
+
+| Permission | ADMIN | ACCOUNT_MANAGER | SALES_MANAGER | CUSTOMER | MYSTERY_SHOPPER |
+|------------|-------|-----------------|---------------|----------|-----------------|
+| **Test Purchases** |
+| View all test purchases | ✅ | Only managed customers' | Only owned clients' | Only own company's | Only assigned to them |
+| Create test purchase | ✅ | ✅ (for managed customers) | ❌ | ✅ (own company only) | ❌ |
+| Edit test purchase | ✅ | ✅ (managed customers) | ❌ | ❌ | ❌ |
+| Delete test purchase | ✅ Hard delete | ⚠️ Soft delete (deactivate) | ⚠️ Soft delete (deactivate) | ⚠️ Soft delete (deactivate) | ⚠️ Soft delete (deactivate) |
+| Change status | ✅ | ✅ | ❌ | ❌ | ✅ (own assignments) |
+| Assign mystery shopper | ✅ | ✅ | ❌ | ❌ | ❌ |
+| See mystery shopper name | ✅ | ✅ | ❌ | ❌ | ✅ |
+| Preview price | ✅ | ✅ | ✅ | ✅ (own company) | ❌ |
+| **Customers** |
+| View customers | ✅ | Only managed | Only owned | ❌ | ❌ |
+| Create customer | ✅ | ✅ (auto-managed) | ✅ (auto-owned) | ❌ | ❌ |
+| Edit customer | ✅ | ✅ (managed only) | ✅ (owned only) | ❌ | ❌ |
+| Delete customer | ✅ Hard delete | ⚠️ Soft delete (deactivate) | ⚠️ Soft delete (deactivate) | ❌ | ❌ |
+| Set pricing | ✅ | ✅ | ✅ | ❌ | ❌ |
+| **Shops** |
+| View/manage shops | ✅ | ✅ | ❌ | ❌ | ❌ |
+| **Users** |
+| Manage users | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Delete users | ⚠️ Soft delete (deactivate) | ❌ | ❌ | ❌ | ❌ |
+| Create invite tokens | ✅ | ✅ | ❌ | ❌ | ❌ |
+| **Registration** |
+| Public sign-up | ❌ Invite-only | ❌ Invite-only | ❌ Invite-only | ❌ Invite-only | ✅ Invite token required |
+
+**Key Security Features:**
+- **Invite-Only Registration**: `/register` requires a valid invite token (7-day expiry, single-use, SHA-256 hashed). Only ADMIN and ACCOUNT_MANAGER can create invite tokens. All public registrations assign MYSTERY_SHOPPER role server-side.
+- **IDOR Protection**: Each role can only access their authorized resources (tested with comprehensive IDOR tests)
+- **Soft Delete**: Non-admin delete operations deactivate records via `active` flags; inactive records are filtered from queries. Users are never hard-deleted.
+- **Mystery Shopper Privacy**: `SALES_MANAGER` and `CUSTOMER` roles never see mystery shopper names in views, lists, dashboard, or API responses
+- **Ownership Links**: 
+  - `User.customer` links CUSTOMER role users to their company
+  - `Customer.salesManager` links customers to their sales manager
+  - `User.managedCustomers` links ACCOUNT_MANAGER to their managed customers
+- **Account Manager Scope**: ACCOUNT_MANAGER can only create/edit test purchases and customers that they manage (enforced in service layer with IDOR tests)
+
 ## Architecture
 ```
  Browser ──HTTPS──> host nginx (80/443, Let's Encrypt)

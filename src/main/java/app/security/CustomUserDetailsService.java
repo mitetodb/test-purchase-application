@@ -25,9 +25,16 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .orElseThrow(() ->
                         new UsernameNotFoundException("User not found: " + username));
 
+        // Deactivated users cannot log in
+        boolean enabled = user.isActive();
+
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),
+                enabled,  // enabled
+                true,     // accountNonExpired
+                true,     // credentialsNonExpired
+                true,     // accountNonLocked
                 List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
         );
     }

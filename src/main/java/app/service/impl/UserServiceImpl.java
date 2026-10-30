@@ -14,6 +14,7 @@ import app.model.enums.Role;
 import app.repository.CustomerRepository;
 import app.repository.TestPurchaseRepository;
 import app.repository.UserRepository;
+import app.service.InviteTokenService;
 import app.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -30,9 +31,13 @@ public class UserServiceImpl implements UserService {
     private final CustomerRepository customerRepository;
     private final SecurityConfig securityConfig;
     private final TestPurchaseRepository testPurchaseRepository;
+    private final InviteTokenService inviteTokenService;
 
     @Override
+    @Transactional
     public User register(RegistrationDTO dto) {
+        // Validate and consume invite token FIRST before creating user
+        inviteTokenService.validateAndConsumeToken(dto.getInviteToken());
 
         if (usernameExists(dto.getUsername())) {
             throw new IllegalArgumentException("Username already taken.");
@@ -45,14 +50,13 @@ public class UserServiceImpl implements UserService {
         User user = User.builder()
                 .username(dto.getUsername())
                 .password(securityConfig.passwordEncoder().encode(dto.getPassword()))
-                .role(dto.getRole())
+                .role(Role.MYSTERY_SHOPPER)  // Always MYSTERY_SHOPPER for public registration
                 .email(dto.getEmail())
                 .country(dto.getCountry())
                 .active(true)
                 .build();
 
         user.setUpdatedByUser(null);
-
         return userRepository.save(user);
     }
 
@@ -225,4 +229,17 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
     }
 
+    @Override
+    public List<User> findAllMysteryShoppers() {
+        return userRepository.findByRoleAndActive(Role.MYSTERY_SHOPPER, true);
+    }
+
+    @Override
+    @Transactional
+    public void deactivateUser(UUID id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        user.setActive(false);
+        userRepository.save(user);
+    }
 }

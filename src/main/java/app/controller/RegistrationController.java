@@ -16,10 +16,12 @@ public class RegistrationController {
     private final UserService userService;
 
     @GetMapping("/register")
-    public String showRegistrationForm(Model model) {
+    public String showRegistrationForm(@RequestParam(required = false) String token, Model model) {
 
         if (!model.containsAttribute("registrationDTO")) {
-            model.addAttribute("registrationDTO", new RegistrationDTO());
+            RegistrationDTO dto = new RegistrationDTO();
+            dto.setInviteToken(token);
+            model.addAttribute("registrationDTO", dto);
         }
 
         return "register";

@@ -55,6 +55,9 @@ class TestPurchaseServiceUnitTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private AccessControlService accessControlService;
+
     @InjectMocks
     private TestPurchaseServiceImpl testPurchaseService;
 
@@ -86,18 +89,27 @@ class TestPurchaseServiceUnitTest {
         response.setTestPurchaseFee(50.0);
         response.setPostageFee(10.0);
 
+        // Mock access control
+        doNothing().when(accessControlService).checkCanCreateTestPurchase();
+        app.model.entity.User mockUser = new app.model.entity.User();
+        mockUser.setRole(app.model.enums.Role.ADMIN);
+        when(accessControlService.getCurrentUserWithManagedCustomers()).thenReturn(mockUser);
+        
         when(pricingClient.calculatePrice(any(PriceCalculationRequestDTO.class))).thenReturn(response);
 
         PriceCalculationResponseDTO result = testPurchaseService.previewPrice(dto);
 
         assertThat(result.getTestPurchaseFee()).isEqualTo(50.0);
         assertThat(result.getPostageFee()).isEqualTo(10.0);
+        verify(accessControlService).checkCanCreateTestPurchase();
         verify(pricingClient).calculatePrice(any(PriceCalculationRequestDTO.class));
     }
 
     @Test
     void testPreviewPriceMissingRequiredFields() {
         TestPurchaseCreateDTO dto = new TestPurchaseCreateDTO();
+
+        doNothing().when(accessControlService).checkCanCreateTestPurchase();
 
         assertThatThrownBy(() -> testPurchaseService.previewPrice(dto))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -107,6 +119,13 @@ class TestPurchaseServiceUnitTest {
     @Test
     void testDelete() {
         UUID purchaseId = UUID.randomUUID();
+        app.model.entity.TestPurchase purchase = new app.model.entity.TestPurchase();
+        purchase.setId(purchaseId);
+        
+        app.model.entity.User mockUser = new app.model.entity.User();
+        mockUser.setRole(app.model.enums.Role.ADMIN);
+        when(accessControlService.getCurrentUser()).thenReturn(mockUser);
+        when(testPurchaseRepository.findById(purchaseId)).thenReturn(Optional.of(purchase));
         doNothing().when(testPurchaseRepository).deleteById(purchaseId);
 
         testPurchaseService.delete(purchaseId);

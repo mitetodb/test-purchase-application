@@ -23,6 +23,12 @@ public interface TestPurchaseRepository extends JpaRepository<TestPurchase, UUID
         """)
     Long findLastSequence();
 
+    @Query("""
+        SELECT p
+        FROM TestPurchase p
+        WHERE p.mysteryShopper.id = :mysteryShopperId
+          AND p.active = true
+        """)
     List<TestPurchase> findByMysteryShopper_Id(UUID mysteryShopperId);
 
     @Query("""
@@ -33,8 +39,73 @@ public interface TestPurchaseRepository extends JpaRepository<TestPurchase, UUID
             FROM User u
             JOIN u.managedCustomers c
             WHERE u.id = :accountManagerId
+              AND c.active = true
         )
+        AND p.active = true
         """)
     List<TestPurchase> findForAccountManager(UUID accountManagerId);
+
+    @Query("""
+        SELECT p
+        FROM TestPurchase p
+        WHERE p.customer.salesManager.id = :salesManagerId
+          AND p.customer.active = true
+          AND p.active = true
+        """)
+    List<TestPurchase> findForSalesManager(UUID salesManagerId);
+
+    @Query("""
+        SELECT p
+        FROM TestPurchase p
+        WHERE p.customer.id = :customerId
+          AND p.active = true
+        """)
+    List<TestPurchase> findByCustomer_Id(UUID customerId);
+
+    @Query("""
+        SELECT p
+        FROM TestPurchase p
+        WHERE p.active = true
+        """)
+    List<TestPurchase> findAllActive();
+
+    @Query("""
+        SELECT COUNT(p)
+        FROM TestPurchase p
+        WHERE p.mysteryShopper.id = :mysteryShopperId
+          AND p.active = true
+        """)
+    long countByMysteryShopper_Id(UUID mysteryShopperId);
+
+    @Query("""
+        SELECT COUNT(DISTINCT p)
+        FROM TestPurchase p
+        WHERE p.customer IN (
+            SELECT c
+            FROM User u
+            JOIN u.managedCustomers c
+            WHERE u.id = :accountManagerId
+              AND c.active = true
+        )
+        AND p.active = true
+        """)
+    long countForAccountManager(UUID accountManagerId);
+
+    @Query("""
+        SELECT COUNT(p)
+        FROM TestPurchase p
+        WHERE p.customer.salesManager.id = :salesManagerId
+          AND p.customer.active = true
+          AND p.active = true
+        """)
+    long countForSalesManager(UUID salesManagerId);
+
+    @Query("""
+        SELECT COUNT(p)
+        FROM TestPurchase p
+        WHERE p.customer.id = :customerId
+          AND p.active = true
+        """)
+    long countByCustomer_Id(UUID customerId);
 
 }
