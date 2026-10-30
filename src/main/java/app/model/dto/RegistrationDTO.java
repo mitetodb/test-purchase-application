@@ -29,4 +29,7 @@ public class RegistrationDTO {
 
     @Enumerated(EnumType.STRING)
     private Country country;
+
+    // Invite token from URL query parameter
+    private String inviteToken;
 }

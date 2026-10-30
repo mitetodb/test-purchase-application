@@ -30,9 +30,14 @@ public class UserServiceImpl implements UserService {
     private final CustomerRepository customerRepository;
     private final SecurityConfig securityConfig;
     private final TestPurchaseRepository testPurchaseRepository;
+    private final InviteTokenService inviteTokenService;
 
     @Override
     public User register(RegistrationDTO dto) {
+        // Invite token is required for registration
+        if (dto.getInviteToken() == null || dto.getInviteToken().isBlank()) {
+            throw new IllegalArgumentException("Invite token is required for registration");
+        }
 
         if (usernameExists(dto.getUsername())) {
             throw new IllegalArgumentException("Username already taken.");
@@ -45,15 +50,19 @@ public class UserServiceImpl implements UserService {
         User user = User.builder()
                 .username(dto.getUsername())
                 .password(securityConfig.passwordEncoder().encode(dto.getPassword()))
-                .role(Role.MYSTERY_SHOPPER)
+                .role(Role.MYSTERY_SHOPPER)  // Always MYSTERY_SHOPPER for public registration
                 .email(dto.getEmail())
                 .country(dto.getCountry())
                 .active(true)
                 .build();
 
         user.setUpdatedByUser(null);
+        User savedUser = userRepository.save(user);
 
-        return userRepository.save(user);
+        // Validate and consume the invite token
+        inviteTokenService.validateAndConsumeToken(dto.getInviteToken(), savedUser);
+
+        return savedUser;
     }
 
     @Override
