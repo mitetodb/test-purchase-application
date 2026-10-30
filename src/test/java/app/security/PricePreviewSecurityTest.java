@@ -58,6 +58,7 @@ class PricePreviewSecurityTest {
         // Create two customers
         ownCustomer = new Customer();
         ownCustomer.setName("Own Customer");
+        ownCustomer.setNumber("2001");
         ownCustomer.setCountry(Country.GERMANY);
         ownCustomer.setCategory("GOLD");
         ownCustomer.setActive(true);
@@ -65,6 +66,7 @@ class PricePreviewSecurityTest {
 
         otherCustomer = new Customer();
         otherCustomer.setName("Other Customer");
+        otherCustomer.setNumber("2002");
         otherCustomer.setCountry(Country.GERMANY);
         otherCustomer.setCategory("SILVER");
         otherCustomer.setActive(true);
@@ -83,6 +85,7 @@ class PricePreviewSecurityTest {
         // Create a shop
         shop = new Shop();
         shop.setName("Test Shop");
+        shop.setNumber("SHOP002");
         shop.setCountry(Country.GERMANY);
         shop = shopRepository.save(shop);
     }

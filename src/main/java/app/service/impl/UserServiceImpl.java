@@ -14,6 +14,7 @@ import app.model.enums.Role;
 import app.repository.CustomerRepository;
 import app.repository.TestPurchaseRepository;
 import app.repository.UserRepository;
+import app.service.InviteTokenService;
 import app.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;

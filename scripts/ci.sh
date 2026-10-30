@@ -13,7 +13,7 @@ if git ls-files | grep -E '(^|/)\.env$'; then echo "!! .env is tracked"; exit 1;
 echo "    clean"
 
 echo "==> 2/4 mvn verify"
-mvn -B -q verify
+./mvnw -B -q verify
 
 echo "==> 3/4 compose config"
 if command -v docker >/dev/null && docker compose version >/dev/null 2>&1; then

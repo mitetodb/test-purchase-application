@@ -149,6 +149,8 @@ class IdorSecurityTest {
                 .category(TestPurchaseCategory.M)
                 .type(TestPurchaseType.RETURN_BACK_TO_SELLER)
                 .status(TestPurchaseStatus.INITIALISED)
+                .productPrice(100.0)
+                .serviceFee(10.0)
                 .active(true)
                 .build();
         return testPurchaseRepository.save(tp);

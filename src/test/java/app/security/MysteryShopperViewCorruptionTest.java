@@ -66,6 +66,7 @@ class MysteryShopperViewCorruptionTest {
         // Create a customer
         customer = new Customer();
         customer.setName("Test Customer");
+        customer.setNumber("1000");
         customer.setCountry(Country.GERMANY);
         customer.setCategory("GOLD");
         customer.setActive(true);
@@ -105,6 +106,7 @@ class MysteryShopperViewCorruptionTest {
         // Create a shop
         Shop shop = new Shop();
         shop.setName("Test Shop");
+        shop.setNumber("SHOP001");
         shop.setCountry(Country.GERMANY);
         shop = shopRepository.save(shop);
 

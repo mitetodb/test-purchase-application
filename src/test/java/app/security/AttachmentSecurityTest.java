@@ -78,6 +78,7 @@ class AttachmentSecurityTest {
         // Create a customer
         Customer customer = new Customer();
         customer.setName("Test Customer");
+        customer.setNumber("1000");
         customer.setCountry(Country.GERMANY);
         customer.setCategory("GOLD");
         customer.setActive(true);
@@ -86,6 +87,7 @@ class AttachmentSecurityTest {
         // Create a shop
         Shop shop = new Shop();
         shop.setName("Test Shop");
+        shop.setNumber("SHOP002");
         shop.setCountry(Country.GERMANY);
         shop = shopRepository.save(shop);
 
