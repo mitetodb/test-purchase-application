@@ -127,7 +127,7 @@ If an old database created by `ddl-auto=update` fails validation, start it once 
 
 **i18n:** BG / EN / DE message bundles (`messages_*.properties`). Switch the language with the navbar globe menu or `?lang=bg|en|de`; the choice is stored in a cookie.
 
-**API docs:** springdoc is at `/swagger-ui.html` and `/v3/api-docs`. Both are off in prod unless `SWAGGER_ENABLED=true`.
+**API docs:** springdoc is at `/swagger-ui.html` and `/v3/api-docs`. Both are off by default unless `SWAGGER_ENABLED=true`.
 
 **CI:** `scripts/ci.sh` runs a secret scan, `mvn verify`, a compose config check that fails if an internal port is published, and (with `DOCKER_BUILD=1`) the image build.
 The Dockerfile is a multi-stage Java 17 build that runs as a non-root user.
