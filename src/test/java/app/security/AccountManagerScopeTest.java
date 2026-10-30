@@ -109,6 +109,7 @@ class AccountManagerScopeTest {
         // Create a shop
         shop = new Shop();
         shop.setName("Test Shop");
+        shop.setNumber("SHOP999");
         shop.setCountry(Country.GERMANY);
         shop = shopRepository.save(shop);
 
