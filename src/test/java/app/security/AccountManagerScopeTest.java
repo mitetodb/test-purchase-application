@@ -269,7 +269,6 @@ class AccountManagerScopeTest {
         );
         SecurityContextHolder.getContext().setAuthentication(auth);
     }
-}
 
     @Test
     void accountManagerCannotAssignMysteryShopperToUnmanagedPurchase() {
@@ -324,23 +323,5 @@ class AccountManagerScopeTest {
         assertThrows(AccessDeniedException.class, () -> {
             testPurchaseService.previewPrice(dto);
         }, "Account Manager should not be able to preview price for unmanaged customer");
-    }
-
-    private TestPurchaseCreateDTO.ItemDTO createItemDTO(String name, int quantity, double unitPrice) {
-        TestPurchaseCreateDTO.ItemDTO item = new TestPurchaseCreateDTO.ItemDTO();
-        item.setName(name);
-        item.setQuantity(quantity);
-        item.setUnitPrice(unitPrice);
-        return item;
-    }
-
-    private void authenticateAs(User user) {
-        String rolePrefix = "ROLE_" + user.getRole().name();
-        var auth = new UsernamePasswordAuthenticationToken(
-                user.getUsername(),
-                null,
-                List.of(new SimpleGrantedAuthority(rolePrefix))
-        );
-        SecurityContextHolder.getContext().setAuthentication(auth);
     }
 }
