@@ -29,6 +29,4 @@ public class RegistrationDTO {
 
     @Enumerated(EnumType.STRING)
     private Country country;
-
-    private Role role = Role.CUSTOMER;
 }

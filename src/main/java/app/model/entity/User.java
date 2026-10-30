@@ -44,6 +44,10 @@ public class User {
 
     private boolean active = true;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
+
     @OneToMany(mappedBy = "mysteryShopper", fetch = FetchType.LAZY)
     private List<TestPurchase> testPurchases;
 

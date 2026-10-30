@@ -24,6 +24,7 @@ public interface CustomerRepository extends JpaRepository<Customer, UUID> {
             FROM User u
             JOIN u.managedCustomers mc
             WHERE u.id = :accountManagerId
+              AND mc.active = true
         )
         """)
     List<Customer> findForAccountManager(UUID accountManagerId);
@@ -37,8 +38,33 @@ public interface CustomerRepository extends JpaRepository<Customer, UUID> {
               FROM User u
               JOIN u.managedCustomers mc
               WHERE u.id = :accountManagerId
+                AND mc.active = true
           )
         """)
     Optional<Customer> findByIdForAccountManager(UUID id, UUID accountManagerId);
+
+    @Query("""
+        SELECT c
+        FROM Customer c
+        WHERE c.salesManager.id = :salesManagerId
+          AND c.active = true
+        """)
+    List<Customer> findForSalesManager(UUID salesManagerId);
+
+    @Query("""
+        SELECT c
+        FROM Customer c
+        WHERE c.id = :id
+          AND c.salesManager.id = :salesManagerId
+          AND c.active = true
+        """)
+    Optional<Customer> findByIdForSalesManager(UUID id, UUID salesManagerId);
+
+    @Query("""
+        SELECT c
+        FROM Customer c
+        WHERE c.active = true
+        """)
+    List<Customer> findAllActive();
 
 }

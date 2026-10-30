@@ -1,6 +1,6 @@
 package app.config;
 
-import app.model.dto.RegistrationDTO;
+import app.model.dto.UserCreateDTO;
 import app.model.enums.Country;
 import app.model.enums.Role;
 import app.service.UserService;
@@ -35,15 +35,16 @@ public class InitData implements CommandLineRunner {
                 log.warn("No users exist and ADMIN_PASSWORD is not set - skipping default admin creation.");
                 return;
             }
-            RegistrationDTO firstUser = new RegistrationDTO();
+            UserCreateDTO firstUser = new UserCreateDTO();
             firstUser.setUsername("admin");
             firstUser.setPassword(adminPassword);
             firstUser.setConfirmPassword(adminPassword);
             firstUser.setEmail(adminEmail);
             firstUser.setRole(Role.ADMIN);
             firstUser.setCountry(Country.BULGARIA);
+            firstUser.setActive(true);
 
-            userService.register(firstUser);
+            userService.createUser(firstUser);
 
             log.info("Default admin account created: username='{}'", firstUser.getUsername());
         } else {

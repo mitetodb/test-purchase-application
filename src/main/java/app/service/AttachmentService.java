@@ -21,6 +21,7 @@ public class AttachmentService {
     private final AttachmentRepository attachmentRepository;
     private final TestPurchaseRepository testPurchaseRepository;
     private final FileStorageService storageService;
+    private final AccessControlService accessControlService;
 
     public Attachment upload(UUID testPurchaseId,
                              MultipartFile file,
@@ -28,6 +29,8 @@ public class AttachmentService {
 
         TestPurchase tp = testPurchaseRepository.findById(testPurchaseId)
                 .orElseThrow(() -> new IllegalArgumentException("TestPurchase not found"));
+
+        accessControlService.checkCanViewTestPurchase(tp);
 
         if (file.isEmpty()) {
             throw new IllegalArgumentException("File is empty");
@@ -53,16 +56,28 @@ public class AttachmentService {
     }
 
     public List<Attachment> getByTestPurchase(UUID tpId) {
+        TestPurchase tp = testPurchaseRepository.findById(tpId)
+                .orElseThrow(() -> new IllegalArgumentException("TestPurchase not found"));
+        
+        accessControlService.checkCanViewTestPurchase(tp);
+        
         return attachmentRepository.findByTestPurchaseId(tpId);
     }
 
     public Attachment findById(UUID id) {
-        return attachmentRepository.findById(id)
+        Attachment att = attachmentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Attachment not found"));
+        
+        if (att.getTestPurchase() != null) {
+            accessControlService.checkCanViewTestPurchase(att.getTestPurchase());
+        }
+        
+        return att;
     }
 
     public void delete(UUID id) {
         Attachment att = findById(id);
+        accessControlService.checkCanHardDelete();
         storageService.delete(att.getFilePath());
         attachmentRepository.deleteById(id);
     }

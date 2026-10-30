@@ -14,6 +14,40 @@ status workflow and history, attachments, and price calculation via a separate p
 - UI in **Bulgarian, English, German** (`?lang=bg|en|de`, navbar switcher, cookie)
 - Flyway migrations, actuator health, OpenAPI (springdoc), MySQL backups
 
+## Roles and Permissions
+
+Server-side role-based access control enforced in controllers, services, and repository queries:
+
+| Permission | ADMIN | ACCOUNT_MANAGER | SALES_MANAGER | CUSTOMER | MYSTERY_SHOPPER |
+|------------|-------|-----------------|---------------|----------|-----------------|
+| **Test Purchases** |
+| View all test purchases | ✅ | Only managed customers' | Only owned clients' | Only own company's | Only assigned to them |
+| Create test purchase | ✅ | ✅ | ❌ | ✅ (own company only) | ❌ |
+| Edit test purchase | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Delete test purchase | ✅ Hard delete | ⚠️ Soft delete only | ⚠️ Soft delete only | ⚠️ Soft delete only | ⚠️ Soft delete only |
+| Change status | ✅ | ✅ | ❌ | ❌ | ✅ (own assignments) |
+| Assign mystery shopper | ✅ | ✅ | ❌ | ❌ | ❌ |
+| See mystery shopper name | ✅ | ✅ | ❌ | ❌ | ✅ |
+| **Customers** |
+| View customers | ✅ | Only managed | Only owned | ❌ | ❌ |
+| Create customer | ✅ | ✅ (auto-managed) | ✅ (auto-owned) | ❌ | ❌ |
+| Edit customer | ✅ | ✅ (managed only) | ✅ (owned only) | ❌ | ❌ |
+| Delete customer | ✅ Hard delete | ⚠️ Soft delete only | ⚠️ Soft delete only | ❌ | ❌ |
+| Set pricing | ✅ | ✅ | ✅ | ❌ | ❌ |
+| **Users** |
+| Manage users | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Hard delete | ✅ | ❌ | ❌ | ❌ | ❌ |
+
+**Key Security Features:**
+- **IDOR Protection**: Each role can only access their authorized resources (tested with comprehensive IDOR tests)
+- **Soft Delete**: Non-admin roles deactivate records via `active` flags; inactive records are filtered from queries
+- **Registration Security**: Public `/register` endpoint assigns `MYSTERY_SHOPPER` role server-side; client cannot escalate privileges
+- **Mystery Shopper Privacy**: `SALES_MANAGER` and `CUSTOMER` roles never see mystery shopper names in views or API responses
+- **Ownership Links**: 
+  - `User.customer` links CUSTOMER role users to their company
+  - `Customer.salesManager` links customers to their sales manager
+  - `User.managedCustomers` links ACCOUNT_MANAGER to their managed customers
+
 ## Architecture
 ```
  Browser ──HTTPS──> host nginx (80/443, Let's Encrypt)

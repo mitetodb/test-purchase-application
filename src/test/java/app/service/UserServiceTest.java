@@ -90,7 +90,6 @@ class UserServiceTest {
         dto.setPassword("password123");
         dto.setConfirmPassword("password123");
         dto.setEmail("newuser@example.com");
-        dto.setRole(Role.MYSTERY_SHOPPER);
         dto.setCountry(Country.BULGARIA);
 
         when(userRepository.findByUsername("newuser")).thenReturn(Optional.empty());
@@ -102,6 +101,7 @@ class UserServiceTest {
 
         assertThat(result.getUsername()).isEqualTo("newuser");
         assertThat(result.getEmail()).isEqualTo("newuser@example.com");
+        assertThat(result.getRole()).isEqualTo(Role.MYSTERY_SHOPPER);
         assertThat(result.isActive()).isTrue();
         verify(userRepository).save(any(User.class));
     }

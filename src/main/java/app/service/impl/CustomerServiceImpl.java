@@ -9,6 +9,7 @@ import app.model.entity.User;
 import app.model.enums.Role;
 import app.repository.CustomerRepository;
 import app.repository.UserRepository;
+import app.service.AccessControlService;
 import app.service.CustomerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,7 @@ public class CustomerServiceImpl implements CustomerService {
     private final CustomerRepository customerRepository;
     private final UserRepository userRepository;
     private final PricingCustomerClient pricingCustomerClient;
+    private final AccessControlService accessControlService;
 
     private static final Set<Role> CAN_SYNC_BASE_FEE = Set.of(
             Role.ADMIN,
@@ -41,16 +43,17 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     @Cacheable(value = "customers", key = "'all'")
     public List<Customer> findAll() {
-        return customerRepository.findAll();
+        return customerRepository.findAllActive();
     }
 
     @Override
     public List<Customer> findAllForCurrentUser() {
-        User currentUser = getCurrentUser();
+        User currentUser = accessControlService.getCurrentUser();
         Role role = currentUser.getRole();
 
         return switch (role) {
-            case ADMIN, SALES_MANAGER -> customerRepository.findAll();
+            case ADMIN -> customerRepository.findAllActive();
+            case SALES_MANAGER -> customerRepository.findForSalesManager(currentUser.getId());
             case ACCOUNT_MANAGER -> customerRepository.findForAccountManager(currentUser.getId());
             default -> List.of();
         };
@@ -59,37 +62,36 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     @Cacheable(value = "customers", key = "#id")
     public Customer findById(UUID id) {
-        return customerRepository.findById(id)
+        Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Customer not found"));
+        
+        if (!customer.isActive()) {
+            throw new IllegalArgumentException("Customer not found");
+        }
+        
+        return customer;
     }
 
     @Override
     public Customer findByIdForCurrentUser(UUID id) {
-        User currentUser = getCurrentUser();
-        Role role = currentUser.getRole();
-
-        return switch (role) {
-            case ADMIN, SALES_MANAGER -> findById(id);
-
-            case ACCOUNT_MANAGER -> customerRepository
-                    .findByIdForAccountManager(id, currentUser.getId())
-                    .orElseThrow(() ->
-                            new AccessDeniedException("You are not allowed to access this customer"));
-
-            default -> throw new AccessDeniedException("You are not allowed to access this customer");
-        };
+        Customer customer = findById(id);
+        accessControlService.checkCanViewCustomer(customer);
+        return customer;
     }
 
     @Override
     @Transactional
     @CacheEvict(value = "customers", allEntries = true)
     public Customer create(CustomerDTO dto) {
+        User currentUser = accessControlService.getCurrentUserWithManagedCustomers();
+
         Customer customer = Customer.builder()
                 .name(dto.getName())
                 .category(dto.getCategory())
                 .country(dto.getCountry())
                 .email(dto.getEmail())
                 .baseServiceFee(dto.getBaseServiceFee())
+                .active(true)
                 .build();
 
         Long lastSeq = customerRepository.findLastSequence();
@@ -100,22 +102,20 @@ public class CustomerServiceImpl implements CustomerService {
 
         customer.setUpdatedByUser(SecurityUtils.getCurrentUsername());
 
+        if (currentUser.getRole() == Role.SALES_MANAGER) {
+            customer.setSalesManager(currentUser);
+        }
+
         Customer saved = customerRepository.save(customer);
 
-        User currentUser = getCurrentUserWithManagedCustomers();
         if (currentUser.getRole() == Role.ACCOUNT_MANAGER) {
             currentUser.getManagedCustomers().add(saved);
             userRepository.save(currentUser);
         }
+
         syncBaseFeeWithPricingApi(saved);
 
         return saved;
-    }
-
-    private User getCurrentUserWithManagedCustomers() {
-        String username = SecurityUtils.getCurrentUsername();
-        return userRepository.findByUsernameWithManagedCustomers(username)
-                .orElseThrow(() -> new IllegalStateException("Current user not found: " + username));
     }
 
     @Override
@@ -123,6 +123,8 @@ public class CustomerServiceImpl implements CustomerService {
     @CacheEvict(value = "customers", allEntries = true)
     public Customer update(UUID id, CustomerDTO dto) {
         Customer customer = findByIdForCurrentUser(id);
+        accessControlService.checkCanEditCustomer(customer);
+
         customer.setName(dto.getName());
         customer.setCategory(dto.getCategory());
         customer.setEmail(dto.getEmail());
@@ -143,13 +145,18 @@ public class CustomerServiceImpl implements CustomerService {
     public void delete(UUID id) {
         Customer customer = findByIdForCurrentUser(id);
 
-        deleteBaseFeeInPricingApi(customer);
-
-        customerRepository.delete(customer);
+        if (accessControlService.canHardDelete()) {
+            deleteBaseFeeInPricingApi(customer);
+            customerRepository.delete(customer);
+        } else {
+            customer.setActive(false);
+            customer.setUpdatedByUser(SecurityUtils.getCurrentUsername());
+            customerRepository.save(customer);
+        }
     }
 
     private void syncBaseFeeWithPricingApi(Customer customer) {
-        User currentUser = getCurrentUser();
+        User currentUser = accessControlService.getCurrentUser();
 
         if (!CAN_SYNC_BASE_FEE.contains(currentUser.getRole())) {
             log.debug("User [{}] with role [{}] is not allowed to sync baseServiceFee to pricing API",
@@ -179,7 +186,7 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     private void deleteBaseFeeInPricingApi(Customer customer) {
-        User currentUser = getCurrentUser();
+        User currentUser = accessControlService.getCurrentUser();
 
         if (!CAN_SYNC_BASE_FEE.contains(currentUser.getRole())) {
             return;
@@ -192,12 +199,6 @@ public class CustomerServiceImpl implements CustomerService {
             log.error("Failed to delete baseServiceFee for customer [{}] in pricing API: {}",
                     customer.getId(), ex.getMessage(), ex);
         }
-    }
-
-    private User getCurrentUser() {
-        String username = SecurityUtils.getCurrentUsername();
-        return userRepository.findByUsernameWithManagedCustomers(username)
-                .orElseThrow(() -> new IllegalStateException("Current user not found: " + username));
     }
 }
 

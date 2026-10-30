@@ -45,7 +45,7 @@ public class UserServiceImpl implements UserService {
         User user = User.builder()
                 .username(dto.getUsername())
                 .password(securityConfig.passwordEncoder().encode(dto.getPassword()))
-                .role(dto.getRole())
+                .role(Role.MYSTERY_SHOPPER)
                 .email(dto.getEmail())
                 .country(dto.getCountry())
                 .active(true)

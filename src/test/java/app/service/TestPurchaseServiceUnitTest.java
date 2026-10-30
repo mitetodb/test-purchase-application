@@ -55,6 +55,9 @@ class TestPurchaseServiceUnitTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private AccessControlService accessControlService;
+
     @InjectMocks
     private TestPurchaseServiceImpl testPurchaseService;
 

@@ -10,6 +10,7 @@ import app.repository.CustomerRepository;
 import app.repository.ShopRepository;
 import app.repository.TestPurchaseRepository;
 import app.repository.UserRepository;
+import app.service.AccessControlService;
 import app.service.StatusHistoryService;
 import app.service.TestPurchaseService;
 import jakarta.persistence.EntityNotFoundException;
@@ -31,13 +32,26 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
     private final PricingClient pricingClient;
     private final StatusHistoryService statusHistoryService;
     private final UserRepository userRepository;
+    private final AccessControlService accessControlService;
 
     @Override
     @Transactional
     public TestPurchase create(TestPurchaseCreateDTO dto) {
+        accessControlService.checkCanCreateTestPurchase();
 
         Customer customer = customerRepository.findById(dto.getCustomerId())
                 .orElseThrow(() -> new IllegalArgumentException("Customer not found"));
+
+        if (!customer.isActive()) {
+            throw new IllegalArgumentException("Customer is inactive");
+        }
+
+        User currentUser = accessControlService.getCurrentUserWithManagedCustomers();
+        if (currentUser.getRole() == Role.CUSTOMER) {
+            if (currentUser.getCustomer() == null || !currentUser.getCustomer().getId().equals(customer.getId())) {
+                throw new AccessDeniedException("You can only create test purchases for your own company");
+            }
+        }
 
         Shop shop = shopRepository.findById(dto.getShopId())
                 .orElseThrow(() -> new IllegalArgumentException("Shop not found"));
@@ -49,6 +63,7 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
         purchase.setCategory(dto.getCategory());
         purchase.setType(dto.getType());
         purchase.setStatus(TestPurchaseStatus.INITIALISED);
+        purchase.setActive(true);
 
         List<Item> items = getItemList(dto.getItems(), purchase);
         purchase.setItems(items);
@@ -78,6 +93,7 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
 
     @Override
     public PriceCalculationResponseDTO previewPrice(TestPurchaseCreateDTO dto) {
+        accessControlService.checkCanCreateTestPurchase();
 
         if (dto.getCustomerId() == null ||
                 dto.getShopId() == null ||
@@ -127,8 +143,14 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
         TestPurchase purchase = testPurchaseRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Purchase not found"));
 
+        accessControlService.checkCanEditTestPurchase(purchase);
+
         Customer customer = customerRepository.findById(dto.getCustomerId())
                 .orElseThrow(() -> new IllegalArgumentException("Customer not found"));
+
+        if (!customer.isActive()) {
+            throw new IllegalArgumentException("Customer is inactive");
+        }
 
         Shop shop = shopRepository.findById(dto.getShopId())
                 .orElseThrow(() -> new IllegalArgumentException("Shop not found"));
@@ -139,15 +161,12 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
         purchase.setCategory(dto.getCategory());
         purchase.setType(dto.getType());
 
-        // clear old items
         purchase.getItems().clear();
 
-        // add new items
         List<Item> newItems = getItemList(dto.getItems(), purchase);
 
         purchase.getItems().addAll(newItems);
 
-        // set total product price of all items
         purchase.setProductPrice(itemsTotalPrice(purchase));
 
         purchase.setUpdatedByUser(SecurityUtils.getCurrentUsername());
@@ -179,7 +198,17 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
 
     @Override
     public void delete(UUID id) {
-        testPurchaseRepository.deleteById(id);
+        User currentUser = accessControlService.getCurrentUser();
+        TestPurchase purchase = testPurchaseRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Purchase not found"));
+
+        if (currentUser.getRole() == Role.ADMIN) {
+            testPurchaseRepository.deleteById(id);
+        } else {
+            purchase.setActive(false);
+            purchase.setUpdatedByUser(SecurityUtils.getCurrentUsername());
+            testPurchaseRepository.save(purchase);
+        }
     }
 
     @Override
@@ -190,14 +219,18 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
 
     @Override
     public List<TestPurchase> findAll() {
-        return testPurchaseRepository.findAll();
+        return testPurchaseRepository.findAllActive();
     }
 
     @Override
     @Transactional
     public void changeStatus(UUID id, TestPurchaseStatus newStatus, String comment) {
+        accessControlService.checkCanChangeTestPurchaseStatus();
+
         TestPurchase tp = testPurchaseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Purchase not found"));
+
+        accessControlService.checkCanViewTestPurchase(tp);
 
         TestPurchaseStatus oldStatus = tp.getStatus();
 
@@ -212,11 +245,13 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
 
     @Override
     public List<TestPurchase> findAllForCurrentUser() {
-        User currentUser = getCurrentUser();
+        User currentUser = accessControlService.getCurrentUser();
         Role role = currentUser.getRole();
 
         return switch (role) {
-            case ADMIN, SALES_MANAGER -> testPurchaseRepository.findAll();
+            case ADMIN -> testPurchaseRepository.findAllActive();
+
+            case SALES_MANAGER -> testPurchaseRepository.findForSalesManager(currentUser.getId());
 
             case MYSTERY_SHOPPER ->
                     testPurchaseRepository.findByMysteryShopper_Id(currentUser.getId());
@@ -224,7 +259,12 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
             case ACCOUNT_MANAGER ->
                     testPurchaseRepository.findForAccountManager(currentUser.getId());
 
-            default -> List.of();
+            case CUSTOMER -> {
+                if (currentUser.getCustomer() == null) {
+                    yield List.of();
+                }
+                yield testPurchaseRepository.findByCustomer_Id(currentUser.getCustomer().getId());
+            }
         };
     }
 
@@ -234,43 +274,17 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
         TestPurchase purchase = testPurchaseRepository.findByIdWithRelations(id)
                 .orElseThrow(() -> new EntityNotFoundException("TestPurchase not found"));
 
-        User currentUser = getCurrentUserWithManagedCustomers();
-        Role role = currentUser.getRole();
-
-        switch (role) {
-            case ADMIN, SALES_MANAGER:
-                return purchase;
-
-            case MYSTERY_SHOPPER:
-                if (purchase.getMysteryShopper() == null ||
-                        !purchase.getMysteryShopper().getId().equals(currentUser.getId())) {
-                    throw new AccessDeniedException("You are not allowed to view this test purchase");
-                }
-                return purchase;
-
-            case ACCOUNT_MANAGER:
-                if (purchase.getCustomer() == null ||
-                        currentUser.getManagedCustomers() == null ||
-                        !currentUser.getManagedCustomers().contains(purchase.getCustomer())) {
-                    throw new AccessDeniedException("You are not allowed to view this test purchase");
-                }
-                return purchase;
-
-            default:
-                throw new AccessDeniedException("You are not allowed to view this test purchase");
+        if (!purchase.isActive()) {
+            throw new EntityNotFoundException("TestPurchase not found");
         }
-    }
 
-    private User getCurrentUser() {
-        String username = SecurityUtils.getCurrentUsername();
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalStateException("Current user not found: " + username));
-    }
+        accessControlService.checkCanViewTestPurchase(purchase);
 
-    private User getCurrentUserWithManagedCustomers() {
-        String username = SecurityUtils.getCurrentUsername();
-        return userRepository.findByUsernameWithManagedCustomers(username)
-                .orElseThrow(() -> new IllegalStateException("Current user not found: " + username));
+        if (accessControlService.shouldHideMysteryShopperName()) {
+            purchase.setMysteryShopper(null);
+        }
+
+        return purchase;
     }
 
 }

@@ -58,6 +58,8 @@ public class TestPurchase {
     @OneToMany
     private List<Attachment> attachments;
 
+    private boolean active = true;
+
     private LocalDateTime createdOn;
     private LocalDateTime updatedOn;
 

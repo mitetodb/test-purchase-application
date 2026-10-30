@@ -40,6 +40,9 @@ class CustomerServiceTest {
     @Mock
     private PricingCustomerClient pricingCustomerClient;
 
+    @Mock
+    private AccessControlService accessControlService;
+
     @InjectMocks
     private CustomerServiceImpl customerService;
 
