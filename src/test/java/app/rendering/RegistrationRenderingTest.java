@@ -57,11 +57,6 @@ class RegistrationRenderingTest {
 
     @BeforeEach
     void setup() throws Exception {
-        setupTestData();
-    }
-
-    @org.springframework.transaction.annotation.Transactional
-    void setupTestData() throws Exception {
         String uuid = Integer.toHexString((int)(Math.random() * 65536)); // 4-char hex
         
         // Create admin user with unique email

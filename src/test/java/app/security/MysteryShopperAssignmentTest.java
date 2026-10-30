@@ -60,11 +60,16 @@ class MysteryShopperAssignmentTest {
     @org.springframework.boot.test.mock.mockito.MockBean
     private app.client.PricingClient pricingClient;
 
+    @Autowired
+    private app.repository.InviteTokenRepository inviteTokenRepository;
+
     private TestPurchase testPurchase;
     private User mysteryShopperUser;
 
     @BeforeEach
     void setUp() {
+        // Delete invite_tokens first to avoid foreign key constraint violations
+        inviteTokenRepository.deleteAll();
         testPurchaseRepository.deleteAll();
         userRepository.deleteAll();
         customerRepository.deleteAll();

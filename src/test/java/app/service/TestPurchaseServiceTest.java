@@ -65,6 +65,11 @@ class TestPurchaseServiceTest {
             em.getMetamodel();
         }
         
+        // Clean up test data from previous tests to ensure count assertions work
+        testPurchaseRepository.deleteAll();
+        customerRepository.deleteAll();
+        shopRepository.deleteAll();
+        
         // Create admin user if not exists
         if (userRepository.findByUsername("admin").isEmpty()) {
             app.model.entity.User admin = app.model.entity.User.builder()

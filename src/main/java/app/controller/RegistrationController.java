@@ -32,6 +32,9 @@ public class RegistrationController {
             dto.setInviteToken(token);
             model.addAttribute("registrationDTO", dto);
         }
+        
+        // Explicitly set invitationRequired to false when token is provided
+        model.addAttribute("invitationRequired", false);
 
         return "register";
     }
