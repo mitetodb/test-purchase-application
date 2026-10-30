@@ -27,6 +27,7 @@ public class TestPurchaseController {
     private final ShopService shopService;
     private final AttachmentService attachmentService;
     private final StatusHistoryService statusHistoryService;
+    private final UserService userService;
 
     @GetMapping
     public String list(Model model) {

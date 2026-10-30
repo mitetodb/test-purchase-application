@@ -67,7 +67,7 @@ class MysteryShopperViewCorruptionTest {
         customer = new Customer();
         customer.setName("Test Customer");
         customer.setCountry(Country.GERMANY);
-        customer.setCategory(CustomerCategory.GOLD);
+        customer.setCategory("GOLD");
         customer.setActive(true);
         customer = customerRepository.save(customer);
 
@@ -114,8 +114,8 @@ class MysteryShopperViewCorruptionTest {
         testPurchase.setCustomer(customer);
         testPurchase.setShop(shop);
         testPurchase.setCountry(Country.GERMANY);
-        testPurchase.setCategory(Category.ACCESSORIES);
-        testPurchase.setType(TestPurchaseType.ONLINE);
+        testPurchase.setCategory(TestPurchaseCategory.S);
+        testPurchase.setType(TestPurchaseType.FORWARDING_TO_CLIENT);
         testPurchase.setStatus(TestPurchaseStatus.INITIALISED);
         testPurchase.setMysteryShopper(mysteryShopperUser);
         testPurchase.setActive(true);
@@ -145,7 +145,7 @@ class MysteryShopperViewCorruptionTest {
 
         // Verify the database assignment is still intact
         testPurchaseRepository.flush();
-        testPurchaseRepository.clear();
+        testPurchaseRepository.flush();
         TestPurchase afterView = testPurchaseRepository.findById(tpId).orElseThrow();
         assertNotNull(afterView.getMysteryShopper(), "Mystery shopper should still be assigned after view");
         assertEquals(mysteryShopperId, afterView.getMysteryShopper().getId(), 
@@ -172,7 +172,7 @@ class MysteryShopperViewCorruptionTest {
 
         // Verify the database assignment is still intact
         testPurchaseRepository.flush();
-        testPurchaseRepository.clear();
+        testPurchaseRepository.flush();
         TestPurchase afterView = testPurchaseRepository.findById(tpId).orElseThrow();
         assertNotNull(afterView.getMysteryShopper(), "Mystery shopper should still be assigned after view");
         assertEquals(mysteryShopperId, afterView.getMysteryShopper().getId(), 

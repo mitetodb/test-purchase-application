@@ -79,7 +79,7 @@ class AttachmentSecurityTest {
         Customer customer = new Customer();
         customer.setName("Test Customer");
         customer.setCountry(Country.GERMANY);
-        customer.setCategory(CustomerCategory.GOLD);
+        customer.setCategory("GOLD");
         customer.setActive(true);
         customer = customerRepository.save(customer);
 
@@ -95,8 +95,8 @@ class AttachmentSecurityTest {
         testPurchase.setCustomer(customer);
         testPurchase.setShop(shop);
         testPurchase.setCountry(Country.GERMANY);
-        testPurchase.setCategory(Category.ACCESSORIES);
-        testPurchase.setType(TestPurchaseType.ONLINE);
+        testPurchase.setCategory(TestPurchaseCategory.S);
+        testPurchase.setType(TestPurchaseType.FORWARDING_TO_CLIENT);
         testPurchase.setStatus(TestPurchaseStatus.INITIALISED);
         testPurchase.setActive(true);
         testPurchase.setProductPrice(100.0);

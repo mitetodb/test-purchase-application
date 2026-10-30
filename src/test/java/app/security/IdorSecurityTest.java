@@ -302,13 +302,13 @@ class IdorSecurityTest {
     void salesManagerAndCustomerShouldNotSeeMysteryShopperName() {
         authenticateAs(salesManagerUser);
 
-        TestPurchase result = testPurchaseService.findByIdForCurrentUser(testPurchase2.getId());
+        TestPurchaseViewDTO result = testPurchaseService.findByIdForCurrentUser(testPurchase2.getId());
         assertNull(result.getMysteryShopper(), 
             "Sales manager should not see mystery shopper name");
 
         authenticateAs(customerUser1);
         
-        TestPurchase result2 = testPurchaseService.findByIdForCurrentUser(testPurchase1.getId());
+        TestPurchaseViewDTO result2 = testPurchaseService.findByIdForCurrentUser(testPurchase1.getId());
         assertNull(result2.getMysteryShopper(), 
             "Customer should not see mystery shopper name");
     }
@@ -317,13 +317,13 @@ class IdorSecurityTest {
     void adminAndAccountManagerShouldSeeMysteryShopperName() {
         authenticateAs(adminUser);
 
-        TestPurchase result = testPurchaseService.findByIdForCurrentUser(testPurchase1.getId());
+        TestPurchaseViewDTO result = testPurchaseService.findByIdForCurrentUser(testPurchase1.getId());
         assertNotNull(result.getMysteryShopper(), 
             "Admin should see mystery shopper name");
 
         authenticateAs(accountManagerUser);
-        
-        TestPurchase result2 = testPurchaseService.findByIdForCurrentUser(testPurchase1.getId());
+
+        TestPurchaseViewDTO result2 = testPurchaseService.findByIdForCurrentUser(testPurchase1.getId());
         assertNotNull(result2.getMysteryShopper(), 
             "Account manager should see mystery shopper name");
     }

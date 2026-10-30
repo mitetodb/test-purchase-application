@@ -59,14 +59,14 @@ class PricePreviewSecurityTest {
         ownCustomer = new Customer();
         ownCustomer.setName("Own Customer");
         ownCustomer.setCountry(Country.GERMANY);
-        ownCustomer.setCategory(CustomerCategory.GOLD);
+        ownCustomer.setCategory("GOLD");
         ownCustomer.setActive(true);
         ownCustomer = customerRepository.save(ownCustomer);
 
         otherCustomer = new Customer();
         otherCustomer.setName("Other Customer");
         otherCustomer.setCountry(Country.GERMANY);
-        otherCustomer.setCategory(CustomerCategory.SILVER);
+        otherCustomer.setCategory("SILVER");
         otherCustomer.setActive(true);
         otherCustomer = customerRepository.save(otherCustomer);
 
@@ -95,8 +95,8 @@ class PricePreviewSecurityTest {
         dto.setCustomerId(ownCustomer.getId());
         dto.setShopId(shop.getId());
         dto.setCountry(Country.GERMANY);
-        dto.setCategory(Category.ACCESSORIES);
-        dto.setType(TestPurchaseType.ONLINE);
+        dto.setCategory(TestPurchaseCategory.S);
+        dto.setType(TestPurchaseType.FORWARDING_TO_CLIENT);
         dto.getItems().add(createItemDTO("Product", 1, 100.0));
 
         assertDoesNotThrow(() -> {
@@ -112,8 +112,8 @@ class PricePreviewSecurityTest {
         dto.setCustomerId(otherCustomer.getId());
         dto.setShopId(shop.getId());
         dto.setCountry(Country.GERMANY);
-        dto.setCategory(Category.ACCESSORIES);
-        dto.setType(TestPurchaseType.ONLINE);
+        dto.setCategory(TestPurchaseCategory.S);
+        dto.setType(TestPurchaseType.FORWARDING_TO_CLIENT);
         dto.getItems().add(createItemDTO("Product", 1, 100.0));
 
         assertThrows(AccessDeniedException.class, () -> {

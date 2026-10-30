@@ -1,8 +1,8 @@
 package app.model.dto;
 
 import app.model.entity.*;
-import app.model.enums.Category;
 import app.model.enums.Country;
+import app.model.enums.TestPurchaseCategory;
 import app.model.enums.TestPurchaseStatus;
 import app.model.enums.TestPurchaseType;
 import lombok.Data;
@@ -22,7 +22,7 @@ public class TestPurchaseViewDTO {
     private Customer customer;
     private Shop shop;
     private Country country;
-    private Category category;
+    private TestPurchaseCategory category;
     private TestPurchaseType type;
     private TestPurchaseStatus status;
     private double productPrice;
@@ -33,7 +33,6 @@ public class TestPurchaseViewDTO {
     private boolean mysteryShopperHidden;
     private String updatedByUser;
     private LocalDateTime createdDate;
-    private LocalDateTime lastModifiedDate;
     private boolean active;
 
     public static TestPurchaseViewDTO from(TestPurchase purchase, boolean hideMysteryShopperName) {
@@ -51,8 +50,7 @@ public class TestPurchaseViewDTO {
         dto.setPostageFee(purchase.getPostageFee());
         dto.setItems(purchase.getItems());
         dto.setUpdatedByUser(purchase.getUpdatedByUser());
-        dto.setCreatedDate(purchase.getCreatedDate());
-        dto.setLastModifiedDate(purchase.getLastModifiedDate());
+        dto.setCreatedDate(purchase.getCreatedOn());
         dto.setActive(purchase.isActive());
         
         if (hideMysteryShopperName) {

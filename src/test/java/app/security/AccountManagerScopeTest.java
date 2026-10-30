@@ -71,14 +71,14 @@ class AccountManagerScopeTest {
         managedCustomer = new Customer();
         managedCustomer.setName("Managed Customer");
         managedCustomer.setCountry(Country.GERMANY);
-        managedCustomer.setCategory(CustomerCategory.GOLD);
+        managedCustomer.setCategory("GOLD");
         managedCustomer.setActive(true);
         managedCustomer = customerRepository.save(managedCustomer);
 
         unmanagedCustomer = new Customer();
         unmanagedCustomer.setName("Unmanaged Customer");
         unmanagedCustomer.setCountry(Country.GERMANY);
-        unmanagedCustomer.setCategory(CustomerCategory.SILVER);
+        unmanagedCustomer.setCategory("SILVER");
         unmanagedCustomer.setActive(true);
         unmanagedCustomer = customerRepository.save(unmanagedCustomer);
 
@@ -116,8 +116,8 @@ class AccountManagerScopeTest {
         managedPurchase.setCustomer(managedCustomer);
         managedPurchase.setShop(shop);
         managedPurchase.setCountry(Country.GERMANY);
-        managedPurchase.setCategory(Category.ACCESSORIES);
-        managedPurchase.setType(TestPurchaseType.ONLINE);
+        managedPurchase.setCategory(TestPurchaseTestPurchaseCategory.S);
+        managedPurchase.setType(TestPurchaseType.FORWARDING_TO_CLIENT);
         managedPurchase.setStatus(TestPurchaseStatus.INITIALISED);
         managedPurchase.setActive(true);
         managedPurchase.setProductPrice(100.0);
@@ -130,8 +130,8 @@ class AccountManagerScopeTest {
         unmanagedPurchase.setCustomer(unmanagedCustomer);
         unmanagedPurchase.setShop(shop);
         unmanagedPurchase.setCountry(Country.GERMANY);
-        unmanagedPurchase.setCategory(Category.ACCESSORIES);
-        unmanagedPurchase.setType(TestPurchaseType.ONLINE);
+        unmanagedPurchase.setCategory(TestPurchaseTestPurchaseCategory.S);
+        unmanagedPurchase.setType(TestPurchaseType.FORWARDING_TO_CLIENT);
         unmanagedPurchase.setStatus(TestPurchaseStatus.INITIALISED);
         unmanagedPurchase.setActive(true);
         unmanagedPurchase.setProductPrice(200.0);
@@ -149,7 +149,7 @@ class AccountManagerScopeTest {
         dto.setShopId(shop.getId());
         dto.setCountry(Country.FRANCE);
         dto.setCategory(Category.CLOTHING);
-        dto.setType(TestPurchaseType.IN_STORE);
+        dto.setType(TestPurchaseType.RETURN_BACK_TO_SELLER);
 
         assertDoesNotThrow(() -> {
             testPurchaseService.edit(managedPurchase.getId(), dto);
@@ -165,7 +165,7 @@ class AccountManagerScopeTest {
         dto.setShopId(shop.getId());
         dto.setCountry(Country.FRANCE);
         dto.setCategory(Category.CLOTHING);
-        dto.setType(TestPurchaseType.IN_STORE);
+        dto.setType(TestPurchaseType.RETURN_BACK_TO_SELLER);
 
         assertThrows(AccessDeniedException.class, () -> {
             testPurchaseService.edit(unmanagedPurchase.getId(), dto);
@@ -180,8 +180,8 @@ class AccountManagerScopeTest {
         dto.setCustomerId(unmanagedCustomer.getId()); // Trying to change to unmanaged customer
         dto.setShopId(shop.getId());
         dto.setCountry(Country.GERMANY);
-        dto.setCategory(Category.ACCESSORIES);
-        dto.setType(TestPurchaseType.ONLINE);
+        dto.setCategory(TestPurchaseTestPurchaseCategory.S);
+        dto.setType(TestPurchaseType.FORWARDING_TO_CLIENT);
 
         assertThrows(AccessDeniedException.class, () -> {
             testPurchaseService.edit(managedPurchase.getId(), dto);
@@ -196,8 +196,8 @@ class AccountManagerScopeTest {
         dto.setCustomerId(managedCustomer.getId());
         dto.setShopId(shop.getId());
         dto.setCountry(Country.GERMANY);
-        dto.setCategory(Category.ACCESSORIES);
-        dto.setType(TestPurchaseType.ONLINE);
+        dto.setCategory(TestPurchaseTestPurchaseCategory.S);
+        dto.setType(TestPurchaseType.FORWARDING_TO_CLIENT);
         dto.getItems().add(createItemDTO("Product", 1, 50.0));
 
         assertDoesNotThrow(() -> {
@@ -213,8 +213,8 @@ class AccountManagerScopeTest {
         dto.setCustomerId(unmanagedCustomer.getId());
         dto.setShopId(shop.getId());
         dto.setCountry(Country.GERMANY);
-        dto.setCategory(Category.ACCESSORIES);
-        dto.setType(TestPurchaseType.ONLINE);
+        dto.setCategory(TestPurchaseTestPurchaseCategory.S);
+        dto.setType(TestPurchaseType.FORWARDING_TO_CLIENT);
         dto.getItems().add(createItemDTO("Product", 1, 50.0));
 
         assertThrows(AccessDeniedException.class, () -> {

@@ -57,8 +57,10 @@ class TestPurchaseControllerTest {
         tp.setNumber("TP-1001");
         tp.setStatus(TestPurchaseStatus.INITIALISED);
 
+        TestPurchaseViewDTO dto = TestPurchaseViewDTO.from(tp, false);
+
         given(testPurchaseService.findByIdForCurrentUser(any(UUID.class)))
-                .willReturn(tp);
+                .willReturn(dto);
         given(attachmentService.getByTestPurchase(any(UUID.class)))
                 .willReturn(List.of());
         given(statusHistoryService.getHistory(any(UUID.class)))
