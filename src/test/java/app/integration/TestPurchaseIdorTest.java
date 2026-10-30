@@ -72,13 +72,8 @@ class TestPurchaseIdorTest {
     private TestPurchase testPurchase2;
 
     @BeforeEach
-    void setup() {
-        cleanupDatabase();
-        setupData();
-    }
-
     @org.springframework.transaction.annotation.Transactional
-    private void setupData() {
+    void setup() {
         // Create account managers
         accountManager1 = createUser("accmgr1_idor", Role.ACCOUNT_MANAGER);
         accountManager2 = createUser("accmgr2_idor", Role.ACCOUNT_MANAGER);
@@ -113,20 +108,6 @@ class TestPurchaseIdorTest {
         // Create test purchases
         testPurchase1 = createTestPurchase("TP-IDOR-001", customer1);
         testPurchase2 = createTestPurchase("TP-IDOR-002", customer2);
-    }
-
-    @org.springframework.transaction.annotation.Transactional
-    private void cleanupDatabase() {
-        testPurchaseRepository.deleteAll();
-        testPurchaseRepository.flush();
-        userRepository.clearAllAccountManagerCustomerRelationships();
-        userRepository.flush();
-        customerRepository.deleteAll();
-        customerRepository.flush();
-        shopRepository.deleteAll();
-        shopRepository.flush();
-        userRepository.deleteAll();
-        userRepository.flush();
     }
 
     private User createUser(String username, Role role) {

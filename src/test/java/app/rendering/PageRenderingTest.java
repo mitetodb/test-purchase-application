@@ -63,14 +63,8 @@ class PageRenderingTest {
     private TestPurchase testPurchase2;
 
     @BeforeEach
-    void setup() {
-        // Clean up data for this test
-        cleanupDatabase();
-        setupData();
-    }
-
     @org.springframework.transaction.annotation.Transactional
-    private void setupData() {
+    void setup() {
         // Create users
         adminUser = createUser("admin_render", Role.ADMIN, null);
         accountManagerUser = createUser("accmgr_render", Role.ACCOUNT_MANAGER, null);
@@ -130,20 +124,6 @@ class PageRenderingTest {
                 .country(Country.GERMANY)
                 .build();
         return shopRepository.save(shop);
-    }
-
-    @org.springframework.transaction.annotation.Transactional
-    private void cleanupDatabase() {
-        testPurchaseRepository.deleteAll();
-        testPurchaseRepository.flush();
-        userRepository.clearAllAccountManagerCustomerRelationships();
-        userRepository.flush();
-        customerRepository.deleteAll();
-        customerRepository.flush();
-        shopRepository.deleteAll();
-        shopRepository.flush();
-        userRepository.deleteAll();
-        userRepository.flush();
     }
 
     private TestPurchase createTestPurchase(String number, Customer customer, User mysteryShopper) {

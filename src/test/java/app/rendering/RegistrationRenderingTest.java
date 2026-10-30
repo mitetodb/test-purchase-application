@@ -56,13 +56,8 @@ class RegistrationRenderingTest {
     private String validToken;
 
     @BeforeEach
-    void setup() throws Exception {
-        cleanupDatabase();
-        setupData();
-    }
-
     @org.springframework.transaction.annotation.Transactional
-    private void setupData() throws Exception {
+    void setup() throws Exception {
         // Create admin user
         adminUser = User.builder()
                 .username("admin_registration")
@@ -77,18 +72,6 @@ class RegistrationRenderingTest {
 
         // Create a valid invite token
         validToken = createValidInviteToken();
-    }
-
-    @org.springframework.transaction.annotation.Transactional
-    private void cleanupDatabase() {
-        inviteTokenRepository.deleteAll();
-        inviteTokenRepository.flush();
-        userRepository.clearAllAccountManagerCustomerRelationships();
-        userRepository.flush();
-        customerRepository.deleteAll();
-        customerRepository.flush();
-        userRepository.deleteAll();
-        userRepository.flush();
     }
 
     private String createValidInviteToken() throws Exception {

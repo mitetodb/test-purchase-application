@@ -62,13 +62,8 @@ class MysteryShopperAssignmentIntegrationTest {
     private TestPurchase testPurchase;
 
     @BeforeEach
-    void setup() {
-        cleanupDatabase();
-        setupData();
-    }
-
     @org.springframework.transaction.annotation.Transactional
-    private void setupData() {
+    void setup() {
         // Create users
         adminUser = createUser("admin_assign", Role.ADMIN);
         accountManagerUser = createUser("accmgr_assign", Role.ACCOUNT_MANAGER);
@@ -88,20 +83,6 @@ class MysteryShopperAssignmentIntegrationTest {
 
         // Create test purchase
         testPurchase = createTestPurchase("TP-ASSIGN-001", customer);
-    }
-
-    @org.springframework.transaction.annotation.Transactional
-    private void cleanupDatabase() {
-        testPurchaseRepository.deleteAll();
-        testPurchaseRepository.flush();
-        userRepository.clearAllAccountManagerCustomerRelationships();
-        userRepository.flush();
-        customerRepository.deleteAll();
-        customerRepository.flush();
-        shopRepository.deleteAll();
-        shopRepository.flush();
-        userRepository.deleteAll();
-        userRepository.flush();
     }
 
     private User createUser(String username, Role role) {
