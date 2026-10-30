@@ -46,6 +46,9 @@ class InviteTokenSecurityTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private jakarta.persistence.EntityManager entityManager;
+
     private User adminUser;
     private User accountManagerUser;
     private User salesManagerUser;
@@ -371,4 +374,75 @@ class InviteTokenSecurityTest {
         assertEquals(userCountBefore, userRepository.count(), "No user should be created with expired token");
     }
 
+    @Test
+    @org.springframework.test.annotation.DirtiesContext
+    void concurrentRegistrationWithSameTokenOnlyCreatesOneUser() throws Exception {
+        authenticateAs(adminUser);
+        String token = inviteTokenService.createInviteToken();
+        entityManager.flush();
+        org.springframework.test.context.transaction.TestTransaction.flagForCommit();
+        org.springframework.test.context.transaction.TestTransaction.end();
+        SecurityContextHolder.clearContext();
+        
+        // Token is now committed and visible to other threads
+        long userCountBefore = userRepository.count();
+
+        RegistrationDTO dto1 = new RegistrationDTO();
+        dto1.setUsername("concurrent1_" + System.currentTimeMillis());
+        dto1.setPassword("password123");
+        dto1.setConfirmPassword("password123");
+        dto1.setEmail("concurrent1@test.com");
+        dto1.setCountry(Country.GERMANY);
+        dto1.setInviteToken(token);
+
+        RegistrationDTO dto2 = new RegistrationDTO();
+        dto2.setUsername("concurrent2_" + System.currentTimeMillis());
+        dto2.setPassword("password123");
+        dto2.setConfirmPassword("password123");
+        dto2.setEmail("concurrent2@test.com");
+        dto2.setCountry(Country.GERMANY);
+        dto2.setInviteToken(token);
+
+        // Execute registrations concurrently
+        java.util.concurrent.CountDownLatch startLatch = new java.util.concurrent.CountDownLatch(1);
+        java.util.concurrent.CountDownLatch doneLatch = new java.util.concurrent.CountDownLatch(2);
+        java.util.concurrent.atomic.AtomicInteger successCount = new java.util.concurrent.atomic.AtomicInteger(0);
+        java.util.concurrent.atomic.AtomicInteger failureCount = new java.util.concurrent.atomic.AtomicInteger(0);
+
+        Thread thread1 = new Thread(() -> {
+            try {
+                startLatch.await();
+                userService.register(dto1);
+                successCount.incrementAndGet();
+            } catch (Exception e) {
+                failureCount.incrementAndGet();
+            } finally {
+                doneLatch.countDown();
+            }
+        });
+
+        Thread thread2 = new Thread(() -> {
+            try {
+                startLatch.await();
+                userService.register(dto2);
+                successCount.incrementAndGet();
+            } catch (Exception e) {
+                failureCount.incrementAndGet();
+            } finally {
+                doneLatch.countDown();
+            }
+        });
+
+        thread1.start();
+        thread2.start();
+        Thread.sleep(100); // Give threads time to start
+        startLatch.countDown(); // Start both threads simultaneously
+
+        doneLatch.await(10, java.util.concurrent.TimeUnit.SECONDS);
+
+        assertEquals(1, successCount.get(), "Exactly one registration should succeed");
+        assertEquals(1, failureCount.get(), "Exactly one registration should fail");
+        long userCountAfter = userRepository.count();
+        assertEquals(userCountBefore + 1, userCountAfter, "Only one user should be created");
+    }
 }

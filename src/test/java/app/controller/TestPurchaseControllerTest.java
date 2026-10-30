@@ -1,0 +1,84 @@
+package app.controller;
+
+import app.model.dto.TestPurchaseViewDTO;
+import app.model.entity.TestPurchase;
+import app.model.enums.TestPurchaseStatus;
+import app.service.AttachmentService;
+import app.service.CustomerService;
+import app.service.ShopService;
+import app.service.StatusHistoryService;
+import app.service.TestPurchaseService;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.List;
+import java.util.UUID;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest(
+        controllers = TestPurchaseController.class,
+        excludeAutoConfiguration = {
+                org.springframework.boot.autoconfigure.thymeleaf.ThymeleafAutoConfiguration.class
+        }
+)
+@AutoConfigureMockMvc(addFilters = false)
+@ActiveProfiles("test")
+class TestPurchaseControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private app.client.PricingClient pricingClient;
+
+    @MockBean
+    private TestPurchaseService testPurchaseService;
+
+    @MockBean
+    private CustomerService customerService;
+
+    @MockBean
+    private ShopService shopService;
+
+    @MockBean
+    private AttachmentService attachmentService;
+
+    @MockBean
+    private StatusHistoryService statusHistoryService;
+
+    @MockBean
+    private app.service.UserService userService;
+
+    @Test
+    void testViewPageReturns200() throws Exception {
+        UUID testPurchaseId = UUID.randomUUID();
+        TestPurchaseViewDTO dto = new TestPurchaseViewDTO();
+        dto.setId(testPurchaseId);
+        dto.setNumber("TP-1001");
+        dto.setStatus(TestPurchaseStatus.INITIALISED);
+
+        given(testPurchaseService.findByIdForCurrentUser(any(UUID.class)))
+                .willReturn(dto);
+        given(attachmentService.getByTestPurchase(any(UUID.class)))
+                .willReturn(List.of());
+        given(statusHistoryService.getHistory(any(UUID.class)))
+                .willReturn(List.of());
+        given(customerService.findAllForCurrentUser()).willReturn(List.of());
+        given(shopService.findAll()).willReturn(List.of());
+
+        mockMvc.perform(get("/testpurchases/view/" + testPurchaseId))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("purchase"))
+                .andExpect(model().attributeExists("attachments"))
+                .andExpect(model().attributeExists("history"))
+                .andExpect(model().attributeExists("statuses"));
+    }
+}

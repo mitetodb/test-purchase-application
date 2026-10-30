@@ -22,6 +22,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -109,28 +111,45 @@ class MysteryShopperAssignmentTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = {"ADMIN"})
-    void adminCanAssignMysteryShopperViaController() throws Exception {
-        mockMvc.perform(post("/testpurchases/" + testPurchase.getId() + "/assign-mystery-shopper")
-                        .param("mysteryShopperId", mysteryShopperUser.getId().toString())
-                        .with(csrf()))
-                .andExpect(status().isOk());    }
+    void adminCanAssignMysteryShopperViaService() {
+        authenticateAsAdmin();
+        
+        assertNull(testPurchase.getMysteryShopper(), "Initial state should have no mystery shopper");
+        
+        testPurchaseService.assignMysteryShopperToTestPurchase(testPurchase.getId(), mysteryShopperUser.getId());
+        
+        TestPurchase updated = testPurchaseRepository.findById(testPurchase.getId()).orElseThrow();
+        assertNotNull(updated.getMysteryShopper(), "Mystery shopper should be assigned");
+        assertEquals(mysteryShopperUser.getId(), updated.getMysteryShopper().getId());
+    }
 
     @Test
-    @WithMockUser(username = "accountmgr", roles = {"ACCOUNT_MANAGER"})
-    void accountManagerCanAssignMysteryShopperViaController() throws Exception {
-        mockMvc.perform(post("/testpurchases/" + testPurchase.getId() + "/assign-mystery-shopper")
-                        .param("mysteryShopperId", mysteryShopperUser.getId().toString())
-                        .with(csrf()))
-                .andExpect(status().isOk());    }
+    void accountManagerCanAssignMysteryShopperViaService() {
+        authenticateAsAccountManager();
+        
+        assertNull(testPurchase.getMysteryShopper(), "Initial state should have no mystery shopper");
+        
+        testPurchaseService.assignMysteryShopperToTestPurchase(testPurchase.getId(), mysteryShopperUser.getId());
+        
+        TestPurchase updated = testPurchaseRepository.findById(testPurchase.getId()).orElseThrow();
+        assertNotNull(updated.getMysteryShopper(), "Mystery shopper should be assigned");
+        assertEquals(mysteryShopperUser.getId(), updated.getMysteryShopper().getId());
+    }
 
     @Test
     @WithMockUser(username = "salesmgr", roles = {"SALES_MANAGER"})
     void salesManagerCannotAssignMysteryShopperViaController() throws Exception {
+        UUID originalShopperId = testPurchase.getMysteryShopper() != null ? testPurchase.getMysteryShopper().getId() : null;
+        
         mockMvc.perform(post("/testpurchases/" + testPurchase.getId() + "/assign-mystery-shopper")
                         .param("mysteryShopperId", mysteryShopperUser.getId().toString())
                         .with(csrf()))
                 .andExpect(status().isForbidden());
+        
+        // Verify mystery shopper unchanged
+        TestPurchase unchanged = testPurchaseRepository.findById(testPurchase.getId()).orElseThrow();
+        UUID currentShopperId = unchanged.getMysteryShopper() != null ? unchanged.getMysteryShopper().getId() : null;
+        assertEquals(originalShopperId, currentShopperId, "Mystery shopper should remain unchanged after denied assignment");
     }
 
     @Test
@@ -161,5 +180,41 @@ class MysteryShopperAssignmentTest {
         // Then unassign
         mockMvc.perform(post("/testpurchases/" + testPurchase.getId() + "/assign-mystery-shopper")
                         .with(csrf()))
-                .andExpect(status().isOk());    }
+                .andExpect(status().isOk());
+    }
+
+    private void authenticateAsAdmin() {
+        User admin = new User();
+        admin.setUsername("admin_test");
+        admin.setEmail("admin_test@test.com");
+        admin.setPassword("password");
+        admin.setRole(Role.ADMIN);
+        admin.setActive(true);
+        admin = userRepository.save(admin);
+        
+        var auth = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                admin.getUsername(),
+                null,
+                java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ADMIN"))
+        );
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(auth);
+    }
+
+    private void authenticateAsAccountManager() {
+        User accountManager = new User();
+        accountManager.setUsername("am_test");
+        accountManager.setEmail("am_test@test.com");
+        accountManager.setPassword("password");
+        accountManager.setRole(Role.ACCOUNT_MANAGER);
+        accountManager.setActive(true);
+        accountManager.getManagedCustomers().add(testPurchase.getCustomer());
+        accountManager = userRepository.save(accountManager);
+        
+        var auth = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                accountManager.getUsername(),
+                null,
+                java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ACCOUNT_MANAGER"))
+        );
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(auth);
+    }
 }
