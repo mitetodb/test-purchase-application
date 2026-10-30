@@ -2,6 +2,8 @@
 
 This document outlines the development roadmap for the Test Purchase Application, organized by priority.
 
+📋 **[View on GitHub Projects: Testkauf Roadmap](https://github.com/users/mitetodb/projects/9)**
+
 See [ORIGINAL_VISION.md](ORIGINAL_VISION.md) for the original project goals and feature implementation status.
 
 ## High Priority

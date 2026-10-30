@@ -132,7 +132,9 @@ The Dockerfile is a multi-stage Java 17 build that runs as a non-root user.
 
 ## Documentation
 
-Comprehensive documentation is available in the [`docs/`](docs/) directory:
+Comprehensive documentation is available in the [`docs/`](docs/) directory.
+
+📋 **[Testkauf Roadmap](https://github.com/users/mitetodb/projects/9)** - Track progress on GitHub Projects
 
 ### Project Documentation
 
