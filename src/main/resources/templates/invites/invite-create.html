@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" th:replace="~{layout :: layout(~{::title}, ~{::main})}"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>Create Invitation</title>
+</head>
+<body>
+<main>
+    <div class="page-header">
+        <div>
+            <h2 class="text-gradient mb-1">
+                <i class="fas fa-envelope me-2"></i>Create Invitation
+            </h2>
+            <p class="text-muted mb-0">Generate invitation links for new users</p>
+        </div>
+    </div>
+
+    <!-- Success Message -->
+    <div th:if="${successMessage}" class="alert alert-success" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        <span th:text="${successMessage}"></span>
+    </div>
+
+    <!-- Invite Link Display -->
+    <div th:if="${inviteLink}" class="alert alert-info mt-3">
+        <h5>Invitation Link Created</h5>
+        <p class="mb-2">Share this link with the new user:</p>
+        <div class="input-group">
+            <input type="text" 
+                   class="form-control" 
+                   th:value="${'http://localhost:8080' + inviteLink}" 
+                   id="inviteLink" 
+                   readonly />
+            <button class="btn btn-primary" type="button" onclick="copyInviteLink()">
+                <i class="fas fa-copy me-1"></i>Copy
+            </button>
+        </div>
+        <small class="text-muted mt-2 d-block">This link expires in 7 days and can only be used once.</small>
+    </div>
+
+    <!-- Error Message -->
+    <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <span th:text="${errorMessage}"></span>
+    </div>
+
+    <!-- Create Invite Form -->
+    <div class="card mt-4">
+        <div class="card-body">
+            <h5 class="card-title">Generate New Invitation</h5>
+            <p class="card-text">Click the button below to create a new invitation token.</p>
+            <form th:action="@{/invites/create}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-plus me-2"></i>Create Invitation
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function copyInviteLink() {
+            var copyText = document.getElementById("inviteLink");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(copyText.value);
+            
+            var button = event.target.closest('button');
+            var originalHTML = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
+            setTimeout(function() {
+                button.innerHTML = originalHTML;
+            }, 2000);
+        }
+    </script>
+</main>
+</body>
+</html>

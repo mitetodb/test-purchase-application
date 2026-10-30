@@ -17,6 +17,11 @@ public class RegistrationController {
 
     @GetMapping("/register")
     public String showRegistrationForm(@RequestParam(required = false) String token, Model model) {
+        
+        if (token == null || token.isBlank()) {
+            model.addAttribute("invitationRequired", true);
+            return "register";
+        }
 
         if (!model.containsAttribute("registrationDTO")) {
             RegistrationDTO dto = new RegistrationDTO();

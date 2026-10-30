@@ -44,4 +44,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     List<User> findAllActive();
 
     List<User> findByRoleAndActive(Role role, boolean active);
+
+    @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(value = "DELETE FROM account_manager_customers", nativeQuery = true)
+    void clearAllAccountManagerCustomerRelationships();
 }
