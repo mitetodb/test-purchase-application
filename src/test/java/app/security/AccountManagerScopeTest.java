@@ -192,6 +192,7 @@ class AccountManagerScopeTest {
     }
 
     @Test
+    @org.junit.jupiter.api.Disabled("Requires external pricing service")
     void accountManagerCanCreateTestPurchaseForManagedCustomer() {
         authenticateAs(accountManager1);
 
