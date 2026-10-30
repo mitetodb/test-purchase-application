@@ -129,3 +129,28 @@ If an old database created by `ddl-auto=update` fails validation, start it once 
 
 **CI:** `scripts/ci.sh` runs a secret scan, `mvn verify`, a compose config check that fails if an internal port is published, and (with `DOCKER_BUILD=1`) the image build.
 The Dockerfile is a multi-stage Java 17 build that runs as a non-root user.
+
+## Documentation
+
+Comprehensive documentation is available in the [`docs/`](docs/) directory:
+
+### Project Documentation
+
+- **[Master Plan](docs/MASTERPLAN.md)** - Development roadmap organized by priority (High, Medium, Later)
+- **[Architecture](docs/ARCHITECTURE.md)** - System architecture with Mermaid diagrams, components, and data flows
+- **[Roles & Permissions](docs/ROLES.md)** - Complete permission matrix for all five roles
+- **[Deployment Guide](docs/DEPLOYMENT.md)** - Production deployment on Hetzner with Docker Compose
+- **[Security](docs/SECURITY.md)** - Security practices, current implementation, and planned improvements
+- **[Contributing](docs/CONTRIBUTING.md)** - Development workflow, code style, testing, and database migrations
+
+### User Guides
+
+User guides are available in **three languages** (Bulgarian, English, German):
+
+| Role | English | Bulgarian | German |
+|------|---------|-----------|--------|
+| **Admin** | [EN](docs/guides/en/admin.md) | [BG](docs/guides/bg/admin.md) | [DE](docs/guides/de/admin.md) |
+| **Account Manager** | [EN](docs/guides/en/account-manager.md) | [BG](docs/guides/bg/account-manager.md) | [DE](docs/guides/de/account-manager.md) |
+| **Sales Manager** | [EN](docs/guides/en/sales-manager.md) | [BG](docs/guides/bg/sales-manager.md) | [DE](docs/guides/de/sales-manager.md) |
+| **Customer** | [EN](docs/guides/en/customer.md) | [BG](docs/guides/bg/customer.md) | [DE](docs/guides/de/customer.md) |
+| **Mystery Shopper** | [EN](docs/guides/en/mystery-shopper.md) | [BG](docs/guides/bg/mystery-shopper.md) | [DE](docs/guides/de/mystery-shopper.md) |
