@@ -87,8 +87,9 @@ class MysteryShopperAssignmentIntegrationTest {
         accountManagerUser.getManagedCustomers().add(customer);
         accountManagerUser = userRepository.save(accountManagerUser);
 
-        // Create test purchase with shorter number to fit VARCHAR(20)
-        testPurchase = createTestPurchase("TPA" + uuid, customer);
+        // Create test purchase with properly formatted number (TP-XXXX where XXXX is integer)
+        int num = (int)(Math.random() * 9000) + 1000;
+        testPurchase = createTestPurchase("TP-" + num, customer);
     }
 
     private User createUser(String username, Role role) {

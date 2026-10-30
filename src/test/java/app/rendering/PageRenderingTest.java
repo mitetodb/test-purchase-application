@@ -93,9 +93,11 @@ class PageRenderingTest {
         customerUser.setCustomer(customer1);
         userRepository.save(customerUser);
 
-        // Create test purchases with shorter numbers to fit VARCHAR(20)
-        testPurchase1 = createTestPurchase("TPR1" + uuid, customer1, mysteryShopperUser);
-        testPurchase2 = createTestPurchase("TPR2" + uuid, customer2, null);
+        // Create test purchases with properly formatted numbers (TP-XXXX where XXXX is integer)
+        int num1 = (int)(Math.random() * 9000) + 1000; // Random 4-digit number
+        int num2 = num1 + 1;
+        testPurchase1 = createTestPurchase("TP-" + num1, customer1, mysteryShopperUser);
+        testPurchase2 = createTestPurchase("TP-" + num2, customer2, null);
     }
 
     private User createUser(String username, Role role, Customer customer) {

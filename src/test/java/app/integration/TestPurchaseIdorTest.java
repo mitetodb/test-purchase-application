@@ -58,9 +58,6 @@ class TestPurchaseIdorTest {
     @Autowired
     private TestPurchaseService testPurchaseService;
 
-    @Autowired
-    private jakarta.persistence.EntityManager entityManager;
-
     private User accountManager1;
     private User accountManager2;
     private User salesManager1;
@@ -114,13 +111,11 @@ class TestPurchaseIdorTest {
         customerUser2.setCustomer(customer2);
         userRepository.save(customerUser2);
 
-        // Create test purchases with shorter numbers to fit VARCHAR(20)
-        testPurchase1 = createTestPurchase("TPI1" + uuid, customer1);
-        testPurchase2 = createTestPurchase("TPI2" + uuid, customer2);
-        
-        // Flush to ensure all data is persisted
-        entityManager.flush();
-        entityManager.clear();
+        // Create test purchases with properly formatted numbers (TP-XXXX where XXXX is integer)
+        int num1 = (int)(Math.random() * 9000) + 1000; // Random 4-digit number
+        int num2 = num1 + 1;
+        testPurchase1 = createTestPurchase("TP-" + num1, customer1);
+        testPurchase2 = createTestPurchase("TP-" + num2, customer2);
     }
 
     private User createUser(String username, Role role) {
