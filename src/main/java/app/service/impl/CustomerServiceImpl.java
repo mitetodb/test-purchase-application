@@ -132,6 +132,16 @@ public class CustomerServiceImpl implements CustomerService {
         Customer customer = findByIdForCurrentUser(id);
         accessControlService.checkCanEditCustomer(customer);
 
+        // Check pricing permission if baseServiceFee is being changed
+        if (dto.getBaseServiceFee() != null && 
+            (customer.getBaseServiceFee() == null || 
+             !customer.getBaseServiceFee().equals(dto.getBaseServiceFee()))) {
+            if (!accessControlService.canSetCustomerPricing()) {
+                throw new org.springframework.security.access.AccessDeniedException(
+                        "You are not allowed to set customer pricing");
+            }
+        }
+
         customer.setName(dto.getName());
         customer.setCategory(dto.getCategory());
         customer.setEmail(dto.getEmail());

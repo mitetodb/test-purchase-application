@@ -230,4 +230,12 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByRoleAndActive(Role.MYSTERY_SHOPPER, true);
     }
 
+    @Override
+    @Transactional
+    public void deactivateUser(UUID id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        user.setActive(false);
+        userRepository.save(user);
+    }
 }

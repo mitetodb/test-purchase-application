@@ -52,4 +52,6 @@ public interface UserService {
 
     List<User> findAllMysteryShoppers();
 
+    void deactivateUser(UUID id);
+
 }
