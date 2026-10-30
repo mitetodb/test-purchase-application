@@ -109,11 +109,21 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
             throw new IllegalArgumentException("Customer, shop, country, category and type are required for price calculation.");
         }
 
-        // Verify CUSTOMER can only preview prices for their own company
         User currentUser = accessControlService.getCurrentUser();
+        
+        // CUSTOMER can only preview prices for their own company
         if (currentUser.getRole() == Role.CUSTOMER) {
             if (currentUser.getCustomer() == null || !currentUser.getCustomer().getId().equals(dto.getCustomerId())) {
                 throw new AccessDeniedException("You can only preview prices for your own company");
+            }
+        }
+        
+        // ACCOUNT_MANAGER can only preview prices for managed customers
+        if (currentUser.getRole() == Role.ACCOUNT_MANAGER) {
+            Customer customer = customerRepository.findById(dto.getCustomerId())
+                    .orElseThrow(() -> new IllegalArgumentException("Customer not found"));
+            if (!currentUser.getManagedCustomers().contains(customer)) {
+                throw new AccessDeniedException("You can only preview prices for customers you manage");
             }
         }
 
@@ -336,6 +346,9 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
                 .orElseThrow(() -> new EntityNotFoundException("TestPurchase not found"));
 
         accessControlService.checkCanAssignMysteryShopperToTestPurchase();
+        
+        // Account Manager must manage the customer
+        accessControlService.checkCanEditTestPurchase(purchase);
 
         User mysteryShopper = null;
         if (mysteryShopperId != null) {

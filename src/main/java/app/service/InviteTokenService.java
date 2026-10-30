@@ -60,32 +60,41 @@ public class InviteTokenService {
 
     /**
      * Validate and consume an invite token during registration.
+     * Uses atomic UPDATE to prevent concurrent use of the same token.
      * @param rawToken the raw token from the URL
-     * @param registeredUser the user who just registered
      * @throws IllegalArgumentException if token is invalid, used, or expired
      */
     @Transactional
-    public void validateAndConsumeToken(String rawToken, User registeredUser) {
+    public void validateAndConsumeToken(String rawToken) {
         if (rawToken == null || rawToken.isBlank()) {
             throw new IllegalArgumentException("Invite token is required");
         }
 
         String tokenHash = hashToken(rawToken);
+        
+        // First verify token exists
         InviteToken inviteToken = inviteTokenRepository.findByTokenHash(tokenHash)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid invite token"));
 
-        if (inviteToken.isUsed()) {
-            throw new IllegalArgumentException("Invite token has already been used");
+        // Atomically mark as used with conditional UPDATE
+        LocalDateTime now = LocalDateTime.now();
+        int rowsUpdated = inviteTokenRepository.markTokenAsUsed(tokenHash, now, now);
+        
+        if (rowsUpdated == 0) {
+            // Token was already used or expired
+            inviteTokenRepository.flush();  // Ensure we see latest state
+            InviteToken current = inviteTokenRepository.findByTokenHash(tokenHash)
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid invite token"));
+            
+            if (current.isUsed()) {
+                throw new IllegalArgumentException("Invite token has already been used");
+            }
+            if (current.isExpired()) {
+                throw new IllegalArgumentException("Invite token has expired");
+            }
+            // Shouldn't reach here, but fail safe
+            throw new IllegalArgumentException("Invite token could not be consumed");
         }
-
-        if (inviteToken.isExpired()) {
-            throw new IllegalArgumentException("Invite token has expired");
-        }
-
-        // Mark token as used
-        inviteToken.setUsedAt(LocalDateTime.now());
-        inviteToken.setUsedBy(registeredUser);
-        inviteTokenRepository.save(inviteToken);
     }
 
     /**

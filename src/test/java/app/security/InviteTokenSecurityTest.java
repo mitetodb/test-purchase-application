@@ -270,3 +270,160 @@ class InviteTokenSecurityTest {
         }
     }
 }
+
+    @Test
+    void registrationWithMissingTokenCreatesNoUser() {
+        long userCountBefore = userRepository.count();
+        
+        RegistrationDTO dto = new RegistrationDTO();
+        dto.setUsername("notoken");
+        dto.setPassword("password123");
+        dto.setConfirmPassword("password123");
+        dto.setEmail("notoken@test.com");
+        dto.setCountry(Country.GERMANY);
+        dto.setInviteToken(null);
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            userService.register(dto);
+        });
+
+        assertEquals(userCountBefore, userRepository.count(), "No user should be created with missing token");
+    }
+
+    @Test
+    void registrationWithInvalidTokenCreatesNoUser() {
+        long userCountBefore = userRepository.count();
+        
+        RegistrationDTO dto = new RegistrationDTO();
+        dto.setUsername("badtoken");
+        dto.setPassword("password123");
+        dto.setConfirmPassword("password123");
+        dto.setEmail("badtoken@test.com");
+        dto.setCountry(Country.GERMANY);
+        dto.setInviteToken("forged-token-xyz");
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            userService.register(dto);
+        });
+
+        assertEquals(userCountBefore, userRepository.count(), "No user should be created with invalid token");
+    }
+
+    @Test
+    void registrationWithUsedTokenCreatesNoUser() {
+        authenticateAs(adminUser);
+        String token = inviteTokenService.createInviteToken();
+        SecurityContextHolder.clearContext();
+
+        // First registration succeeds
+        RegistrationDTO dto1 = new RegistrationDTO();
+        dto1.setUsername("first");
+        dto1.setPassword("password123");
+        dto1.setConfirmPassword("password123");
+        dto1.setEmail("first@test.com");
+        dto1.setCountry(Country.GERMANY);
+        dto1.setInviteToken(token);
+        userService.register(dto1);
+
+        long userCountBefore = userRepository.count();
+
+        // Second registration with same token fails
+        RegistrationDTO dto2 = new RegistrationDTO();
+        dto2.setUsername("second");
+        dto2.setPassword("password123");
+        dto2.setConfirmPassword("password123");
+        dto2.setEmail("second@test.com");
+        dto2.setCountry(Country.GERMANY);
+        dto2.setInviteToken(token);
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            userService.register(dto2);
+        });
+
+        assertEquals(userCountBefore, userRepository.count(), "No user should be created with used token");
+    }
+
+    @Test
+    void registrationWithExpiredTokenCreatesNoUser() {
+        authenticateAs(adminUser);
+        String token = inviteTokenService.createInviteToken();
+
+        // Manually expire the token
+        String tokenHash = hashToken(token);
+        InviteToken inviteToken = inviteTokenRepository.findByTokenHash(tokenHash).orElseThrow();
+        inviteToken.setExpiresAt(LocalDateTime.now().minusDays(1));
+        inviteTokenRepository.save(inviteToken);
+
+        SecurityContextHolder.clearContext();
+        long userCountBefore = userRepository.count();
+
+        RegistrationDTO dto = new RegistrationDTO();
+        dto.setUsername("expired");
+        dto.setPassword("password123");
+        dto.setConfirmPassword("password123");
+        dto.setEmail("expired@test.com");
+        dto.setCountry(Country.GERMANY);
+        dto.setInviteToken(token);
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            userService.register(dto);
+        });
+
+        assertEquals(userCountBefore, userRepository.count(), "No user should be created with expired token");
+    }
+
+    @Test
+    void concurrentRegistrationWithSameTokenOnlyCreatesOneUser() throws Exception {
+        authenticateAs(adminUser);
+        String token = inviteTokenService.createInviteToken();
+        SecurityContextHolder.clearContext();
+
+        long userCountBefore = userRepository.count();
+
+        // Attempt concurrent registration with the same token
+        RegistrationDTO dto1 = new RegistrationDTO();
+        dto1.setUsername("concurrent1");
+        dto1.setPassword("password123");
+        dto1.setConfirmPassword("password123");
+        dto1.setEmail("concurrent1@test.com");
+        dto1.setCountry(Country.GERMANY);
+        dto1.setInviteToken(token);
+
+        RegistrationDTO dto2 = new RegistrationDTO();
+        dto2.setUsername("concurrent2");
+        dto2.setPassword("password123");
+        dto2.setConfirmPassword("password123");
+        dto2.setEmail("concurrent2@test.com");
+        dto2.setCountry(Country.GERMANY);
+        dto2.setInviteToken(token);
+
+        // Execute both registrations concurrently
+        java.util.concurrent.ExecutorService executor = java.util.concurrent.Executors.newFixedThreadPool(2);
+        java.util.concurrent.Future<User> future1 = executor.submit(() -> userService.register(dto1));
+        java.util.concurrent.Future<User> future2 = executor.submit(() -> userService.register(dto2));
+
+        // One should succeed, one should fail
+        int successCount = 0;
+        int failureCount = 0;
+
+        try {
+            future1.get();
+            successCount++;
+        } catch (Exception e) {
+            failureCount++;
+        }
+
+        try {
+            future2.get();
+            successCount++;
+        } catch (Exception e) {
+            failureCount++;
+        }
+
+        executor.shutdown();
+
+        assertEquals(1, successCount, "Exactly one registration should succeed");
+        assertEquals(1, failureCount, "Exactly one registration should fail");
+        assertEquals(userCountBefore + 1, userRepository.count(), "Only one user should be created");
+    }
+}

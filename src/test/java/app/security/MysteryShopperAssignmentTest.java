@@ -55,6 +55,9 @@ class MysteryShopperAssignmentTest {
     @Autowired
     private UserRepository userRepository;
 
+    @org.springframework.boot.test.mock.mockito.MockBean
+    private app.client.PricingClient pricingClient;
+
     private TestPurchase testPurchase;
     private User mysteryShopperUser;
 
@@ -106,7 +109,6 @@ class MysteryShopperAssignmentTest {
     }
 
     @Test
-    @org.junit.jupiter.api.Disabled("MockMvc test needs real authentication context")
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     void adminCanAssignMysteryShopperViaController() throws Exception {
         mockMvc.perform(post("/testpurchases/" + testPurchase.getId() + "/assign-mystery-shopper")
@@ -120,7 +122,6 @@ class MysteryShopperAssignmentTest {
     }
 
     @Test
-    @org.junit.jupiter.api.Disabled("MockMvc test needs real authentication context")
     @WithMockUser(username = "accountmgr", roles = {"ACCOUNT_MANAGER"})
     void accountManagerCanAssignMysteryShopperViaController() throws Exception {
         mockMvc.perform(post("/testpurchases/" + testPurchase.getId() + "/assign-mystery-shopper")
@@ -161,7 +162,6 @@ class MysteryShopperAssignmentTest {
     }
 
     @Test
-    @org.junit.jupiter.api.Disabled("MockMvc test needs real authentication context")
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     void adminCanUnassignMysteryShopperByPassingNull() throws Exception {
         // First assign

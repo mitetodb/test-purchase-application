@@ -53,6 +53,9 @@ class AccountManagerScopeTest {
     @Autowired
     private UserRepository userRepository;
 
+    @org.springframework.boot.test.mock.mockito.MockBean
+    private app.client.PricingClient pricingClient;
+
     private User accountManager1;
     private User accountManager2;
     private Customer managedCustomer;
@@ -192,9 +195,14 @@ class AccountManagerScopeTest {
     }
 
     @Test
-    @org.junit.jupiter.api.Disabled("Requires external pricing service")
     void accountManagerCanCreateTestPurchaseForManagedCustomer() {
         authenticateAs(accountManager1);
+
+        // Mock pricing client response
+        app.model.dto.PriceCalculationResponseDTO pricingResponse = new app.model.dto.PriceCalculationResponseDTO();
+        pricingResponse.setTestPurchaseFee(50.0);
+        pricingResponse.setPostageFee(5.0);
+        org.mockito.Mockito.when(pricingClient.calculatePrice(org.mockito.Mockito.any())).thenReturn(pricingResponse);
 
         TestPurchaseCreateDTO dto = new TestPurchaseCreateDTO();
         dto.setCustomerId(managedCustomer.getId());
@@ -249,6 +257,80 @@ class AccountManagerScopeTest {
         item.setProductName(name);
         item.setQuantity(qty);
         item.setUnitPrice(price);
+        return item;
+    }
+
+    private void authenticateAs(User user) {
+        String rolePrefix = "ROLE_" + user.getRole().name();
+        var auth = new UsernamePasswordAuthenticationToken(
+                user.getUsername(),
+                null,
+                List.of(new SimpleGrantedAuthority(rolePrefix))
+        );
+        SecurityContextHolder.getContext().setAuthentication(auth);
+    }
+}
+
+    @Test
+    void accountManagerCannotAssignMysteryShopperToUnmanagedPurchase() {
+        authenticateAs(accountManager1);
+
+        // Create a purchase for unmanaged customer
+        TestPurchase unmanagedPurchase = TestPurchase.builder()
+                .number("TP-UNMANAGED-999")
+                .customer(unmanagedCustomer)
+                .shop(shop)
+                .country(Country.GERMANY)
+                .category(TestPurchaseCategory.M)
+                .type(TestPurchaseType.RETURN_BACK_TO_SELLER)
+                .status(TestPurchaseStatus.INITIALISED)
+                .productPrice(100.0)
+                .serviceFee(10.0)
+                .postageFee(5.0)
+                .active(true)
+                .build();
+        unmanagedPurchase = testPurchaseRepository.save(unmanagedPurchase);
+
+        // Create a mystery shopper
+        User mysteryShopper = new User();
+        mysteryShopper.setUsername("ms_idor");
+        mysteryShopper.setEmail("ms@test.com");
+        mysteryShopper.setPassword("password");
+        mysteryShopper.setRole(Role.MYSTERY_SHOPPER);
+        mysteryShopper.setActive(true);
+        mysteryShopper.setCountry(Country.GERMANY);
+        mysteryShopper = userRepository.save(mysteryShopper);
+
+        UUID purchaseId = unmanagedPurchase.getId();
+        UUID mysteryShopperId = mysteryShopper.getId();
+
+        assertThrows(AccessDeniedException.class, () -> {
+            testPurchaseService.assignMysteryShopperToTestPurchase(purchaseId, mysteryShopperId);
+        }, "Account Manager should not be able to assign mystery shopper to unmanaged customer's purchase");
+    }
+
+    @Test
+    void accountManagerCannotPreviewPriceForUnmanagedCustomer() {
+        authenticateAs(accountManager1);
+
+        TestPurchaseCreateDTO dto = new TestPurchaseCreateDTO();
+        dto.setCustomerId(unmanagedCustomer.getId());
+        dto.setShopId(shop.getId());
+        dto.setCountry(Country.GERMANY);
+        dto.setCategory(TestPurchaseCategory.S);
+        dto.setType(TestPurchaseType.FORWARDING_TO_CLIENT);
+        dto.getItems().add(createItemDTO("Product", 1, 50.0));
+
+        assertThrows(AccessDeniedException.class, () -> {
+            testPurchaseService.previewPrice(dto);
+        }, "Account Manager should not be able to preview price for unmanaged customer");
+    }
+
+    private TestPurchaseCreateDTO.ItemDTO createItemDTO(String name, int quantity, double unitPrice) {
+        TestPurchaseCreateDTO.ItemDTO item = new TestPurchaseCreateDTO.ItemDTO();
+        item.setName(name);
+        item.setQuantity(quantity);
+        item.setUnitPrice(unitPrice);
         return item;
     }
 
