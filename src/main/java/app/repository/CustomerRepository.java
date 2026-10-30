@@ -67,4 +67,25 @@ public interface CustomerRepository extends JpaRepository<Customer, UUID> {
         """)
     List<Customer> findAllActive();
 
+    @Query("""
+        SELECT COUNT(c)
+        FROM Customer c
+        WHERE c IN (
+            SELECT mc
+            FROM User u
+            JOIN u.managedCustomers mc
+            WHERE u.id = :accountManagerId
+              AND mc.active = true
+        )
+        """)
+    long countForAccountManager(UUID accountManagerId);
+
+    @Query("""
+        SELECT COUNT(c)
+        FROM Customer c
+        WHERE c.salesManager.id = :salesManagerId
+          AND c.active = true
+        """)
+    long countBySalesManager_Id(UUID salesManagerId);
+
 }

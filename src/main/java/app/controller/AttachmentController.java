@@ -49,13 +49,30 @@ public class AttachmentController {
             return ResponseEntity.notFound().build();
         }
 
-        String contentDisposition = "attachment; filename=\"" + att.getName() + "\"";
+        // Sanitize filename for Content-Disposition header
+        String sanitizedFilename = sanitizeFilename(att.getName());
+        String contentDisposition = "attachment; filename=\"" + sanitizedFilename + "\"";
         MediaType mediaType = MediaType.APPLICATION_OCTET_STREAM;
 
         return ResponseEntity.ok()
                 .contentType(mediaType)
                 .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition)
                 .body(resource);
+    }
+
+    /**
+     * Sanitize filename to prevent header injection and ensure ASCII safety.
+     * Replaces non-ASCII characters with underscores and escapes quotes.
+     */
+    String sanitizeFilename(String filename) {
+        if (filename == null) {
+            return "download";
+        }
+        // Remove or replace dangerous characters
+        return filename.replaceAll("[^\\x20-\\x7E]", "_")  // Replace non-ASCII with underscore
+                .replace("\"", "")                          // Remove quotes
+                .replace("\n", "")                          // Remove newlines
+                .replace("\r", "");                         // Remove carriage returns
     }
 
     @PostMapping("/delete/{id}")

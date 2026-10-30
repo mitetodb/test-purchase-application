@@ -68,9 +68,11 @@ public class AttachmentService {
         Attachment att = attachmentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Attachment not found"));
         
-        if (att.getTestPurchase() != null) {
-            accessControlService.checkCanViewTestPurchase(att.getTestPurchase());
+        if (att.getTestPurchase() == null) {
+            throw new IllegalArgumentException("Attachment has no associated test purchase");
         }
+        
+        accessControlService.checkCanViewTestPurchase(att.getTestPurchase());
         
         return att;
     }

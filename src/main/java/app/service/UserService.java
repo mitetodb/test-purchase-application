@@ -50,4 +50,6 @@ public interface UserService {
 
     User findByIdWithManagedCustomers(UUID id);
 
+    List<User> findAllMysteryShoppers();
+
 }

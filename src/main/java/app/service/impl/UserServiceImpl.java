@@ -225,4 +225,9 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
     }
 
+    @Override
+    public List<User> findAllMysteryShoppers() {
+        return userRepository.findByRoleAndActive(Role.MYSTERY_SHOPPER, true);
+    }
+
 }

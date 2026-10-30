@@ -51,13 +51,19 @@ public class AccessControlService {
     }
 
     public boolean canEditTestPurchase(TestPurchase testPurchase) {
-        User currentUser = getCurrentUser();
+        User currentUser = getCurrentUserWithManagedCustomers();
         Role role = currentUser.getRole();
 
         return switch (role) {
-            case ADMIN, ACCOUNT_MANAGER -> true;
+            case ADMIN -> true;
+            case ACCOUNT_MANAGER -> canAccountManagerEditTestPurchase(testPurchase, currentUser);
             default -> false;
         };
+    }
+
+    private boolean canAccountManagerEditTestPurchase(TestPurchase testPurchase, User accountManager) {
+        return accountManager.getManagedCustomers().stream()
+                .anyMatch(c -> c.getId().equals(testPurchase.getCustomer().getId()));
     }
 
     public void checkCanEditTestPurchase(TestPurchase testPurchase) {
@@ -133,14 +139,20 @@ public class AccessControlService {
     }
 
     public boolean canEditCustomer(Customer customer) {
-        User currentUser = getCurrentUser();
+        User currentUser = getCurrentUserWithManagedCustomers();
         Role role = currentUser.getRole();
 
         return switch (role) {
-            case ADMIN, ACCOUNT_MANAGER -> true;
+            case ADMIN -> true;
+            case ACCOUNT_MANAGER -> canAccountManagerEditCustomer(customer, currentUser);
             case SALES_MANAGER -> canSalesManagerViewCustomer(customer, currentUser);
             default -> false;
         };
+    }
+
+    private boolean canAccountManagerEditCustomer(Customer customer, User accountManager) {
+        return accountManager.getManagedCustomers().stream()
+                .anyMatch(c -> c.getId().equals(customer.getId()));
     }
 
     public void checkCanEditCustomer(Customer customer) {

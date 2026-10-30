@@ -366,33 +366,26 @@ class RolePermissionsTest {
     void customerCannotCreateCustomer() {
         authenticateAs(customerUser);
 
-        // The service doesn't enforce this - it's enforced at the controller level via @PreAuthorize
-        // This test verifies the business logic doesn't accidentally allow it
-        // In a real scenario, controller @PreAuthorize would block the request
         CustomerDTO dto = new CustomerDTO();
         dto.setName("New Customer by Customer");
         dto.setCountry(Country.GERMANY);
 
-        // Service layer allows it, but controller blocks it with @PreAuthorize
-        // So we just verify the service doesn't crash
-        assertDoesNotThrow(() -> {
+        assertThrows(AccessDeniedException.class, () -> {
             customerService.create(dto);
-        });
+        }, "Customer role should not be able to create customers");
     }
 
     @Test
     void mysteryShopperCannotCreateCustomer() {
         authenticateAs(mysteryShopperUser);
 
-        // The service doesn't enforce this - it's enforced at the controller level via @PreAuthorize
         CustomerDTO dto = new CustomerDTO();
         dto.setName("New Customer by Mystery Shopper");
         dto.setCountry(Country.GERMANY);
 
-        // Service layer allows it, but controller blocks it with @PreAuthorize
-        assertDoesNotThrow(() -> {
+        assertThrows(AccessDeniedException.class, () -> {
             customerService.create(dto);
-        });
+        }, "Mystery shopper should not be able to create customers");
     }
 
     @Test

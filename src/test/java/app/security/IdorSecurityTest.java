@@ -1,6 +1,7 @@
 package app.security;
 
 import app.TestPurchaseApplication;
+import app.model.dto.TestPurchaseViewDTO;
 import app.model.entity.Customer;
 import app.model.entity.Shop;
 import app.model.entity.TestPurchase;
@@ -175,7 +176,7 @@ class IdorSecurityTest {
     void mysteryShopperCanViewTheirOwnTestPurchase() {
         authenticateAs(mysteryShopperUser1);
 
-        TestPurchase result = testPurchaseService.findByIdForCurrentUser(testPurchase1.getId());
+        TestPurchaseViewDTO result = testPurchaseService.findByIdForCurrentUser(testPurchase1.getId());
         assertNotNull(result);
         assertEquals(testPurchase1.getId(), result.getId());
     }
@@ -202,7 +203,7 @@ class IdorSecurityTest {
     void customerUserCanViewTheirOwnCompanyTestPurchase() {
         authenticateAs(customerUser1);
 
-        TestPurchase result = testPurchaseService.findByIdForCurrentUser(testPurchase1.getId());
+        TestPurchaseViewDTO result = testPurchaseService.findByIdForCurrentUser(testPurchase1.getId());
         assertNotNull(result);
         assertEquals(testPurchase1.getId(), result.getId());
     }
@@ -220,7 +221,7 @@ class IdorSecurityTest {
     void salesManagerCanViewTestPurchaseFromOwnedCustomer() {
         authenticateAs(salesManagerUser);
 
-        TestPurchase result = testPurchaseService.findByIdForCurrentUser(testPurchase2.getId());
+        TestPurchaseViewDTO result = testPurchaseService.findByIdForCurrentUser(testPurchase2.getId());
         assertNotNull(result);
         assertEquals(testPurchase2.getId(), result.getId());
     }
@@ -238,7 +239,7 @@ class IdorSecurityTest {
     void accountManagerCanViewTestPurchaseFromManagedCustomer() {
         authenticateAs(accountManagerUser);
 
-        TestPurchase result = testPurchaseService.findByIdForCurrentUser(testPurchase1.getId());
+        TestPurchaseViewDTO result = testPurchaseService.findByIdForCurrentUser(testPurchase1.getId());
         assertNotNull(result);
         assertEquals(testPurchase1.getId(), result.getId());
     }

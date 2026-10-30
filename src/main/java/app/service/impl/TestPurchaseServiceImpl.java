@@ -51,6 +51,12 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
             if (currentUser.getCustomer() == null || !currentUser.getCustomer().getId().equals(customer.getId())) {
                 throw new AccessDeniedException("You can only create test purchases for your own company");
             }
+        } else if (currentUser.getRole() == Role.ACCOUNT_MANAGER) {
+            boolean customerIsManaged = currentUser.getManagedCustomers().stream()
+                    .anyMatch(c -> c.getId().equals(customer.getId()));
+            if (!customerIsManaged) {
+                throw new AccessDeniedException("You can only create test purchases for customers you manage");
+            }
         }
 
         Shop shop = shopRepository.findById(dto.getShopId())
@@ -103,6 +109,14 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
             throw new IllegalArgumentException("Customer, shop, country, category and type are required for price calculation.");
         }
 
+        // Verify CUSTOMER can only preview prices for their own company
+        User currentUser = accessControlService.getCurrentUser();
+        if (currentUser.getRole() == Role.CUSTOMER) {
+            if (currentUser.getCustomer() == null || !currentUser.getCustomer().getId().equals(dto.getCustomerId())) {
+                throw new AccessDeniedException("You can only preview prices for your own company");
+            }
+        }
+
         double productTotal = dto.getItems() == null
                 ? 0.0
                 : dto.getItems().stream()
@@ -150,6 +164,16 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
 
         if (!customer.isActive()) {
             throw new IllegalArgumentException("Customer is inactive");
+        }
+
+        // If the customer is being changed, verify the Account Manager manages the new customer
+        User currentUser = accessControlService.getCurrentUserWithManagedCustomers();
+        if (currentUser.getRole() == Role.ACCOUNT_MANAGER) {
+            boolean customerIsManaged = currentUser.getManagedCustomers().stream()
+                    .anyMatch(c -> c.getId().equals(customer.getId()));
+            if (!customerIsManaged) {
+                throw new AccessDeniedException("You can only assign test purchases to customers you manage");
+            }
         }
 
         Shop shop = shopRepository.findById(dto.getShopId())
@@ -244,11 +268,12 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
     }
 
     @Override
-    public List<TestPurchase> findAllForCurrentUser() {
+    public List<TestPurchaseViewDTO> findAllForCurrentUser() {
         User currentUser = accessControlService.getCurrentUser();
         Role role = currentUser.getRole();
+        boolean hideMysteryShopperName = accessControlService.shouldHideMysteryShopperName();
 
-        return switch (role) {
+        List<TestPurchase> purchases = switch (role) {
             case ADMIN -> testPurchaseRepository.findAllActive();
 
             case SALES_MANAGER -> testPurchaseRepository.findForSalesManager(currentUser.getId());
@@ -266,11 +291,15 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
                 yield testPurchaseRepository.findByCustomer_Id(currentUser.getCustomer().getId());
             }
         };
+
+        return purchases.stream()
+                .map(p -> TestPurchaseViewDTO.from(p, hideMysteryShopperName))
+                .toList();
     }
 
     @Override
     @Transactional
-    public TestPurchase findByIdForCurrentUser(UUID id) {
+    public TestPurchaseViewDTO findByIdForCurrentUser(UUID id) {
         TestPurchase purchase = testPurchaseRepository.findByIdWithRelations(id)
                 .orElseThrow(() -> new EntityNotFoundException("TestPurchase not found"));
 
@@ -280,11 +309,51 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
 
         accessControlService.checkCanViewTestPurchase(purchase);
 
-        if (accessControlService.shouldHideMysteryShopperName()) {
-            purchase.setMysteryShopper(null);
+        boolean hideMysteryShopperName = accessControlService.shouldHideMysteryShopperName();
+
+        return TestPurchaseViewDTO.from(purchase, hideMysteryShopperName);
+    }
+
+    @Override
+    @Transactional
+    public TestPurchase findByIdForEdit(UUID id) {
+        TestPurchase purchase = testPurchaseRepository.findByIdWithRelations(id)
+                .orElseThrow(() -> new EntityNotFoundException("TestPurchase not found"));
+
+        if (!purchase.isActive()) {
+            throw new EntityNotFoundException("TestPurchase not found");
         }
 
+        accessControlService.checkCanEditTestPurchase(purchase);
+
         return purchase;
+    }
+
+    @Override
+    @Transactional
+    public void assignMysteryShopperToTestPurchase(UUID testPurchaseId, UUID mysteryShopperId) {
+        TestPurchase purchase = testPurchaseRepository.findById(testPurchaseId)
+                .orElseThrow(() -> new EntityNotFoundException("TestPurchase not found"));
+
+        accessControlService.checkCanAssignMysteryShopperToTestPurchase();
+
+        User mysteryShopper = null;
+        if (mysteryShopperId != null) {
+            mysteryShopper = userRepository.findById(mysteryShopperId)
+                    .orElseThrow(() -> new IllegalArgumentException("Mystery shopper not found"));
+
+            if (mysteryShopper.getRole() != Role.MYSTERY_SHOPPER) {
+                throw new IllegalArgumentException("User is not a mystery shopper");
+            }
+
+            if (!mysteryShopper.isActive()) {
+                throw new IllegalArgumentException("Mystery shopper is inactive");
+            }
+        }
+
+        purchase.setMysteryShopper(mysteryShopper);
+        purchase.setUpdatedByUser(SecurityUtils.getCurrentUsername());
+        testPurchaseRepository.save(purchase);
     }
 
 }

@@ -84,6 +84,13 @@ public class CustomerServiceImpl implements CustomerService {
     @CacheEvict(value = "customers", allEntries = true)
     public Customer create(CustomerDTO dto) {
         User currentUser = accessControlService.getCurrentUserWithManagedCustomers();
+        
+        // Only ADMIN, ACCOUNT_MANAGER, and SALES_MANAGER can create customers
+        if (currentUser.getRole() != Role.ADMIN && 
+            currentUser.getRole() != Role.ACCOUNT_MANAGER && 
+            currentUser.getRole() != Role.SALES_MANAGER) {
+            throw new AccessDeniedException("You are not allowed to create customers");
+        }
 
         Customer customer = Customer.builder()
                 .name(dto.getName())
