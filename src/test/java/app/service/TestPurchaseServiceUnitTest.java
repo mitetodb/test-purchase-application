@@ -89,6 +89,7 @@ class TestPurchaseServiceUnitTest {
         response.setTestPurchaseFee(50.0);
         response.setPostageFee(10.0);
 
+        doNothing().when(accessControlService).checkCanCreateTestPurchase();
         when(pricingClient.calculatePrice(any(PriceCalculationRequestDTO.class))).thenReturn(response);
 
         PriceCalculationResponseDTO result = testPurchaseService.previewPrice(dto);
@@ -101,6 +102,8 @@ class TestPurchaseServiceUnitTest {
     @Test
     void testPreviewPriceMissingRequiredFields() {
         TestPurchaseCreateDTO dto = new TestPurchaseCreateDTO();
+        
+        doNothing().when(accessControlService).checkCanCreateTestPurchase();
 
         assertThatThrownBy(() -> testPurchaseService.previewPrice(dto))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -110,6 +113,17 @@ class TestPurchaseServiceUnitTest {
     @Test
     void testDelete() {
         UUID purchaseId = UUID.randomUUID();
+        TestPurchase purchase = TestPurchase.builder()
+                .id(purchaseId)
+                .active(true)
+                .build();
+        
+        app.model.entity.User adminUser = app.model.entity.User.builder()
+                .role(app.model.enums.Role.ADMIN)
+                .build();
+
+        when(testPurchaseRepository.findById(purchaseId)).thenReturn(Optional.of(purchase));
+        when(accessControlService.getCurrentUser()).thenReturn(adminUser);
         doNothing().when(testPurchaseRepository).deleteById(purchaseId);
 
         testPurchaseService.delete(purchaseId);
@@ -143,6 +157,8 @@ class TestPurchaseServiceUnitTest {
         when(testPurchaseRepository.save(any(TestPurchase.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getName()).thenReturn("admin");
+        doNothing().when(accessControlService).checkCanChangeTestPurchaseStatus();
+        doNothing().when(accessControlService).checkCanViewTestPurchase(any());
         doNothing().when(statusHistoryService).recordStatusChange(any(), any(), any(), anyString(), anyString());
 
         testPurchaseService.changeStatus(purchaseId, TestPurchaseStatus.PRODUCT_ORDERED, "Comment");

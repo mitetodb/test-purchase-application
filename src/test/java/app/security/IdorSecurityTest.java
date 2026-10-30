@@ -120,7 +120,7 @@ class IdorSecurityTest {
 
     private Customer createCustomer(String name, User accountManager, User salesManager) {
         Customer customer = Customer.builder()
-                .number(String.valueOf(System.currentTimeMillis() % 100000))
+                .number(String.format("%05d", (int)(Math.random() * 100000)))
                 .name(name)
                 .country(Country.GERMANY)
                 .active(true)
@@ -131,7 +131,7 @@ class IdorSecurityTest {
 
     private Shop createShop(String name) {
         Shop s = Shop.builder()
-                .number(String.valueOf(System.currentTimeMillis() % 10000))
+                .number(String.format("%05d", (int)(Math.random() * 100000)))
                 .name(name)
                 .country(Country.GERMANY)
                 .build();

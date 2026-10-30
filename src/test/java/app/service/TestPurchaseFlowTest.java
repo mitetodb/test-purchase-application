@@ -55,15 +55,34 @@ class TestPurchaseFlowTest {
     @Autowired
     private jakarta.persistence.EntityManagerFactory entityManagerFactory;
 
+    @Autowired
+    private app.repository.UserRepository userRepository;
+
+    @Autowired
+    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+
     @org.junit.jupiter.api.BeforeEach
     void setUp() {
         // Force schema creation by accessing the database
         try (jakarta.persistence.EntityManager em = entityManagerFactory.createEntityManager()) {
             em.getMetamodel();
         }
+        
+        // Create admin user if not exists
+        if (userRepository.findByUsername("admin").isEmpty()) {
+            app.model.entity.User admin = app.model.entity.User.builder()
+                    .username("admin")
+                    .email("admin@test.com")
+                    .password(passwordEncoder.encode("password"))
+                    .role(app.model.enums.Role.ADMIN)
+                    .active(true)
+                    .build();
+            userRepository.save(admin);
+        }
     }
 
     @Test
+    @org.springframework.security.test.context.support.WithMockUser(username = "admin", roles = {"ADMIN"})
     void fullTestPurchaseFlow() {
         Customer customer = new Customer();
         customer.setName("Nokia");
