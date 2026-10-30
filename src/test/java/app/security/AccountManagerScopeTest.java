@@ -309,6 +309,37 @@ class AccountManagerScopeTest {
     }
 
     @Test
+    @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
+    @org.springframework.test.annotation.DirtiesContext
+    void accountManagerCanPreviewPriceForManagedCustomer() {
+        // This test runs without @Transactional to verify no LazyInitializationException
+        // when open-in-view=false and we access managedCustomers
+        authenticateAs(accountManager1);
+
+        app.model.dto.PriceCalculationResponseDTO priceResponse = new app.model.dto.PriceCalculationResponseDTO();
+        priceResponse.setTestPurchaseFee(50.0);
+        priceResponse.setPostageFee(10.0);
+        
+        org.mockito.Mockito.when(pricingClient.calculatePrice(org.mockito.ArgumentMatchers.any()))
+                .thenReturn(priceResponse);
+
+        TestPurchaseCreateDTO dto = new TestPurchaseCreateDTO();
+        dto.setCustomerId(managedCustomer.getId());
+        dto.setShopId(shop.getId());
+        dto.setCountry(Country.GERMANY);
+        dto.setCategory(TestPurchaseCategory.S);
+        dto.setType(TestPurchaseType.FORWARDING_TO_CLIENT);
+        dto.getItems().add(createItemDTO("Product", 1, 50.0));
+
+        // Should succeed without LazyInitializationException
+        app.model.dto.PriceCalculationResponseDTO result = testPurchaseService.previewPrice(dto);
+        
+        assertNotNull(result);
+        assertEquals(50.0, result.getTestPurchaseFee());
+        assertEquals(10.0, result.getPostageFee());
+    }
+
+    @Test
     void accountManagerCannotPreviewPriceForUnmanagedCustomer() {
         authenticateAs(accountManager1);
 

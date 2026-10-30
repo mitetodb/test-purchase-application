@@ -109,7 +109,7 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
             throw new IllegalArgumentException("Customer, shop, country, category and type are required for price calculation.");
         }
 
-        User currentUser = accessControlService.getCurrentUser();
+        User currentUser = accessControlService.getCurrentUserWithManagedCustomers();
         
         // CUSTOMER can only preview prices for their own company
         if (currentUser.getRole() == Role.CUSTOMER) {
@@ -120,9 +120,9 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
         
         // ACCOUNT_MANAGER can only preview prices for managed customers
         if (currentUser.getRole() == Role.ACCOUNT_MANAGER) {
-            Customer customer = customerRepository.findById(dto.getCustomerId())
-                    .orElseThrow(() -> new IllegalArgumentException("Customer not found"));
-            if (!currentUser.getManagedCustomers().contains(customer)) {
+            boolean isManaged = currentUser.getManagedCustomers().stream()
+                    .anyMatch(c -> c.getId().equals(dto.getCustomerId()));
+            if (!isManaged) {
                 throw new AccessDeniedException("You can only preview prices for customers you manage");
             }
         }

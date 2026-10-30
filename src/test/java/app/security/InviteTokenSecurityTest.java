@@ -387,19 +387,20 @@ class InviteTokenSecurityTest {
         // Token is now committed and visible to other threads
         long userCountBefore = userRepository.count();
 
+        long timestamp = System.currentTimeMillis();
         RegistrationDTO dto1 = new RegistrationDTO();
-        dto1.setUsername("concurrent1_" + System.currentTimeMillis());
+        dto1.setUsername("concurrent1_" + timestamp);
         dto1.setPassword("password123");
         dto1.setConfirmPassword("password123");
-        dto1.setEmail("concurrent1@test.com");
+        dto1.setEmail("concurrent1_" + timestamp + "@test.com");
         dto1.setCountry(Country.GERMANY);
         dto1.setInviteToken(token);
 
         RegistrationDTO dto2 = new RegistrationDTO();
-        dto2.setUsername("concurrent2_" + System.currentTimeMillis());
+        dto2.setUsername("concurrent2_" + timestamp);
         dto2.setPassword("password123");
         dto2.setConfirmPassword("password123");
-        dto2.setEmail("concurrent2@test.com");
+        dto2.setEmail("concurrent2_" + timestamp + "@test.com");
         dto2.setCountry(Country.GERMANY);
         dto2.setInviteToken(token);
 

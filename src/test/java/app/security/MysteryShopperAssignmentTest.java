@@ -171,16 +171,33 @@ class MysteryShopperAssignmentTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = {"ADMIN"})
-    void adminCanUnassignMysteryShopperByPassingNull() throws Exception {
+    void adminCanUnassignMysteryShopperByPassingNull() {
+        // Use real authentication context
+        User admin = new User();
+        admin.setUsername("admin_unassign");
+        admin.setEmail("admin_unassign@test.com");
+        admin.setPassword("password");
+        admin.setRole(Role.ADMIN);
+        admin.setActive(true);
+        admin = userRepository.save(admin);
+        
+        var auth = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                admin.getUsername(),
+                null,
+                java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ADMIN"))
+        );
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(auth);
+        
         // First assign
         testPurchase.setMysteryShopper(mysteryShopperUser);
-        testPurchaseRepository.save(testPurchase);
+        testPurchase = testPurchaseRepository.save(testPurchase);
+        assertNotNull(testPurchase.getMysteryShopper());
 
-        // Then unassign
-        mockMvc.perform(post("/testpurchases/" + testPurchase.getId() + "/assign-mystery-shopper")
-                        .with(csrf()))
-                .andExpect(status().isOk());
+        // Then unassign via service
+        testPurchaseService.assignMysteryShopperToTestPurchase(testPurchase.getId(), null);
+        
+        TestPurchase updated = testPurchaseRepository.findById(testPurchase.getId()).orElseThrow();
+        assertNull(updated.getMysteryShopper(), "Mystery shopper should be unassigned");
     }
 
     private void authenticateAsAdmin() {

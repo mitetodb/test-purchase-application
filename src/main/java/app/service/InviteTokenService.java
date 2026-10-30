@@ -1,5 +1,6 @@
 package app.service;
 
+import app.config.SecurityUtils;
 import app.model.entity.InviteToken;
 import app.model.entity.User;
 import app.model.enums.Role;

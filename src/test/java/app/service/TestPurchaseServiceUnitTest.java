@@ -93,7 +93,7 @@ class TestPurchaseServiceUnitTest {
         doNothing().when(accessControlService).checkCanCreateTestPurchase();
         app.model.entity.User mockUser = new app.model.entity.User();
         mockUser.setRole(app.model.enums.Role.ADMIN);
-        when(accessControlService.getCurrentUser()).thenReturn(mockUser);
+        when(accessControlService.getCurrentUserWithManagedCustomers()).thenReturn(mockUser);
         
         when(pricingClient.calculatePrice(any(PriceCalculationRequestDTO.class))).thenReturn(response);
 
