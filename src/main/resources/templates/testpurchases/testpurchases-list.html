@@ -63,7 +63,7 @@
             <td th:text="${p.type.getDisplayName()}"></td>
             <td th:text="${p.productPrice}"></td>
             <td th:text="${p.status.getDisplayName()}"></td>
-            <td th:text="${#temporals.format(p.createdOn, 'yyyy-MM-dd HH:mm')}"></td>
+            <td th:text="${#temporals.format(p.createdDate, 'yyyy-MM-dd HH:mm')}"></td>
             <td sec:authorize="hasRole('ADMIN')" th:text="${p.updatedByUser}"></td>
             <td>
                 <div class="d-flex gap-2">
