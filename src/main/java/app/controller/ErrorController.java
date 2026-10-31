@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -17,9 +16,12 @@ import java.util.UUID;
 @Controller
 public class ErrorController implements org.springframework.boot.web.servlet.error.ErrorController {
 
-    @GetMapping("/access-denied")
+    @RequestMapping("/access-denied")
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    public String accessDenied() {
+    public String accessDenied(Model model) {
+        if (!model.containsAttribute("message")) {
+            model.addAttribute("message", "You are not allowed to access this resource.");
+        }
         return "error/access-denied";
     }
 
@@ -43,7 +45,7 @@ public class ErrorController implements org.springframework.boot.web.servlet.err
                 response.setStatus(HttpStatus.FORBIDDEN.value());
                 model.addAttribute("errorId", errorId);
                 model.addAttribute("message", "You are not allowed to access this resource.");
-                return "error/access-denied";
+                return accessDenied(model);
             } else if (statusCode == HttpStatus.INTERNAL_SERVER_ERROR.value()) {
                 log.error("[{}] 500 error for URL: {}", errorId, requestedUrl);
                 model.addAttribute("errorId", errorId);

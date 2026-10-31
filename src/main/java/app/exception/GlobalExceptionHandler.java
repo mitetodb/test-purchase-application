@@ -78,7 +78,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    @org.springframework.web.bind.annotation.ResponseStatus(HttpStatus.BAD_REQUEST)
+    @org.springframework.web.bind.annotation.ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
     public String handleMethodNotSupported(HttpRequestMethodNotSupportedException ex, Model model) {
         String errorId = UUID.randomUUID().toString();
         log.warn("[{}] Method not supported: {}", errorId, ex.getMessage(), ex);

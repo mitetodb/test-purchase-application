@@ -29,10 +29,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -312,6 +314,100 @@ class AccessControlOpenInViewMvcTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Invite required")))
                 .andExpect(content().string(not(containsString("<form"))));
+    }
+
+    @Test
+    void salesManagerPostAssignMysteryShopperReturnsForbiddenAndLeavesPurchaseUnchanged() throws Exception {
+        User salesManager = transactionTemplate.execute(status -> trackUser(userRepository.save(User.builder()
+                .username("sm_post_" + suffix)
+                .email("sm_post_" + suffix + "@access-mvc.test")
+                .password(passwordEncoder.encode("password"))
+                .role(Role.SALES_MANAGER)
+                .country(Country.GERMANY)
+                .active(true)
+                .managedCustomers(new HashSet<>())
+                .build())));
+        User mysteryShopper = transactionTemplate.execute(status -> trackUser(userRepository.save(User.builder()
+                .username("ms_post_" + suffix)
+                .email("ms_post_" + suffix + "@access-mvc.test")
+                .password(passwordEncoder.encode("password"))
+                .role(Role.MYSTERY_SHOPPER)
+                .country(Country.GERMANY)
+                .active(true)
+                .managedCustomers(new HashSet<>())
+                .build())));
+
+        managedCustomer.setSalesManager(salesManager);
+        transactionTemplate.executeWithoutResult(status -> customerRepository.save(managedCustomer));
+
+        mockMvc.perform(post("/testpurchases/" + managedPurchase.getId() + "/assign-mystery-shopper")
+                        .with(user(userDetailsService.loadUserByUsername(salesManager.getUsername())))
+                        .with(csrf())
+                        .param("mysteryShopperId", mysteryShopper.getId().toString()))
+                .andExpect(status().isForbidden());
+
+        TestPurchase unchanged = testPurchaseRepository.findById(managedPurchase.getId()).orElseThrow();
+        assertNull(unchanged.getMysteryShopper());
+    }
+
+    @Test
+    void customerPostAssignMysteryShopperReturnsForbiddenAndLeavesPurchaseUnchanged() throws Exception {
+        User customerUser = transactionTemplate.execute(status -> trackUser(userRepository.save(User.builder()
+                .username("cust_post_" + suffix)
+                .email("cust_post_" + suffix + "@access-mvc.test")
+                .password(passwordEncoder.encode("password"))
+                .role(Role.CUSTOMER)
+                .country(Country.GERMANY)
+                .active(true)
+                .customer(managedCustomer)
+                .managedCustomers(new HashSet<>())
+                .build())));
+        User mysteryShopper = transactionTemplate.execute(status -> trackUser(userRepository.save(User.builder()
+                .username("ms_cust_" + suffix)
+                .email("ms_cust_" + suffix + "@access-mvc.test")
+                .password(passwordEncoder.encode("password"))
+                .role(Role.MYSTERY_SHOPPER)
+                .country(Country.GERMANY)
+                .active(true)
+                .managedCustomers(new HashSet<>())
+                .build())));
+
+        mockMvc.perform(post("/testpurchases/" + managedPurchase.getId() + "/assign-mystery-shopper")
+                        .with(user(userDetailsService.loadUserByUsername(customerUser.getUsername())))
+                        .with(csrf())
+                        .param("mysteryShopperId", mysteryShopper.getId().toString()))
+                .andExpect(status().isForbidden());
+
+        TestPurchase unchanged = testPurchaseRepository.findById(managedPurchase.getId()).orElseThrow();
+        assertNull(unchanged.getMysteryShopper());
+    }
+
+    @Test
+    void mysteryShopperPostAddReturnsForbidden() throws Exception {
+        User mysteryShopper = transactionTemplate.execute(status -> trackUser(userRepository.save(User.builder()
+                .username("ms_add_" + suffix)
+                .email("ms_add_" + suffix + "@access-mvc.test")
+                .password(passwordEncoder.encode("password"))
+                .role(Role.MYSTERY_SHOPPER)
+                .country(Country.GERMANY)
+                .active(true)
+                .managedCustomers(new HashSet<>())
+                .build())));
+
+        mockMvc.perform(post("/testpurchases/add")
+                        .with(user(userDetailsService.loadUserByUsername(mysteryShopper.getUsername())))
+                        .with(csrf())
+                        .param("customerId", managedCustomer.getId().toString())
+                        .param("shopId", shop.getId().toString()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void unsupportedHttpMethodReturnsMethodNotAllowed() throws Exception {
+        mockMvc.perform(delete("/home")
+                        .with(user(userDetailsService.loadUserByUsername(accountManager.getUsername())))
+                        .with(csrf()))
+                .andExpect(status().isMethodNotAllowed());
     }
 
     private TestPurchase savePurchase(String number, Customer customer, User mysteryShopper) {
