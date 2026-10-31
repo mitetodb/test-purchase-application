@@ -1,6 +1,7 @@
 package app.controller;
 
 import app.model.dto.RegistrationDTO;
+import app.service.InviteTokenService;
 import app.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,9 +15,14 @@ import org.springframework.web.bind.annotation.*;
 public class RegistrationController {
 
     private final UserService userService;
+    private final InviteTokenService inviteTokenService;
 
     @GetMapping("/register")
     public String showRegistrationForm(@RequestParam(required = false) String token, Model model) {
+
+        if (!inviteTokenService.isInviteTokenValid(token)) {
+            return "register-invite-required";
+        }
 
         if (!model.containsAttribute("registrationDTO")) {
             RegistrationDTO dto = new RegistrationDTO();

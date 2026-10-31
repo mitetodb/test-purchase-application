@@ -62,8 +62,10 @@ public class AccessControlService {
     }
 
     private boolean canAccountManagerEditTestPurchase(TestPurchase testPurchase, User accountManager) {
-        return accountManager.getManagedCustomers().stream()
-                .anyMatch(c -> c.getId().equals(testPurchase.getCustomer().getId()));
+        if (testPurchase.getCustomer() == null) {
+            return false;
+        }
+        return accountManagerManagesCustomer(accountManager, testPurchase.getCustomer().getId());
     }
 
     public void checkCanEditTestPurchase(TestPurchase testPurchase) {
@@ -151,8 +153,7 @@ public class AccessControlService {
     }
 
     private boolean canAccountManagerEditCustomer(Customer customer, User accountManager) {
-        return accountManager.getManagedCustomers().stream()
-                .anyMatch(c -> c.getId().equals(customer.getId()));
+        return accountManagerManagesCustomer(accountManager, customer.getId());
     }
 
     public void checkCanEditCustomer(Customer customer) {
@@ -186,9 +187,7 @@ public class AccessControlService {
         if (testPurchase.getCustomer() == null) {
             return false;
         }
-        Customer customer = testPurchase.getCustomer();
-        return accountManager.getManagedCustomers() != null 
-            && accountManager.getManagedCustomers().contains(customer);
+        return accountManagerManagesCustomer(accountManager, testPurchase.getCustomer().getId());
     }
 
     private boolean canMysteryShopperViewTestPurchase(TestPurchase testPurchase, User mysteryShopper) {
@@ -209,7 +208,14 @@ public class AccessControlService {
     }
 
     private boolean canAccountManagerViewCustomer(Customer customer, User accountManager) {
-        return accountManager.getManagedCustomers() != null 
-            && accountManager.getManagedCustomers().contains(customer);
+        return accountManagerManagesCustomer(accountManager, customer.getId());
+    }
+
+    private boolean accountManagerManagesCustomer(User accountManager, UUID customerId) {
+        if (customerId == null || accountManager.getManagedCustomers() == null) {
+            return false;
+        }
+        return accountManager.getManagedCustomers().stream()
+                .anyMatch(c -> customerId.equals(c.getId()));
     }
 }
