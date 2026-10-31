@@ -12,6 +12,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 @EnableMethodSecurity(prePostEnabled = true)
 @Configuration
 @RequiredArgsConstructor
@@ -46,7 +48,15 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exceptionHandling -> exceptionHandling
-                        .accessDeniedPage("/access-denied")
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            String accept = request.getHeader("Accept");
+                            if (accept != null && accept.contains("application/json")) {
+                                response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                                return;
+                            }
+                            request.getRequestDispatcher("/access-denied").forward(request, response);
+                        })
                 )
                 .formLogin(form -> form
                         .loginPage("/login")

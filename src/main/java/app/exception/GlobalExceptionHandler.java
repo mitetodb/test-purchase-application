@@ -4,6 +4,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.http.HttpStatus;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -19,6 +20,7 @@ import java.util.UUID;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(EntityNotFoundException.class)
+    @org.springframework.web.bind.annotation.ResponseStatus(HttpStatus.NOT_FOUND)
     public String handleEntityNotFound(EntityNotFoundException ex, Model model) {
         String errorId = UUID.randomUUID().toString();
         log.warn("[{}] Entity not found: {}", errorId, ex.getMessage(), ex);
@@ -29,6 +31,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
+    @org.springframework.web.bind.annotation.ResponseStatus(HttpStatus.NOT_FOUND)
     public String handleResourceNotFound(ResourceNotFoundException ex, Model model) {
         String errorId = UUID.randomUUID().toString();
         log.warn("[{}] Resource not found: {}", errorId, ex.getMessage(), ex);
@@ -53,6 +56,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AccessDeniedException.class)
+    @org.springframework.web.bind.annotation.ResponseStatus(HttpStatus.FORBIDDEN)
     public String handleAccessDenied(AccessDeniedException ex, Model model) {
         String errorId = UUID.randomUUID().toString();
         log.warn("[{}] Access denied: {}", errorId, ex.getMessage(), ex);

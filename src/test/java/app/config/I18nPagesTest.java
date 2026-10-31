@@ -23,7 +23,7 @@ class I18nPagesTest {
     @ParameterizedTest
     @CsvSource({
             "/login,bg,Потребителско име", "/login,de,Benutzername", "/login,en,Username",
-            "/register,bg,Регистрация", "/register,de,Registrieren",
+            "/register,bg,Необходима е покана", "/register,de,Einladung erforderlich",
             "/,bg,Защо да изберете нас?", "/,de,Warum unsere Plattform?", "/,en,Why Choose Our Platform?",
             "/forgot-password,bg,Забравена парола", "/forgot-password,de,Passwort vergessen"})
     void pageIsTranslated(String path, String lang, String expected) throws Exception {

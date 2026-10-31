@@ -60,6 +60,19 @@ public class InviteTokenService {
     }
 
     /**
+     * Check whether an invite token is present, known, unused, and not expired (does not consume it).
+     */
+    public boolean isInviteTokenValid(String rawToken) {
+        if (rawToken == null || rawToken.isBlank()) {
+            return false;
+        }
+        String tokenHash = hashToken(rawToken);
+        return inviteTokenRepository.findByTokenHash(tokenHash)
+                .map(InviteToken::isValid)
+                .orElse(false);
+    }
+
+    /**
      * Validate and consume an invite token during registration.
      * Uses atomic UPDATE to prevent concurrent use of the same token.
      * @param rawToken the raw token from the URL

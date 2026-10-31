@@ -25,6 +25,7 @@
 
             <form th:action="@{/register}" th:object="${registrationDTO}" method="post" class="login-form">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <input type="hidden" th:field="*{inviteToken}" />
 
                 <div class="form-group">
                     <label for="username" class="form-label">
