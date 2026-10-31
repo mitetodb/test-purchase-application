@@ -2,12 +2,14 @@ package app.controller;
 
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.UUID;
 
@@ -16,12 +18,13 @@ import java.util.UUID;
 public class ErrorController implements org.springframework.boot.web.servlet.error.ErrorController {
 
     @GetMapping("/access-denied")
+    @ResponseStatus(HttpStatus.FORBIDDEN)
     public String accessDenied() {
         return "error/access-denied";
     }
 
     @RequestMapping("/error")
-    public String handleError(HttpServletRequest request, Model model) {
+    public String handleError(HttpServletRequest request, Model model, HttpServletResponse response) {
         Object status = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
         String errorId = UUID.randomUUID().toString();
         String requestedUrl = (String) request.getAttribute(RequestDispatcher.ERROR_REQUEST_URI);
@@ -35,6 +38,12 @@ public class ErrorController implements org.springframework.boot.web.servlet.err
                 model.addAttribute("message", "The page you are looking for does not exist.");
                 model.addAttribute("requestedUrl", requestedUrl);
                 return "error/not-found";
+            } else if (statusCode == HttpStatus.FORBIDDEN.value()) {
+                log.warn("[{}] 403 error for URL: {}", errorId, requestedUrl);
+                response.setStatus(HttpStatus.FORBIDDEN.value());
+                model.addAttribute("errorId", errorId);
+                model.addAttribute("message", "You are not allowed to access this resource.");
+                return "error/access-denied";
             } else if (statusCode == HttpStatus.INTERNAL_SERVER_ERROR.value()) {
                 log.error("[{}] 500 error for URL: {}", errorId, requestedUrl);
                 model.addAttribute("errorId", errorId);
