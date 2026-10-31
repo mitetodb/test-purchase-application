@@ -9,6 +9,7 @@ import app.service.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -145,7 +146,11 @@ public class TestPurchaseController {
         model.addAttribute("attachments", attachmentService.getByTestPurchase(id));
         model.addAttribute("history", statusHistoryService.getHistory(id));
         model.addAttribute("statuses", TestPurchaseStatus.values());
-        model.addAttribute("mysteryShoppers", userService.findAllMysteryShoppers());
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getAuthorities().stream().anyMatch(a ->
+                "ROLE_ADMIN".equals(a.getAuthority()) || "ROLE_ACCOUNT_MANAGER".equals(a.getAuthority()))) {
+            model.addAttribute("mysteryShoppers", userService.findAllMysteryShoppers());
+        }
         return "testpurchases/testpurchase-view";
     }
 
