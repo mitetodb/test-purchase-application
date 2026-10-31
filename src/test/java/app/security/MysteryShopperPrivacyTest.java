@@ -58,8 +58,13 @@ class MysteryShopperPrivacyTest {
     private Customer customer;
     private TestPurchase testPurchase;
 
+    @Autowired
+    private app.repository.InviteTokenRepository inviteTokenRepository;
+
     @BeforeEach
     void setUp() {
+        // Delete invite_tokens first to avoid foreign key constraint violations
+        inviteTokenRepository.deleteAll();
         testPurchaseRepository.deleteAll();
         userRepository.deleteAll();
         customerRepository.deleteAll();

@@ -17,12 +17,24 @@ public class RegistrationController {
 
     @GetMapping("/register")
     public String showRegistrationForm(@RequestParam(required = false) String token, Model model) {
+        
+        if (token == null || token.isBlank()) {
+            model.addAttribute("invitationRequired", true);
+            // Still add empty DTO to avoid template errors
+            if (!model.containsAttribute("registrationDTO")) {
+                model.addAttribute("registrationDTO", new RegistrationDTO());
+            }
+            return "register";
+        }
 
         if (!model.containsAttribute("registrationDTO")) {
             RegistrationDTO dto = new RegistrationDTO();
             dto.setInviteToken(token);
             model.addAttribute("registrationDTO", dto);
         }
+        
+        // Explicitly set invitationRequired to false when token is provided
+        model.addAttribute("invitationRequired", false);
 
         return "register";
     }

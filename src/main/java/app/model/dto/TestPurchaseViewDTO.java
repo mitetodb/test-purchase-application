@@ -33,6 +33,7 @@ public class TestPurchaseViewDTO {
     private boolean mysteryShopperHidden;
     private String updatedByUser;
     private LocalDateTime createdDate;
+    private LocalDateTime createdOn;
     private boolean active;
 
     public static TestPurchaseViewDTO from(TestPurchase purchase, boolean hideMysteryShopperName) {
@@ -51,6 +52,7 @@ public class TestPurchaseViewDTO {
         dto.setItems(purchase.getItems());
         dto.setUpdatedByUser(purchase.getUpdatedByUser());
         dto.setCreatedDate(purchase.getCreatedOn());
+        dto.setCreatedOn(purchase.getCreatedOn());
         dto.setActive(purchase.isActive());
         
         if (hideMysteryShopperName) {
