@@ -24,7 +24,9 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.containsString;
@@ -34,6 +36,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -73,6 +76,11 @@ class AccessControlOpenInViewMvcTest {
     @org.springframework.boot.test.mock.mockito.MockBean
     private app.client.PricingClient pricingClient;
 
+    private final List<UUID> createdPurchaseIds = new ArrayList<>();
+    private final List<UUID> createdUserIds = new ArrayList<>();
+    private final List<UUID> createdCustomerIds = new ArrayList<>();
+    private final List<UUID> createdShopIds = new ArrayList<>();
+
     private String suffix;
     private User accountManager;
     private Customer managedCustomer;
@@ -85,32 +93,27 @@ class AccessControlOpenInViewMvcTest {
     void setUp() {
         suffix = UUID.randomUUID().toString().substring(0, 8);
         transactionTemplate.executeWithoutResult(status -> {
-            testPurchaseRepository.deleteAll();
-            userRepository.deleteAll();
-            customerRepository.deleteAll();
-            shopRepository.deleteAll();
-
-            managedCustomer = customerRepository.save(Customer.builder()
+            managedCustomer = trackCustomer(customerRepository.save(Customer.builder()
                     .number("MC" + suffix)
                     .name("Managed " + suffix)
                     .country(Country.GERMANY)
                     .active(true)
-                    .build());
+                    .build()));
 
-            otherCustomer = customerRepository.save(Customer.builder()
+            otherCustomer = trackCustomer(customerRepository.save(Customer.builder()
                     .number("OC" + suffix)
                     .name("Other " + suffix)
                     .country(Country.GERMANY)
                     .active(true)
-                    .build());
+                    .build()));
 
-            shop = shopRepository.save(Shop.builder()
+            shop = trackShop(shopRepository.save(Shop.builder()
                     .number("SH" + suffix)
                     .name("Shop " + suffix)
                     .country(Country.GERMANY)
-                    .build());
+                    .build()));
 
-            accountManager = userRepository.save(User.builder()
+            accountManager = trackUser(userRepository.save(User.builder()
                     .username("am_" + suffix)
                     .email("am_" + suffix + "@access-mvc.test")
                     .password(passwordEncoder.encode("password"))
@@ -118,20 +121,24 @@ class AccessControlOpenInViewMvcTest {
                     .country(Country.GERMANY)
                     .active(true)
                     .managedCustomers(new HashSet<>(java.util.Set.of(managedCustomer)))
-                    .build());
+                    .build()));
 
-            managedPurchase = savePurchase("TP-M-" + suffix, managedCustomer);
-            otherPurchase = savePurchase("TP-O-" + suffix, otherCustomer);
+            managedPurchase = savePurchase("TP-M-" + suffix, managedCustomer, null);
+            otherPurchase = savePurchase("TP-O-" + suffix, otherCustomer, null);
         });
     }
 
     @AfterEach
     void tearDown() {
         transactionTemplate.executeWithoutResult(status -> {
-            testPurchaseRepository.deleteAll();
-            userRepository.deleteAll();
-            customerRepository.deleteAll();
-            shopRepository.deleteAll();
+            createdPurchaseIds.forEach(testPurchaseRepository::deleteById);
+            createdUserIds.forEach(userRepository::deleteById);
+            createdCustomerIds.forEach(customerRepository::deleteById);
+            createdShopIds.forEach(shopRepository::deleteById);
+            createdPurchaseIds.clear();
+            createdUserIds.clear();
+            createdCustomerIds.clear();
+            createdShopIds.clear();
         });
     }
 
@@ -170,7 +177,7 @@ class AccessControlOpenInViewMvcTest {
 
     @Test
     void mysteryShopperGetsForbiddenOnAddForm() throws Exception {
-        User mysteryShopper = transactionTemplate.execute(status -> userRepository.save(User.builder()
+        User mysteryShopper = transactionTemplate.execute(status -> trackUser(userRepository.save(User.builder()
                 .username("ms_" + suffix)
                 .email("ms_" + suffix + "@access-mvc.test")
                 .password(passwordEncoder.encode("password"))
@@ -178,7 +185,7 @@ class AccessControlOpenInViewMvcTest {
                 .country(Country.GERMANY)
                 .active(true)
                 .managedCustomers(new HashSet<>())
-                .build()));
+                .build())));
 
         mockMvc.perform(get("/testpurchases/add")
                         .with(user(userDetailsService.loadUserByUsername(mysteryShopper.getUsername()))))
@@ -187,19 +194,16 @@ class AccessControlOpenInViewMvcTest {
 
     @Test
     void customerGetsForbiddenWhenViewingAnotherCompanysPurchase() throws Exception {
-        User customerUser = transactionTemplate.execute(status -> {
-            User u = userRepository.save(User.builder()
-                    .username("cust_" + suffix)
-                    .email("cust_" + suffix + "@access-mvc.test")
-                    .password(passwordEncoder.encode("password"))
-                    .role(Role.CUSTOMER)
-                    .country(Country.GERMANY)
-                    .active(true)
-                    .customer(managedCustomer)
-                    .managedCustomers(new HashSet<>())
-                    .build());
-            return u;
-        });
+        User customerUser = transactionTemplate.execute(status -> trackUser(userRepository.save(User.builder()
+                .username("cust_" + suffix)
+                .email("cust_" + suffix + "@access-mvc.test")
+                .password(passwordEncoder.encode("password"))
+                .role(Role.CUSTOMER)
+                .country(Country.GERMANY)
+                .active(true)
+                .customer(managedCustomer)
+                .managedCustomers(new HashSet<>())
+                .build())));
 
         mockMvc.perform(get("/testpurchases/view/" + otherPurchase.getId())
                         .with(user(userDetailsService.loadUserByUsername(customerUser.getUsername()))))
@@ -208,7 +212,7 @@ class AccessControlOpenInViewMvcTest {
 
     @Test
     void salesManagerGetsForbiddenWhenViewingUnmanagedPurchase() throws Exception {
-        User salesManager = transactionTemplate.execute(status -> userRepository.save(User.builder()
+        User salesManager = transactionTemplate.execute(status -> trackUser(userRepository.save(User.builder()
                 .username("sm_" + suffix)
                 .email("sm_" + suffix + "@access-mvc.test")
                 .password(passwordEncoder.encode("password"))
@@ -216,7 +220,7 @@ class AccessControlOpenInViewMvcTest {
                 .country(Country.GERMANY)
                 .active(true)
                 .managedCustomers(new HashSet<>())
-                .build()));
+                .build())));
 
         managedCustomer.setSalesManager(salesManager);
         transactionTemplate.executeWithoutResult(status -> customerRepository.save(managedCustomer));
@@ -224,6 +228,77 @@ class AccessControlOpenInViewMvcTest {
         mockMvc.perform(get("/testpurchases/view/" + otherPurchase.getId())
                         .with(user(userDetailsService.loadUserByUsername(salesManager.getUsername()))))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void salesManagerCanViewOwnClientPurchaseWithoutMysteryShopperInHtml() throws Exception {
+        String msUsername = "ms_secret_" + suffix;
+        String msEmail = suffix + "@secret.test";
+        User salesManager = transactionTemplate.execute(status -> trackUser(userRepository.save(User.builder()
+                .username("sm_own_" + suffix)
+                .email("sm_own_" + suffix + "@access-mvc.test")
+                .password(passwordEncoder.encode("password"))
+                .role(Role.SALES_MANAGER)
+                .country(Country.GERMANY)
+                .active(true)
+                .managedCustomers(new HashSet<>())
+                .build())));
+        User mysteryShopper = transactionTemplate.execute(status -> trackUser(userRepository.save(User.builder()
+                .username(msUsername)
+                .email(msEmail)
+                .password(passwordEncoder.encode("password"))
+                .role(Role.MYSTERY_SHOPPER)
+                .country(Country.GERMANY)
+                .active(true)
+                .managedCustomers(new HashSet<>())
+                .build())));
+
+        managedCustomer.setSalesManager(salesManager);
+        transactionTemplate.executeWithoutResult(status -> customerRepository.save(managedCustomer));
+        TestPurchase purchase = transactionTemplate.execute(status ->
+                savePurchase("TP-SM-OWN-" + suffix, managedCustomer, mysteryShopper));
+
+        mockMvc.perform(get("/testpurchases/view/" + purchase.getId())
+                        .with(user(userDetailsService.loadUserByUsername(salesManager.getUsername()))))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeDoesNotExist("mysteryShoppers"))
+                .andExpect(content().string(not(containsString(msUsername))))
+                .andExpect(content().string(not(containsString(msEmail))));
+    }
+
+    @Test
+    void customerCanViewOwnPurchaseWithoutMysteryShopperInHtml() throws Exception {
+        String msUsername = "ms_secret_" + suffix;
+        String msEmail = suffix + "@secret.test";
+        User customerUser = transactionTemplate.execute(status -> trackUser(userRepository.save(User.builder()
+                .username("cust_own_" + suffix)
+                .email("cust_own_" + suffix + "@access-mvc.test")
+                .password(passwordEncoder.encode("password"))
+                .role(Role.CUSTOMER)
+                .country(Country.GERMANY)
+                .active(true)
+                .customer(managedCustomer)
+                .managedCustomers(new HashSet<>())
+                .build())));
+        User mysteryShopper = transactionTemplate.execute(status -> trackUser(userRepository.save(User.builder()
+                .username(msUsername)
+                .email(msEmail)
+                .password(passwordEncoder.encode("password"))
+                .role(Role.MYSTERY_SHOPPER)
+                .country(Country.GERMANY)
+                .active(true)
+                .managedCustomers(new HashSet<>())
+                .build())));
+
+        TestPurchase purchase = transactionTemplate.execute(status ->
+                savePurchase("TP-CU-OWN-" + suffix, managedCustomer, mysteryShopper));
+
+        mockMvc.perform(get("/testpurchases/view/" + purchase.getId())
+                        .with(user(userDetailsService.loadUserByUsername(customerUser.getUsername()))))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeDoesNotExist("mysteryShoppers"))
+                .andExpect(content().string(not(containsString(msUsername))))
+                .andExpect(content().string(not(containsString(msEmail))));
     }
 
     @Test
@@ -239,8 +314,8 @@ class AccessControlOpenInViewMvcTest {
                 .andExpect(content().string(not(containsString("<form"))));
     }
 
-    private TestPurchase savePurchase(String number, Customer customer) {
-        return testPurchaseRepository.save(TestPurchase.builder()
+    private TestPurchase savePurchase(String number, Customer customer, User mysteryShopper) {
+        TestPurchase saved = testPurchaseRepository.save(TestPurchase.builder()
                 .number(number)
                 .customer(customer)
                 .shop(shop)
@@ -252,6 +327,24 @@ class AccessControlOpenInViewMvcTest {
                 .serviceFee(10.0)
                 .postageFee(5.0)
                 .active(true)
+                .mysteryShopper(mysteryShopper)
                 .build());
+        createdPurchaseIds.add(saved.getId());
+        return saved;
+    }
+
+    private Customer trackCustomer(Customer customer) {
+        createdCustomerIds.add(customer.getId());
+        return customer;
+    }
+
+    private Shop trackShop(Shop savedShop) {
+        createdShopIds.add(savedShop.getId());
+        return savedShop;
+    }
+
+    private User trackUser(User savedUser) {
+        createdUserIds.add(savedUser.getId());
+        return savedUser;
     }
 }

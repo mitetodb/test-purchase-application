@@ -67,6 +67,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({IllegalArgumentException.class, BindException.class})
+    @org.springframework.web.bind.annotation.ResponseStatus(HttpStatus.BAD_REQUEST)
     public String handleBadRequest(Exception ex, Model model) {
         String errorId = UUID.randomUUID().toString();
         log.warn("[{}] Bad request: {}", errorId, ex.getMessage(), ex);
@@ -77,6 +78,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    @org.springframework.web.bind.annotation.ResponseStatus(HttpStatus.BAD_REQUEST)
     public String handleMethodNotSupported(HttpRequestMethodNotSupportedException ex, Model model) {
         String errorId = UUID.randomUUID().toString();
         log.warn("[{}] Method not supported: {}", errorId, ex.getMessage(), ex);
@@ -87,6 +89,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
+    @org.springframework.web.bind.annotation.ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public String handleGeneric(Exception ex, Model model) {
         String errorId = UUID.randomUUID().toString();
         log.error("[{}] Unexpected error", errorId, ex);
