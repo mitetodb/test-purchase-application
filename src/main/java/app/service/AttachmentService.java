@@ -22,6 +22,7 @@ public class AttachmentService {
     private final TestPurchaseRepository testPurchaseRepository;
     private final FileStorageService storageService;
     private final AccessControlService accessControlService;
+    private final UploadContentValidator uploadContentValidator;
 
     public Attachment upload(UUID testPurchaseId,
                              MultipartFile file,
@@ -32,20 +33,15 @@ public class AttachmentService {
 
         accessControlService.checkCanViewTestPurchase(tp);
 
-        if (file.isEmpty()) {
-            throw new IllegalArgumentException("File is empty");
-        }
+        UploadContentValidator.ValidatedUpload validated = uploadContentValidator.validate(file);
 
-        String filename = file.getOriginalFilename().toLowerCase();
-        AttachmentFileType fileType = determineFileType(filename);
-
-        String storedPath = storageService.storeFile(file);
+        String storedPath = storageService.storeFile(file, validated.extension());
 
         Attachment att = Attachment.builder()
                 .testPurchase(tp)
                 .name(file.getOriginalFilename())
                 .category(category == null ? AttachmentCategory.CURRENT_OFFER_PDF : category)
-                .fileType(fileType)
+                .fileType(validated.fileType())
                 .fileSize(file.getSize())
                 .filePath(storedPath)
                 .build();
@@ -84,12 +80,4 @@ public class AttachmentService {
         attachmentRepository.deleteById(id);
     }
 
-    private AttachmentFileType determineFileType(String filename) {
-        if (filename.endsWith(".pdf")) return AttachmentFileType.PDF;
-        if (filename.endsWith(".png")) return AttachmentFileType.PNG;
-        if (filename.endsWith(".jpg") || filename.endsWith(".jpeg")) return AttachmentFileType.JPG;
-        if (filename.endsWith(".doc") || filename.endsWith(".docx")) return AttachmentFileType.DOC;
-        if (filename.endsWith(".xls") || filename.endsWith(".xlsx")) return AttachmentFileType.XLS;
-        return AttachmentFileType.OTHER;
-    }
 }

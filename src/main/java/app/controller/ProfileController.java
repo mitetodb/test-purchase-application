@@ -1,13 +1,13 @@
 package app.controller;
 
 import app.model.dto.UserProfileDTO;
+import app.service.UploadContentValidator;
 import app.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -26,6 +26,7 @@ import java.nio.file.Paths;
 public class ProfileController {
 
     private final UserService userService;
+    private final UploadContentValidator uploadContentValidator;
 
     @GetMapping("/profile")
     public String showProfile(Authentication authentication, Model model) {
@@ -59,7 +60,12 @@ public class ProfileController {
         String imageUrl = null;
         if (imageFile != null && !imageFile.isEmpty()) {
             try {
-                imageUrl = saveAvatar(imageFile, username);
+                UploadContentValidator.ValidatedUpload validated = uploadContentValidator.validate(imageFile);
+                imageUrl = saveAvatar(imageFile, username, validated.extension());
+            } catch (IllegalArgumentException ex) {
+                bindingResult.reject("imageFile", ex.getMessage());
+                model.addAttribute("countries", app.model.enums.Country.values());
+                return "profile";
             } catch (IOException e) {
                 bindingResult.reject("imageFile", "Cannot store file.");
                 model.addAttribute("countries", app.model.enums.Country.values());
@@ -73,15 +79,8 @@ public class ProfileController {
         return "redirect:/profile";
     }
 
-    private String saveAvatar(MultipartFile file, String username) throws IOException {
-        String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
-        String ext = "";
-        int dot = originalFilename.lastIndexOf('.');
-        if (dot >= 0) {
-            ext = originalFilename.substring(dot);
-        }
-
-        String newFileName = username + "-" + System.currentTimeMillis() + ext;
+    private String saveAvatar(MultipartFile file, String username, String extension) throws IOException {
+        String newFileName = username + "-" + System.currentTimeMillis() + extension;
         Path uploadDir = Paths.get("uploads/avatars");
         Files.createDirectories(uploadDir);
 
