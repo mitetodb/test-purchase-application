@@ -4,13 +4,13 @@ import app.config.LoginSecurityProperties;
 import app.model.entity.LoginRateLimit;
 import app.model.entity.User;
 import app.repository.LoginRateLimitRepository;
+import app.repository.LoginRateLimitUpsert;
 import app.repository.UserRepository;
 import app.security.LoginRateLimitKeys;
 import app.service.LoginSecurityService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +28,7 @@ public class LoginSecurityServiceImpl implements LoginSecurityService {
 
     private final LoginSecurityProperties properties;
     private final LoginRateLimitRepository rateLimitRepository;
+    private final LoginRateLimitUpsert loginRateLimitUpsert;
     private final UserRepository userRepository;
 
     @Override
@@ -143,29 +144,7 @@ public class LoginSecurityServiceImpl implements LoginSecurityService {
         String rateKey = LoginRateLimitKeys.storageKey(prefix, normalizedValue);
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime windowNotBefore = now.minusSeconds(properties.rateLimit().windowSeconds());
-
-        int updated = rateLimitRepository.incrementAttemptInActiveWindow(rateKey, windowNotBefore);
-        if (updated > 0) {
-            return;
-        }
-
-        updated = rateLimitRepository.resetWindowAndSetAttempts(rateKey, windowNotBefore, now, 1);
-        if (updated > 0) {
-            return;
-        }
-
-        try {
-            rateLimitRepository.save(LoginRateLimit.builder()
-                    .rateKey(rateKey)
-                    .attemptCount(1)
-                    .windowStart(now)
-                    .build());
-        } catch (DataIntegrityViolationException duplicateInsert) {
-            updated = rateLimitRepository.incrementAttemptInActiveWindow(rateKey, windowNotBefore);
-            if (updated == 0) {
-                rateLimitRepository.resetWindowAndSetAttempts(rateKey, windowNotBefore, now, 1);
-            }
-        }
+        loginRateLimitUpsert.upsertIncrement(UUID.randomUUID(), rateKey, now, windowNotBefore);
     }
 
     private boolean windowExpired(LoginRateLimit entry) {
