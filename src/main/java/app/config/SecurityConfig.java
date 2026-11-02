@@ -1,7 +1,11 @@
 package app.config;
 
 import app.security.CustomUserDetailsService;
+import app.security.LoginAuthenticationFailureHandler;
+import app.security.LoginAuthenticationSuccessHandler;
+import app.security.LoginRateLimitFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -11,15 +15,20 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import jakarta.servlet.http.HttpServletResponse;
 
 @EnableMethodSecurity(prePostEnabled = true)
 @Configuration
+@EnableConfigurationProperties(LoginSecurityProperties.class)
 @RequiredArgsConstructor
 public class SecurityConfig {
 
     private final CustomUserDetailsService customUserDetailsService;
+    private final LoginRateLimitFilter loginRateLimitFilter;
+    private final LoginAuthenticationFailureHandler loginAuthenticationFailureHandler;
+    private final LoginAuthenticationSuccessHandler loginAuthenticationSuccessHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -58,10 +67,11 @@ public class SecurityConfig {
                             request.getRequestDispatcher("/access-denied").forward(request, response);
                         })
                 )
+                .addFilterBefore(loginRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .defaultSuccessUrl("/home", true)
-                        .failureUrl("/login?error")
+                        .successHandler(loginAuthenticationSuccessHandler)
+                        .failureHandler(loginAuthenticationFailureHandler)
                         .permitAll()
                 )
                 .logout(logout -> logout

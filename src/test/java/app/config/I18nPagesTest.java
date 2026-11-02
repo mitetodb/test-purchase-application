@@ -86,6 +86,8 @@ class I18nPagesTest {
     @ParameterizedTest
     @CsvSource({
             "/login,bg,Потребителско име", "/login,de,Benutzername", "/login,en,Username",
+            "/login?error,bg,Грешно потребителско име", "/login?error,de,Ungültiger Benutzername",
+            "/login?error,en,Invalid username or password",
             "/register,bg,Необходима е покана", "/register,de,Einladung erforderlich",
             "/,bg,Защо да изберете нас?", "/,de,Warum unsere Plattform?", "/,en,Why Choose Our Platform?",
             "/forgot-password,bg,Забравена парола", "/forgot-password,de,Passwort vergessen"})
