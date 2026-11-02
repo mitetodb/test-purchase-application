@@ -7,6 +7,14 @@
     <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}">
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="description" th:content="#{meta.description}"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:site_name" th:content="#{meta.og.site_name}"/>
+    <meta property="og:title" th:content="#{meta.og.title}"/>
+    <meta property="og:description" th:content="#{meta.og.description}"/>
+    <meta property="og:locale"
+          th:content="${#locale.language + '_' + (#locale.language == 'en' ? 'US' : (#locale.language == 'de' ? 'DE' : 'BG'))}"/>
+    <meta property="og:url" th:content="${pageCanonicalUrl}"/>
     <th:block th:replace="${title}" th:text="#{ui.test_purchase_application.61e8}">Test Purchase Application</th:block>
 
     <!-- Google Fonts -->
