@@ -29,7 +29,7 @@ This document outlines security practices, considerations, and planned improveme
 **Method-Level Security**
 ```java
 @PreAuthorize("hasRole('ADMIN')")
-public void deleteUser(UUID id) { ... }
+public void deactivateUser(UUID id) { ... }
 
 @PreAuthorize("hasAnyRole('ADMIN', 'ACCOUNT_MANAGER')")
 public void assignMysteryShopperToPurchase(...) { ... }
@@ -352,7 +352,7 @@ Expect exactly one of each app header, no `X-Frame-Options`, and `Server` withou
 
 **User Rights:**
 - Right to access: Admins can export user data
-- Right to deletion: Admin can deactivate (soft delete) or hard delete
+- Right to erasure: Normal admin operations never delete users, only deactivate. A formal GDPR Art. 17 erasure request is an exception: it is handled manually by the owner (Dimitar), after his explicit decision, by anonymizing the personal data of the deactivated account (no hard delete of rows that other records reference).
 - Right to rectification: Users can edit own profiles
 - Right to portability: Manual export by admin
 

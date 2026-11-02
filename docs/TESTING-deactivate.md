@@ -5,7 +5,7 @@ Use this when you want to confirm on a prod-like environment that clicking **Dea
 ## Prerequisites
 
 - Application running with a real servlet session and Spring Security session registry (default in this project).
-- A **temporary demo admin** account (create in UI or DB; remove or deactivate when finished).
+- A **temporary demo admin** account (create in UI or DB; deactivate when finished via **Deactivate** on the users list).
 - A **demo target user** who can log in (any non-admin role is fine).
 
 ## Steps
@@ -29,4 +29,4 @@ Full pipeline: `scripts/ci.sh`.
 
 ## Cleanup
 
-Deactivate or delete the temporary demo admin and reactivate/remove the demo user so production-like data stays tidy.
+On `/users`, click **Deactivate** for the temporary demo admin and for the demo target user if you no longer need them active. Users are never deleted—only deactivated. Use **Reactivate** on the same list if you need an account active again.

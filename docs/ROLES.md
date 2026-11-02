@@ -257,7 +257,7 @@ Roles are implemented using Spring Security's `@PreAuthorize` annotations and ro
 
 ```java
 @PreAuthorize("hasRole('ADMIN')")
-public void deleteUser(UUID id) { ... }
+public void deactivateUser(UUID id) { ... }
 
 @PreAuthorize("hasAnyRole('ADMIN', 'ACCOUNT_MANAGER')")
 public void assignMysteryShopperToPurchase(...) { ... }

@@ -101,15 +101,7 @@ Deaktivierte Benutzer können sich nicht anmelden, aber ihre Daten bleiben erhal
 
 Zum Reaktivieren: Aktivieren Sie **Aktiv** und speichern Sie.
 
-### Benutzer löschen (dauerhaft)
-
-**Warnung:** Dies entfernt den Benutzer dauerhaft aus der Datenbank. Verwenden Sie nach Möglichkeit Deaktivierung.
-
-1. Gehen Sie zu **Benutzer** → Benutzer finden
-2. Klicken Sie auf **Löschen**
-3. Bestätigen Sie die Aktion
-
-**Hinweis:** Nur Sie (Administrator) können Daten dauerhaft löschen.
+**Hinweis:** Benutzer werden niemals dauerhaft gelöscht—nur deaktiviert. Dies erhält Audit-Trails und Datenintegrität.
 
 ## Kundenverwaltung
 
