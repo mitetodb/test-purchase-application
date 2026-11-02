@@ -5,6 +5,7 @@ import app.model.entity.User;
 import app.model.enums.Country;
 import app.model.enums.Role;
 import app.repository.UserRepository;
+import app.support.TestActiveUsers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,6 +58,7 @@ class CustomerControllerSecurityTest {
     @BeforeEach
     void seedAllowedUsers() {
         String suffix = UUID.randomUUID().toString().substring(0, 8);
+        TestActiveUsers.seedStandardUsers(userRepository, passwordEncoder);
         transactionTemplate.executeWithoutResult(status -> {
             adminId = userRepository.save(User.builder()
                     .username("admin_" + suffix)
@@ -90,6 +92,7 @@ class CustomerControllerSecurityTest {
 
     @AfterEach
     void cleanupUsers() {
+        TestActiveUsers.deleteStandardUsers(userRepository);
         transactionTemplate.executeWithoutResult(status -> {
             if (adminId != null) {
                 userRepository.deleteById(adminId);

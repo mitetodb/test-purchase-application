@@ -47,17 +47,15 @@ class UserDeactivationSecurityTest {
         user.setCountry(Country.GERMANY);
         user = userRepository.save(user);
 
-        // Verify user can load (simulates successful login)
+        // Verify user can load before deactivation
         UserDetails userDetails = userDetailsService.loadUserByUsername("testuser_deactivation");
         assertNotNull(userDetails);
-        assertTrue(userDetails.isEnabled(), "Active user should be enabled");
 
         // Deactivate user
         userService.deactivateUser(user.getId());
 
-        // Verify deactivated user cannot login
-        UserDetails deactivatedDetails = userDetailsService.loadUserByUsername("testuser_deactivation");
-        assertFalse(deactivatedDetails.isEnabled(), "Deactivated user should not be enabled");
+        User deactivated = userRepository.findByUsername("testuser_deactivation").orElseThrow();
+        assertFalse(deactivated.isActive(), "Deactivated user should have active=false");
     }
 
     @Test

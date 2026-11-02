@@ -11,12 +11,14 @@ import app.repository.ShopRepository;
 import app.repository.TestPurchaseRepository;
 import app.repository.UserRepository;
 import app.service.TestPurchaseService;
+import app.support.TestActiveUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -57,6 +59,9 @@ class MysteryShopperAssignmentTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @org.springframework.boot.test.mock.mockito.MockBean
     private app.client.PricingClient pricingClient;
 
@@ -68,6 +73,7 @@ class MysteryShopperAssignmentTest {
         testPurchaseRepository.deleteAll();
         userRepository.deleteAll();
         customerRepository.deleteAll();
+        TestActiveUsers.seedStandardUsers(userRepository, passwordEncoder);
 
         // Create a customer
         Customer customer = new Customer();

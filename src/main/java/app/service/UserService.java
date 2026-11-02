@@ -54,6 +54,8 @@ public interface UserService {
 
     void deactivateUser(UUID id);
 
+    void reactivateUser(UUID id);
+
     void unlockAccount(UUID id);
 
 }

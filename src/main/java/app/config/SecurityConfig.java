@@ -1,6 +1,7 @@
 package app.config;
 
 import app.security.CustomUserDetailsService;
+import app.security.InactiveUserSessionFilter;
 import app.security.LoginAuthenticationFailureHandler;
 import app.security.LoginAuthenticationSuccessHandler;
 import app.security.LoginAwareDaoAuthenticationProvider;
@@ -12,12 +13,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.Nullable;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -38,6 +43,23 @@ public class SecurityConfig {
     private final NotFoundOrLoginAuthenticationEntryPoint notFoundOrLoginAuthenticationEntryPoint;
 
     @Bean
+    public SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
+    }
+
+    @Bean
+    public HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
+    }
+
+    @Bean
+    public InactiveUserSessionFilter inactiveUserSessionFilter(
+            UserRepository userRepository,
+            org.springframework.transaction.support.TransactionTemplate transactionTemplate) {
+        return new InactiveUserSessionFilter(userRepository, transactionTemplate);
+    }
+
+    @Bean
     public LoginAwareDaoAuthenticationProvider loginAwareDaoAuthenticationProvider(
             PasswordEncoder passwordEncoder,
             UserRepository userRepository,
@@ -51,7 +73,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
-            LoginAwareDaoAuthenticationProvider loginAwareDaoAuthenticationProvider) throws Exception {
+            LoginAwareDaoAuthenticationProvider loginAwareDaoAuthenticationProvider,
+            SessionRegistry sessionRegistry,
+            @Nullable InactiveUserSessionFilter inactiveUserSessionFilter) throws Exception {
 
         http
                 .csrf(csrf -> csrf
@@ -89,7 +113,15 @@ public class SecurityConfig {
                         })
                 )
                 .authenticationProvider(loginAwareDaoAuthenticationProvider)
-                .addFilterBefore(loginRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
+                .sessionManagement(session -> session
+                        .maximumSessions(-1)
+                        .maxSessionsPreventsLogin(false)
+                        .sessionRegistry(sessionRegistry))
+                .addFilterBefore(loginRateLimitFilter, UsernamePasswordAuthenticationFilter.class);
+        if (inactiveUserSessionFilter != null) {
+            http.addFilterAfter(inactiveUserSessionFilter, UsernamePasswordAuthenticationFilter.class);
+        }
+        return http
                 .formLogin(form -> form
                         .loginPage("/login")
                         .successHandler(loginAuthenticationSuccessHandler)
@@ -111,9 +143,8 @@ public class SecurityConfig {
                                 ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
                         .permissionsPolicy(permissions -> permissions.policy(
                                 SecurityHeadersPolicy.PERMISSIONS_POLICY))
-                );
-
-        return http.build();
+                )
+                .build();
     }
 
     @Bean

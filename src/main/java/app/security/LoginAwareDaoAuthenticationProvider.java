@@ -4,7 +4,6 @@ import app.model.entity.User;
 import app.repository.UserRepository;
 import app.service.LoginSecurityService;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.AuthenticationException;
@@ -27,11 +26,6 @@ public class LoginAwareDaoAuthenticationProvider extends DaoAuthenticationProvid
         this.loginSecurityService = loginSecurityService;
         setPasswordEncoder(passwordEncoder);
         setHideUserNotFoundExceptions(true);
-        setPreAuthenticationChecks(user -> {
-            if (!user.isEnabled()) {
-                throw new DisabledException("User is disabled");
-            }
-        });
     }
 
     @Override
@@ -48,6 +42,9 @@ public class LoginAwareDaoAuthenticationProvider extends DaoAuthenticationProvid
         }
 
         User user = userRepository.findByUsername(userDetails.getUsername()).orElse(null);
+        if (user != null && !user.isActive()) {
+            throw new BadCredentialsException("Bad credentials");
+        }
         if (user != null && loginSecurityService.isCurrentlyLocked(user)) {
             throw new BadCredentialsException("Bad credentials");
         }

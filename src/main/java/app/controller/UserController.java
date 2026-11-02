@@ -110,9 +110,15 @@ public class UserController {
         return "redirect:/users";
     }
 
-    @PostMapping("/delete/{id}")
-    public String delete(@PathVariable UUID id) {
+    @PostMapping("/deactivate/{id}")
+    public String deactivate(@PathVariable UUID id) {
         userService.deactivateUser(id);
+        return "redirect:/users";
+    }
+
+    @PostMapping("/reactivate/{id}")
+    public String reactivate(@PathVariable UUID id) {
+        userService.reactivateUser(id);
         return "redirect:/users";
     }
 
