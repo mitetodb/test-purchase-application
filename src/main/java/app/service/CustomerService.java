@@ -17,6 +17,10 @@ public interface CustomerService {
 
     Page<Customer> findPageForCurrentUser(CustomerListFilter filter, Pageable pageable);
 
+    long countForList(CustomerListFilter filter);
+
+    java.util.List<Customer> findAllForListExport(CustomerListFilter filter, Pageable sortPageable, int maxRows);
+
     Customer findById(UUID id);
 
     Customer findByIdForCurrentUser(UUID id);

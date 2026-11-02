@@ -1,8 +1,10 @@
 package app.controller;
 
+import app.config.AppListExportProperties;
 import app.model.entity.Customer;
 import app.model.enums.Country;
 import app.service.CustomerService;
+import app.support.ListExportResponseFactory;
 import app.support.ListPagingSupport;
 import app.security.CustomUserDetailsService;
 import app.security.LoginAuthenticationFailureHandler;
@@ -47,6 +49,12 @@ class CustomerControllerTest {
 
     @MockBean
     private ListPagingSupport listPagingSupport;
+
+    @MockBean
+    private AppListExportProperties exportProperties;
+
+    @MockBean
+    private ListExportResponseFactory exportResponses;
 
     @MockBean
     private LoginSecurityService loginSecurityService;

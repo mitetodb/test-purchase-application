@@ -58,6 +58,10 @@ public interface UserService {
 
     Page<User> findPageForAdmin(UserListFilter filter, Pageable pageable);
 
+    long countForList(UserListFilter filter);
+
+    java.util.List<User> findAllForListExport(UserListFilter filter, Pageable sortPageable, int maxRows);
+
     void deactivateUser(UUID id);
 
     void reactivateUser(UUID id);

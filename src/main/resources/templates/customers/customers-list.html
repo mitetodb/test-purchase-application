@@ -43,9 +43,19 @@
         </div>
     </form>
 
+    <div th:if="${exportLimitExceeded}" class="alert alert-warning" role="alert"
+         th:text="${exportLimitMessage}"></div>
+
     <div th:replace="~{fragments/server-list-pagination :: serverPagination(${customerPage}, '/customers')}"></div>
 
-    <div id="export-buttons-customers" class="mb-3"></div>
+    <div class="mb-3 d-flex flex-wrap gap-2">
+        <a class="btn btn-success btn-sm"
+           th:href="@{/customers/export.csv(name=${filter.name}, country=${filter.country}, category=${filter.category})}"
+           th:text="#{list.export.csv}">Export CSV</a>
+        <a class="btn btn-secondary btn-sm"
+           th:href="@{/customers/export.xlsx(name=${filter.name}, country=${filter.country}, category=${filter.category})}"
+           th:text="#{list.export.excel}">Export Excel</a>
+    </div>
 
     <table id="customersTable" class="table table-striped">
         <thead>
@@ -89,12 +99,6 @@
     </table>
 
     <div th:replace="~{fragments/server-list-pagination :: serverPagination(${customerPage}, '/customers')}"></div>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            attachExportButtons("export-buttons-customers", "customersTable");
-        });
-    </script>
 
 </main>
 </body>

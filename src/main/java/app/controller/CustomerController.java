@@ -1,10 +1,14 @@
 package app.controller;
 
+import app.config.AppListExportProperties;
 import app.model.dto.CustomerDTO;
 import app.model.entity.Customer;
 import app.model.filter.CustomerListFilter;
 import app.service.CustomerService;
 import app.model.enums.Country;
+import app.support.ListExportResponseFactory;
+import app.support.ListExportRows;
+import app.support.ListFilterRedirectBuilder;
 import app.support.ListPagingSupport;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -12,11 +16,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.io.IOException;
 import java.util.UUID;
 
 @Controller
@@ -27,6 +34,8 @@ public class CustomerController {
 
     private final CustomerService customerService;
     private final ListPagingSupport listPagingSupport;
+    private final AppListExportProperties exportProperties;
+    private final ListExportResponseFactory exportResponses;
 
     @GetMapping
     public String listCustomers(
@@ -39,6 +48,49 @@ public class CustomerController {
         model.addAttribute("customers", customerPage.getContent());
         model.addAttribute("countries", Country.values());
         return "customers/customers-list";
+    }
+
+    @GetMapping("/export.csv")
+    public Object exportCsv(
+            @ModelAttribute("filter") CustomerListFilter filter,
+            @PageableDefault(size = 20, sort = "name") Pageable pageable,
+            RedirectAttributes redirectAttributes) throws IOException {
+        return exportSpreadsheet(filter, pageable, redirectAttributes, false);
+    }
+
+    @GetMapping("/export.xlsx")
+    public Object exportExcel(
+            @ModelAttribute("filter") CustomerListFilter filter,
+            @PageableDefault(size = 20, sort = "name") Pageable pageable,
+            RedirectAttributes redirectAttributes) throws IOException {
+        return exportSpreadsheet(filter, pageable, redirectAttributes, true);
+    }
+
+    private Object exportSpreadsheet(
+            CustomerListFilter filter,
+            Pageable pageable,
+            RedirectAttributes redirectAttributes,
+            boolean excel) throws IOException {
+        Pageable sort = listPagingSupport.sortOnlyForCustomers(pageable);
+        long count = customerService.countForList(filter);
+        String redirectPath = ListFilterRedirectBuilder.customers(filter);
+        if (count > exportProperties.getMaxRows()) {
+            return exportResponses.redirectWhenLimited(count, redirectPath, redirectAttributes);
+        }
+        boolean includeUpdatedBy = isAdmin();
+        var customers = customerService.findAllForListExport(filter, sort, exportProperties.getMaxRows());
+        var header = ListExportRows.customersHeader(includeUpdatedBy);
+        var dataRows = customers.stream().map(c -> ListExportRows.customerRow(c, includeUpdatedBy)).toList();
+        if (excel) {
+            return exportResponses.excelResponse("customers.xlsx", "Customers", header, dataRows);
+        }
+        return exportResponses.csvResponse("customers.csv", header, dataRows);
+    }
+
+    private boolean isAdmin() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth != null && auth.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
     }
 
     @GetMapping("/add")

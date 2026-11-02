@@ -32,6 +32,11 @@ public interface TestPurchaseService {
 
     Page<TestPurchaseViewDTO> findPageForCurrentUser(TestPurchaseListFilter filter, Pageable pageable);
 
+    long countForList(TestPurchaseListFilter filter);
+
+    java.util.List<TestPurchaseViewDTO> findAllForListExport(
+            TestPurchaseListFilter filter, Pageable sortPageable, int maxRows);
+
     TestPurchaseViewDTO findByIdForCurrentUser(UUID id);
 
     TestPurchase findByIdForEdit(UUID id);

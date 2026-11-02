@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -68,6 +69,20 @@ public class CustomerServiceImpl implements CustomerService {
         User currentUser = accessControlService.getCurrentUserWithManagedCustomers();
         var spec = CustomerSpecifications.listQuery(currentUser, filter);
         return customerRepository.findAll(spec, pageable);
+    }
+
+    @Override
+    public long countForList(CustomerListFilter filter) {
+        User currentUser = accessControlService.getCurrentUserWithManagedCustomers();
+        return customerRepository.count(CustomerSpecifications.listQuery(currentUser, filter));
+    }
+
+    @Override
+    public List<Customer> findAllForListExport(CustomerListFilter filter, Pageable sortPageable, int maxRows) {
+        User currentUser = accessControlService.getCurrentUserWithManagedCustomers();
+        var spec = CustomerSpecifications.listQuery(currentUser, filter);
+        Pageable page = PageRequest.of(0, maxRows, sortPageable.getSort());
+        return customerRepository.findAll(spec, page).getContent();
     }
 
     @Override

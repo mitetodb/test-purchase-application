@@ -1,5 +1,6 @@
 package app.controller;
 
+import app.config.AppListExportProperties;
 import app.model.dto.TestPurchaseCreateDTO;
 import app.model.dto.TestPurchaseEditDTO;
 import app.model.dto.TestPurchaseViewDTO;
@@ -7,6 +8,9 @@ import app.model.entity.TestPurchase;
 import app.model.enums.TestPurchaseStatus;
 import app.model.filter.TestPurchaseListFilter;
 import app.service.*;
+import app.support.ListExportResponseFactory;
+import app.support.ListExportRows;
+import app.support.ListFilterRedirectBuilder;
 import app.support.ListPagingSupport;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +23,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,6 +41,8 @@ public class TestPurchaseController {
     private final StatusHistoryService statusHistoryService;
     private final UserService userService;
     private final ListPagingSupport listPagingSupport;
+    private final AppListExportProperties exportProperties;
+    private final ListExportResponseFactory exportResponses;
 
     @GetMapping
     public String list(
@@ -55,6 +63,51 @@ public class TestPurchaseController {
         }
         model.addAttribute("statuses", TestPurchaseStatus.values());
         return "testpurchases/testpurchases-list";
+    }
+
+    @GetMapping("/export.csv")
+    public Object exportCsv(
+            @ModelAttribute("filter") TestPurchaseListFilter filter,
+            @PageableDefault(size = 20, sort = "createdOn") Pageable pageable,
+            RedirectAttributes redirectAttributes) throws IOException {
+        return exportSpreadsheet(filter, pageable, redirectAttributes, false);
+    }
+
+    @GetMapping("/export.xlsx")
+    public Object exportExcel(
+            @ModelAttribute("filter") TestPurchaseListFilter filter,
+            @PageableDefault(size = 20, sort = "createdOn") Pageable pageable,
+            RedirectAttributes redirectAttributes) throws IOException {
+        return exportSpreadsheet(filter, pageable, redirectAttributes, true);
+    }
+
+    private Object exportSpreadsheet(
+            TestPurchaseListFilter filter,
+            Pageable pageable,
+            RedirectAttributes redirectAttributes,
+            boolean excel) throws IOException {
+        Pageable sort = listPagingSupport.sortOnlyForTestPurchases(pageable);
+        long count = testPurchaseService.countForList(filter);
+        String redirectPath = ListFilterRedirectBuilder.testPurchases(filter);
+        if (count > exportProperties.getMaxRows()) {
+            return exportResponses.redirectWhenLimited(count, redirectPath, redirectAttributes);
+        }
+        boolean includeUpdatedBy = isAdmin();
+        var purchases = testPurchaseService.findAllForListExport(filter, sort, exportProperties.getMaxRows());
+        var header = ListExportRows.testPurchasesHeader(includeUpdatedBy);
+        var dataRows = purchases.stream()
+                .map(p -> ListExportRows.testPurchaseRow(p, includeUpdatedBy))
+                .toList();
+        if (excel) {
+            return exportResponses.excelResponse("test-purchases.xlsx", "Test Purchases", header, dataRows);
+        }
+        return exportResponses.csvResponse("test-purchases.csv", header, dataRows);
+    }
+
+    private boolean isAdmin() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth != null && auth.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
     }
 
     @GetMapping("/add")

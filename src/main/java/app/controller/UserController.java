@@ -1,5 +1,6 @@
 package app.controller;
 
+import app.config.AppListExportProperties;
 import app.model.dto.UserCreateDTO;
 import app.model.dto.UserEditDTO;
 import app.model.entity.Customer;
@@ -10,6 +11,9 @@ import app.model.filter.UserListFilter;
 import app.repository.UserRepository;
 import app.service.CustomerService;
 import app.service.UserService;
+import app.support.ListExportResponseFactory;
+import app.support.ListExportRows;
+import app.support.ListFilterRedirectBuilder;
 import app.support.ListPagingSupport;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +25,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.io.IOException;
 import java.util.UUID;
 
 @Controller
@@ -34,6 +40,8 @@ public class UserController {
     private final UserService userService;
     private final CustomerService customerService;
     private final ListPagingSupport listPagingSupport;
+    private final AppListExportProperties exportProperties;
+    private final ListExportResponseFactory exportResponses;
 
     @GetMapping
     public String listUsers(
@@ -47,6 +55,42 @@ public class UserController {
         model.addAttribute("roles", Role.values());
         model.addAttribute("countries", Country.values());
         return "users/users-list";
+    }
+
+    @GetMapping("/export.csv")
+    public Object exportCsv(
+            @ModelAttribute("filter") UserListFilter filter,
+            @PageableDefault(size = 20, sort = "createdOn") Pageable pageable,
+            RedirectAttributes redirectAttributes) throws IOException {
+        return exportSpreadsheet(filter, pageable, redirectAttributes, false);
+    }
+
+    @GetMapping("/export.xlsx")
+    public Object exportExcel(
+            @ModelAttribute("filter") UserListFilter filter,
+            @PageableDefault(size = 20, sort = "createdOn") Pageable pageable,
+            RedirectAttributes redirectAttributes) throws IOException {
+        return exportSpreadsheet(filter, pageable, redirectAttributes, true);
+    }
+
+    private Object exportSpreadsheet(
+            UserListFilter filter,
+            Pageable pageable,
+            RedirectAttributes redirectAttributes,
+            boolean excel) throws IOException {
+        Pageable sort = listPagingSupport.sortOnlyForUsers(pageable);
+        long count = userService.countForList(filter);
+        String redirectPath = ListFilterRedirectBuilder.users(filter);
+        if (count > exportProperties.getMaxRows()) {
+            return exportResponses.redirectWhenLimited(count, redirectPath, redirectAttributes);
+        }
+        var users = userService.findAllForListExport(filter, sort, exportProperties.getMaxRows());
+        var header = ListExportRows.usersHeader(true);
+        var dataRows = users.stream().map(u -> ListExportRows.userRow(u, true)).toList();
+        if (excel) {
+            return exportResponses.excelResponse("users.xlsx", "Users", header, dataRows);
+        }
+        return exportResponses.csvResponse("users.csv", header, dataRows);
     }
 
     @GetMapping("/add")

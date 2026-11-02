@@ -21,6 +21,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -315,11 +316,34 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
     public Page<TestPurchaseViewDTO> findPageForCurrentUser(TestPurchaseListFilter filter, Pageable pageable) {
         User currentUser = accessControlService.getCurrentUserWithManagedCustomers();
         boolean hideMysteryShopperName = accessControlService.shouldHideMysteryShopperName();
-        TestPurchaseListFilter effectiveFilter = sanitizeFilter(filter, currentUser);
+        var spec = listSpec(currentUser, filter);
 
-        var spec = TestPurchaseSpecifications.listQuery(currentUser, effectiveFilter);
         return testPurchaseRepository.findAll(spec, pageable)
                 .map(p -> TestPurchaseViewDTO.from(p, hideMysteryShopperName));
+    }
+
+    @Override
+    public long countForList(TestPurchaseListFilter filter) {
+        User currentUser = accessControlService.getCurrentUserWithManagedCustomers();
+        return testPurchaseRepository.count(listSpec(currentUser, filter));
+    }
+
+    @Override
+    public List<TestPurchaseViewDTO> findAllForListExport(
+            TestPurchaseListFilter filter, Pageable sortPageable, int maxRows) {
+        User currentUser = accessControlService.getCurrentUserWithManagedCustomers();
+        boolean hideMysteryShopperName = accessControlService.shouldHideMysteryShopperName();
+        var spec = listSpec(currentUser, filter);
+        Pageable page = PageRequest.of(0, maxRows, sortPageable.getSort());
+        return testPurchaseRepository.findAll(spec, page).stream()
+                .map(p -> TestPurchaseViewDTO.from(p, hideMysteryShopperName))
+                .toList();
+    }
+
+    private org.springframework.data.jpa.domain.Specification<TestPurchase> listSpec(
+            User currentUser, TestPurchaseListFilter filter) {
+        TestPurchaseListFilter effectiveFilter = sanitizeFilter(filter, currentUser);
+        return TestPurchaseSpecifications.listQuery(currentUser, effectiveFilter);
     }
 
     private TestPurchaseListFilter sanitizeFilter(TestPurchaseListFilter filter, User currentUser) {

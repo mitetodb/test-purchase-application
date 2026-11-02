@@ -67,6 +67,12 @@ class TestPurchaseControllerTest {
     private ListPagingSupport listPagingSupport;
 
     @MockBean
+    private app.config.AppListExportProperties exportProperties;
+
+    @MockBean
+    private app.support.ListExportResponseFactory exportResponses;
+
+    @MockBean
     private LoginSecurityService loginSecurityService;
 
     @MockBean
