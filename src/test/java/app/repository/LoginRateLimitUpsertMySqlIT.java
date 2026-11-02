@@ -31,6 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 @ActiveProfiles("test")
 class LoginRateLimitUpsertMySqlIT {
 
+    private static final int PARALLEL_UPSERT_THREADS = 50;
+
     @Container
     static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.4")
             .withDatabaseName("test_purchase_db")
@@ -119,13 +121,13 @@ class LoginRateLimitUpsertMySqlIT {
         String rateKey = LoginRateLimitKeys.storageKey("ip:", "203.0.113.44");
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime windowNotBefore = now.minusSeconds(3600);
-        CountDownLatch ready = new CountDownLatch(2);
+        CountDownLatch ready = new CountDownLatch(PARALLEL_UPSERT_THREADS);
         CountDownLatch start = new CountDownLatch(1);
         AtomicReference<Throwable> failure = new AtomicReference<>();
 
-        ExecutorService pool = Executors.newFixedThreadPool(2);
+        ExecutorService pool = Executors.newFixedThreadPool(PARALLEL_UPSERT_THREADS);
         try {
-            for (int i = 0; i < 2; i++) {
+            for (int i = 0; i < PARALLEL_UPSERT_THREADS; i++) {
                 pool.submit(() -> {
                     ready.countDown();
                     try {
@@ -137,15 +139,15 @@ class LoginRateLimitUpsertMySqlIT {
                     }
                 });
             }
-            ready.await(5, TimeUnit.SECONDS);
+            ready.await(10, TimeUnit.SECONDS);
             start.countDown();
             pool.shutdown();
-            assert pool.awaitTermination(30, TimeUnit.SECONDS);
+            assert pool.awaitTermination(60, TimeUnit.SECONDS);
         } finally {
             pool.shutdownNow();
         }
 
         assertNull(failure.get(), () -> "Unexpected failure: " + failure.get());
-        assertEquals(2, loginRateLimitRepository.findByRateKey(rateKey).orElseThrow().getAttemptCount());
+        assertEquals(PARALLEL_UPSERT_THREADS, loginRateLimitRepository.findByRateKey(rateKey).orElseThrow().getAttemptCount());
     }
 }
