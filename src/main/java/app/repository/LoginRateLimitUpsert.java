@@ -24,7 +24,7 @@ public class LoginRateLimitUpsert {
         jdbcTemplate.update(
                 resolveUpsertSql(),
                 ps -> {
-                    ps.setObject(1, id);
+                    ps.setBytes(1, UuidBinaryBytes.toBytes(id));
                     ps.setString(2, rateKey);
                     ps.setTimestamp(3, Timestamp.valueOf(now));
                     ps.setTimestamp(4, Timestamp.valueOf(windowNotBefore));

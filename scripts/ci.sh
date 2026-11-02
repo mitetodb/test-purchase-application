@@ -13,6 +13,11 @@ if git ls-files | grep -E '(^|/)\.env$'; then echo "!! .env is tracked"; exit 1;
 echo "    clean"
 
 echo "==> 2/4 mvn verify"
+if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
+  echo "    Docker available — MySQL 8.4 Testcontainers IT will run"
+else
+  echo "    Docker not available — MySQL Testcontainers IT skipped (disabledWithoutDocker)"
+fi
 ./mvnw -B -q verify
 
 echo "==> 3/4 compose config"
