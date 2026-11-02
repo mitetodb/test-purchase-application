@@ -1,6 +1,7 @@
 package app.service;
 
 import app.config.SecurityUtils;
+import app.exception.UploadRejectedException;
 import app.model.entity.Attachment;
 import app.model.entity.TestPurchase;
 import app.model.enums.AttachmentCategory;
@@ -56,16 +57,17 @@ class AttachmentServiceUploadValidationTest {
     void uploadRejectsInvalidFileBeforeStorage() {
         MockMultipartFile file = new MockMultipartFile(
                 "file", "bad.pdf", "application/pdf", "plain text".getBytes());
-        when(uploadContentValidator.validate(file))
-                .thenThrow(new IllegalArgumentException("File type not allowed. Only JPEG, PNG, and PDF files are accepted."));
+        when(uploadContentValidator.validateForAttachment(file))
+                .thenThrow(new UploadRejectedException(
+                        UploadRejectedException.Reason.TYPE_NOT_ALLOWED,
+                        UploadRejectedException.UploadTarget.ATTACHMENT));
 
         try (var ignored = org.mockito.Mockito.mockStatic(SecurityUtils.class)) {
             ignored.when(SecurityUtils::getCurrentUsername).thenReturn("tester");
 
             assertThatThrownBy(() -> attachmentService.upload(
                     purchaseId, file, AttachmentCategory.INVOICE))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("File type not allowed");
+                    .isInstanceOf(UploadRejectedException.class);
         }
 
         verify(storageService, never()).storeFile(any(), any());
@@ -78,7 +80,7 @@ class AttachmentServiceUploadValidationTest {
                 "file", "invoice.pdf", "application/pdf", TINY_PDF);
         UploadContentValidator.ValidatedUpload validated =
                 new UploadContentValidator.ValidatedUpload(AttachmentFileType.PDF, ".pdf");
-        when(uploadContentValidator.validate(file)).thenReturn(validated);
+        when(uploadContentValidator.validateForAttachment(file)).thenReturn(validated);
         when(storageService.storeFile(file, ".pdf")).thenReturn("/tmp/stored.pdf");
         when(attachmentRepository.save(any(Attachment.class))).thenAnswer(inv -> inv.getArgument(0));
 

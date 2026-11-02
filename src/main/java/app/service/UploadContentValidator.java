@@ -1,11 +1,14 @@
 package app.service;
 
+import app.exception.UploadRejectedException;
+import app.exception.UploadRejectedException.UploadTarget;
 import app.model.enums.AttachmentFileType;
 import org.apache.tika.Tika;
 import org.apache.tika.mime.MediaType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.util.unit.DataSize;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -22,65 +25,125 @@ public class UploadContentValidator {
 
     private static final Tika TIKA = new Tika();
 
-    private final Set<AttachmentFileType> allowedTypes;
+    private static final Set<String> BLOCKED_MEDIA_TYPES = Set.of(
+            "application/msword",
+            "application/vnd.ms-excel",
+            "application/vnd.ms-word.document.macroenabled.12",
+            "application/vnd.ms-excel.sheet.macroenabled.12"
+    );
+
+    private static final Set<String> BLOCKED_EXTENSIONS = Set.of(
+            ".doc", ".xls", ".docm", ".xlsm"
+    );
+
+    private final Set<AttachmentFileType> attachmentAllowedTypes;
+    private final Set<AttachmentFileType> avatarAllowedTypes;
+    private final long maxFileSizeBytes;
 
     public UploadContentValidator(
-            @Value("${app.upload.allowed-types:jpeg,png,pdf}") String allowedTypesProperty) {
-        this.allowedTypes = Arrays.stream(allowedTypesProperty.split(","))
+            @Value("${app.upload.attachment.allowed-types:jpeg,png,pdf,docx,xlsx}") String attachmentAllowed,
+            @Value("${app.upload.avatar.allowed-types:jpeg,png}") String avatarAllowed,
+            @Value("${spring.servlet.multipart.max-file-size:10MB}") DataSize maxFileSize) {
+        this.attachmentAllowedTypes = parseAllowedTypes(attachmentAllowed);
+        this.avatarAllowedTypes = parseAllowedTypes(avatarAllowed);
+        this.maxFileSizeBytes = maxFileSize.toBytes();
+    }
+
+    public ValidatedUpload validateForAttachment(MultipartFile file) {
+        return validate(file, attachmentAllowedTypes, UploadTarget.ATTACHMENT);
+    }
+
+    public ValidatedUpload validateForAvatar(MultipartFile file) {
+        return validate(file, avatarAllowedTypes, UploadTarget.AVATAR);
+    }
+
+    /** @deprecated use {@link #validateForAttachment} */
+    @Deprecated
+    public ValidatedUpload validate(MultipartFile file) {
+        return validateForAttachment(file);
+    }
+
+    private ValidatedUpload validate(
+            MultipartFile file, Set<AttachmentFileType> allowedTypes, UploadTarget target) {
+        if (file == null || file.isEmpty()) {
+            throw new UploadRejectedException(UploadRejectedException.Reason.EMPTY, target);
+        }
+        if (file.getSize() > maxFileSizeBytes) {
+            throw new UploadRejectedException(UploadRejectedException.Reason.TOO_LARGE, target);
+        }
+
+        rejectBlockedFilenameExtension(file.getOriginalFilename(), target);
+
+        DetectedType detected = detectType(file, target);
+        if (detected.blockedLegacyOrMacro()) {
+            throw new UploadRejectedException(UploadRejectedException.Reason.TYPE_NOT_ALLOWED, target);
+        }
+        if (!allowedTypes.contains(detected.fileType())) {
+            throw new UploadRejectedException(UploadRejectedException.Reason.TYPE_NOT_ALLOWED, target);
+        }
+
+        String extensionFromContent = extensionFor(detected.fileType());
+        String extensionFromName = extensionFromFilename(file.getOriginalFilename());
+        if (extensionFromName != null && !extensionsCompatible(extensionFromName, extensionFromContent, detected.fileType())) {
+            throw new UploadRejectedException(UploadRejectedException.Reason.EXTENSION_MISMATCH, target);
+        }
+
+        return new ValidatedUpload(detected.fileType(), extensionFromContent);
+    }
+
+    private static void rejectBlockedFilenameExtension(String originalFilename, UploadTarget target) {
+        String ext = extensionFromFilename(originalFilename);
+        if (ext != null && BLOCKED_EXTENSIONS.contains(ext.toLowerCase(Locale.ROOT))) {
+            throw new UploadRejectedException(UploadRejectedException.Reason.TYPE_NOT_ALLOWED, target);
+        }
+    }
+
+    private record DetectedType(AttachmentFileType fileType, boolean blockedLegacyOrMacro) {}
+
+    private DetectedType detectType(MultipartFile file, UploadTarget target) {
+        try (InputStream in = file.getInputStream()) {
+            String mediaTypeName = TIKA.detect(in, file.getOriginalFilename());
+            MediaType mediaType = MediaType.parse(mediaTypeName);
+            String base = mediaType.getBaseType().toString().toLowerCase(Locale.ROOT);
+            if (BLOCKED_MEDIA_TYPES.contains(base)) {
+                return new DetectedType(AttachmentFileType.OTHER, true);
+            }
+            AttachmentFileType type = switch (base) {
+                case "image/jpeg" -> AttachmentFileType.JPG;
+                case "image/png" -> AttachmentFileType.PNG;
+                case "application/pdf" -> AttachmentFileType.PDF;
+                case "application/vnd.openxmlformats-officedocument.wordprocessingml.document" -> AttachmentFileType.DOC;
+                case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" -> AttachmentFileType.XLS;
+                default -> AttachmentFileType.OTHER;
+            };
+            return new DetectedType(type, false);
+        } catch (IOException e) {
+            throw new UploadRejectedException(UploadRejectedException.Reason.READ_ERROR, target);
+        }
+    }
+
+    private static Set<AttachmentFileType> parseAllowedTypes(String property) {
+        Set<AttachmentFileType> types = Arrays.stream(property.split(","))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .map(s -> s.toLowerCase(Locale.ROOT))
-                .map(this::parseAllowedToken)
+                .map(UploadContentValidator::parseAllowedToken)
                 .collect(Collectors.toUnmodifiableSet());
-        if (this.allowedTypes.isEmpty()) {
-            throw new IllegalStateException("app.upload.allowed-types must list at least one type");
+        if (types.isEmpty()) {
+            throw new IllegalStateException("Upload allowlist must list at least one type");
         }
+        return types;
     }
 
-    public ValidatedUpload validate(MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("File is empty");
-        }
-
-        AttachmentFileType detectedType = detectType(file);
-        if (!allowedTypes.contains(detectedType)) {
-            throw new IllegalArgumentException(
-                    "File type not allowed. Only JPEG, PNG, and PDF files are accepted.");
-        }
-
-        String extensionFromContent = extensionFor(detectedType);
-        String extensionFromName = extensionFromFilename(file.getOriginalFilename());
-        if (extensionFromName != null && !extensionFromName.equalsIgnoreCase(extensionFromContent)
-                && !jpegExtensionsEquivalent(extensionFromName, extensionFromContent, detectedType)) {
-            throw new IllegalArgumentException("File content does not match the file extension.");
-        }
-
-        return new ValidatedUpload(detectedType, extensionFromContent);
-    }
-
-    private AttachmentFileType parseAllowedToken(String token) {
+    private static AttachmentFileType parseAllowedToken(String token) {
         return switch (token) {
             case "jpeg", "jpg" -> AttachmentFileType.JPG;
             case "png" -> AttachmentFileType.PNG;
             case "pdf" -> AttachmentFileType.PDF;
-            default -> throw new IllegalStateException("Unsupported upload type in app.upload.allowed-types: " + token);
+            case "docx" -> AttachmentFileType.DOC;
+            case "xlsx" -> AttachmentFileType.XLS;
+            default -> throw new IllegalStateException("Unsupported upload type token: " + token);
         };
-    }
-
-    private AttachmentFileType detectType(MultipartFile file) {
-        try (InputStream in = file.getInputStream()) {
-            String mediaTypeName = TIKA.detect(in, file.getOriginalFilename());
-            MediaType mediaType = MediaType.parse(mediaTypeName);
-            String base = mediaType.getBaseType().toString();
-            return switch (base) {
-                case "image/jpeg" -> AttachmentFileType.JPG;
-                case "image/png" -> AttachmentFileType.PNG;
-                case "application/pdf" -> AttachmentFileType.PDF;
-                default -> AttachmentFileType.OTHER;
-            };
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Could not read uploaded file.");
-        }
     }
 
     private static String extensionFromFilename(String originalFilename) {
@@ -100,17 +163,22 @@ public class UploadContentValidator {
             case JPG -> ".jpg";
             case PNG -> ".png";
             case PDF -> ".pdf";
+            case DOC -> ".docx";
+            case XLS -> ".xlsx";
             default -> "";
         };
     }
 
-    private static boolean jpegExtensionsEquivalent(
+    private static boolean extensionsCompatible(
             String extensionFromName, String extensionFromContent, AttachmentFileType type) {
-        if (type != AttachmentFileType.JPG) {
-            return false;
+        if (extensionFromName.equalsIgnoreCase(extensionFromContent)) {
+            return true;
         }
-        Set<String> jpegExts = Set.of(".jpg", ".jpeg");
-        return jpegExts.contains(extensionFromName.toLowerCase(Locale.ROOT))
-                && jpegExts.contains(extensionFromContent.toLowerCase(Locale.ROOT));
+        if (type == AttachmentFileType.JPG) {
+            Set<String> jpegExts = Set.of(".jpg", ".jpeg");
+            return jpegExts.contains(extensionFromName.toLowerCase(Locale.ROOT))
+                    && jpegExts.contains(extensionFromContent.toLowerCase(Locale.ROOT));
+        }
+        return false;
     }
 }

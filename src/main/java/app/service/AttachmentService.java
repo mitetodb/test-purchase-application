@@ -33,7 +33,7 @@ public class AttachmentService {
 
         accessControlService.checkCanViewTestPurchase(tp);
 
-        UploadContentValidator.ValidatedUpload validated = uploadContentValidator.validate(file);
+        UploadContentValidator.ValidatedUpload validated = uploadContentValidator.validateForAttachment(file);
 
         String storedPath = storageService.storeFile(file, validated.extension());
 

@@ -81,6 +81,8 @@
 
     <h5 th:text="#{ui.attachments.7e27}">Attachments</h5>
 
+    <div th:if="${uploadError}" class="alert alert-danger" th:text="${uploadError}"></div>
+
     <form th:action="@{/attachments/upload}" method="post" enctype="multipart/form-data">
         <input type="hidden" name="testPurchaseId" th:value="${purchase.id}"/>
         <input type="file" name="file" required/>

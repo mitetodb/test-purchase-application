@@ -1,23 +1,35 @@
 package app.exception;
 
+import app.model.enums.Country;
+import app.service.UploadErrorMessages;
+import app.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.AccessDeniedException;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.util.UUID;
 
 @Slf4j
 @ControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
+
+    private final UploadErrorMessages uploadErrorMessages;
+    private final UserService userService;
 
     @ExceptionHandler(EntityNotFoundException.class)
     @org.springframework.web.bind.annotation.ResponseStatus(HttpStatus.NOT_FOUND)
@@ -64,6 +76,39 @@ public class GlobalExceptionHandler {
         model.addAttribute("errorId", errorId);
         model.addAttribute("message", ex.getMessage());
         return "error/access-denied";
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public String handleMaxUploadSize(
+            MaxUploadSizeExceededException ex,
+            HttpServletRequest request,
+            Authentication authentication,
+            Model model,
+            RedirectAttributes redirectAttributes) {
+        String errorId = UUID.randomUUID().toString();
+        log.warn("[{}] Upload too large: {}", errorId, request.getRequestURI(), ex);
+
+        var locale = LocaleContextHolder.getLocale();
+        String uri = request.getRequestURI();
+
+        if ("/attachments/upload".equals(uri)) {
+            String tpId = request.getParameter("testPurchaseId");
+            if (tpId != null && !tpId.isBlank()) {
+                redirectAttributes.addFlashAttribute("uploadError", uploadErrorMessages.attachmentTooLarge(locale));
+                return "redirect:/testpurchases/view/" + tpId;
+            }
+        }
+
+        if ("/profile".equals(uri) && authentication != null) {
+            model.addAttribute("uploadError", uploadErrorMessages.avatarTooLarge(locale));
+            model.addAttribute("profile", userService.getProfile(authentication.getName()));
+            model.addAttribute("countries", Country.values());
+            return "profile";
+        }
+
+        model.addAttribute("errorId", errorId);
+        model.addAttribute("message", uploadErrorMessages.attachmentTooLarge(locale));
+        return "error/bad-request";
     }
 
     @ExceptionHandler({IllegalArgumentException.class, BindException.class})

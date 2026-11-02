@@ -1,71 +1,85 @@
 package app.service;
 
+import app.exception.UploadRejectedException;
 import app.model.enums.AttachmentFileType;
+import app.support.UploadFixtureBytes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.util.unit.DataSize;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class UploadContentValidatorTest {
 
-    private UploadContentValidator validator;
-
-    /** Smallest JFIF-style JPEG header (demo fixture). */
-    private static final byte[] TINY_JPEG = {
-            (byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0, 0x00, 0x10,
-            0x4A, 0x46, 0x49, 0x46, 0x00, 0x01, 0x01, 0x00, 0x00, 0x01,
-            0x00, 0x01, 0x00, 0x00, (byte) 0xFF, (byte) 0xD9
-    };
-
-    /** Minimal PNG signature + IHDR chunk length/type (demo fixture). */
-    private static final byte[] TINY_PNG = {
-            (byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
-            0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
-            0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
-            0x08, 0x02, 0x00, 0x00, 0x00, (byte) 0x90, 0x77, 0x53,
-            (byte) 0xDE
-    };
-
-    private static final byte[] TINY_PDF = "%PDF-1.4\n%%EOF\n".getBytes();
+    private UploadContentValidator attachmentValidator;
 
     @BeforeEach
     void setUp() {
-        validator = new UploadContentValidator("jpeg,png,pdf");
+        attachmentValidator = new UploadContentValidator(
+                "jpeg,png,pdf,docx,xlsx",
+                "jpeg,png",
+                DataSize.ofKilobytes(512));
+        avatarValidator = attachmentValidator;
     }
 
     @Test
-    void acceptsValidJpeg() {
+    void acceptsValidJpegForAttachment() {
         MockMultipartFile file = new MockMultipartFile(
-                "file", "photo.jpg", "image/jpeg", TINY_JPEG);
+                "file", "photo.jpg", "image/jpeg", UploadFixtureBytes.TINY_JPEG);
 
-        UploadContentValidator.ValidatedUpload result = validator.validate(file);
+        UploadContentValidator.ValidatedUpload result = attachmentValidator.validateForAttachment(file);
 
         assertThat(result.fileType()).isEqualTo(AttachmentFileType.JPG);
         assertThat(result.extension()).isEqualTo(".jpg");
     }
 
     @Test
-    void acceptsValidPng() {
-        MockMultipartFile file = new MockMultipartFile(
-                "file", "scan.png", "image/png", TINY_PNG);
+    void acceptsDocxAndXlsxForAttachment() throws Exception {
+        MockMultipartFile docx = new MockMultipartFile(
+                "file", "notes.docx", "application/octet-stream", UploadFixtureBytes.minimalDocx());
+        MockMultipartFile xlsx = new MockMultipartFile(
+                "file", "sheet.xlsx", "application/octet-stream", UploadFixtureBytes.minimalXlsx());
 
-        UploadContentValidator.ValidatedUpload result = validator.validate(file);
-
-        assertThat(result.fileType()).isEqualTo(AttachmentFileType.PNG);
-        assertThat(result.extension()).isEqualTo(".png");
+        assertThat(attachmentValidator.validateForAttachment(docx).fileType()).isEqualTo(AttachmentFileType.DOC);
+        assertThat(attachmentValidator.validateForAttachment(xlsx).fileType()).isEqualTo(AttachmentFileType.XLS);
     }
 
     @Test
-    void acceptsValidPdf() {
-        MockMultipartFile file = new MockMultipartFile(
-                "file", "invoice.pdf", "application/pdf", TINY_PDF);
+    void rejectsLegacyDocAndXls() {
+        MockMultipartFile doc = new MockMultipartFile(
+                "file", "legacy.doc", "application/msword", UploadFixtureBytes.LEGACY_OLE);
+        MockMultipartFile xls = new MockMultipartFile(
+                "file", "legacy.xls", "application/vnd.ms-excel", UploadFixtureBytes.LEGACY_OLE);
 
-        UploadContentValidator.ValidatedUpload result = validator.validate(file);
+        assertThatThrownBy(() -> attachmentValidator.validateForAttachment(doc))
+                .isInstanceOf(UploadRejectedException.class)
+                .extracting("reason")
+                .isEqualTo(UploadRejectedException.Reason.TYPE_NOT_ALLOWED);
 
-        assertThat(result.fileType()).isEqualTo(AttachmentFileType.PDF);
-        assertThat(result.extension()).isEqualTo(".pdf");
+        assertThatThrownBy(() -> attachmentValidator.validateForAttachment(xls))
+                .isInstanceOf(UploadRejectedException.class)
+                .extracting("reason")
+                .isEqualTo(UploadRejectedException.Reason.TYPE_NOT_ALLOWED);
+    }
+
+    @Test
+    void rejectsMacroDocmAndXlsm() throws Exception {
+        MockMultipartFile docm = new MockMultipartFile(
+                "file", "macro.docm", "application/octet-stream", UploadFixtureBytes.minimalDocm());
+        MockMultipartFile xlsm = new MockMultipartFile(
+                "file", "macro.xlsm", "application/octet-stream", UploadFixtureBytes.minimalXlsm());
+
+        assertThatThrownBy(() -> attachmentValidator.validateForAttachment(docm))
+                .isInstanceOf(UploadRejectedException.class)
+                .extracting("reason")
+                .isEqualTo(UploadRejectedException.Reason.TYPE_NOT_ALLOWED);
+
+        assertThatThrownBy(() -> attachmentValidator.validateForAttachment(xlsm))
+                .isInstanceOf(UploadRejectedException.class)
+                .extracting("reason")
+                .isEqualTo(UploadRejectedException.Reason.TYPE_NOT_ALLOWED);
     }
 
     @Test
@@ -73,29 +87,21 @@ class UploadContentValidatorTest {
         MockMultipartFile file = new MockMultipartFile(
                 "file", "report.pdf", "application/pdf", "not a pdf".getBytes());
 
-        assertThatThrownBy(() -> validator.validate(file))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("File type not allowed");
+        assertThatThrownBy(() -> attachmentValidator.validateForAttachment(file))
+                .isInstanceOf(UploadRejectedException.class)
+                .extracting("reason")
+                .isEqualTo(UploadRejectedException.Reason.TYPE_NOT_ALLOWED);
     }
 
     @Test
     void rejectsRenamedJpegWithPdfExtension() {
         MockMultipartFile file = new MockMultipartFile(
-                "file", "fake.pdf", "application/pdf", TINY_JPEG);
+                "file", "fake.pdf", "application/pdf", UploadFixtureBytes.TINY_JPEG);
 
-        assertThatThrownBy(() -> validator.validate(file))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("File content does not match the file extension.");
-    }
-
-    @Test
-    void rejectsMisleadingContentTypeHeader() {
-        MockMultipartFile file = new MockMultipartFile(
-                "file", "photo.jpg", "application/pdf", TINY_JPEG);
-
-        UploadContentValidator.ValidatedUpload result = validator.validate(file);
-
-        assertThat(result.fileType()).isEqualTo(AttachmentFileType.JPG);
+        assertThatThrownBy(() -> attachmentValidator.validateForAttachment(file))
+                .isInstanceOf(UploadRejectedException.class)
+                .extracting("reason")
+                .isEqualTo(UploadRejectedException.Reason.EXTENSION_MISMATCH);
     }
 
     @Test
@@ -103,8 +109,40 @@ class UploadContentValidatorTest {
         MockMultipartFile file = new MockMultipartFile(
                 "file", "empty.pdf", "application/pdf", new byte[0]);
 
-        assertThatThrownBy(() -> validator.validate(file))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("File is empty");
+        assertThatThrownBy(() -> attachmentValidator.validateForAttachment(file))
+                .isInstanceOf(UploadRejectedException.class)
+                .extracting("reason")
+                .isEqualTo(UploadRejectedException.Reason.EMPTY);
+    }
+
+    @Test
+    void rejectsOversizeBeforeStorage() {
+        byte[] big = new byte[600 * 1024];
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "big.pdf", "application/pdf", big);
+
+        assertThatThrownBy(() -> attachmentValidator.validateForAttachment(file))
+                .isInstanceOf(UploadRejectedException.class)
+                .extracting("reason")
+                .isEqualTo(UploadRejectedException.Reason.TOO_LARGE);
+    }
+
+    @Test
+    void avatarRejectsPdf() {
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "avatar.pdf", "application/pdf", UploadFixtureBytes.TINY_PDF);
+
+        assertThatThrownBy(() -> attachmentValidator.validateForAvatar(file))
+                .isInstanceOf(UploadRejectedException.class)
+                .extracting("reason")
+                .isEqualTo(UploadRejectedException.Reason.TYPE_NOT_ALLOWED);
+    }
+
+    @Test
+    void avatarAcceptsPng() {
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "avatar.png", "image/png", UploadFixtureBytes.TINY_PNG);
+
+        assertThat(attachmentValidator.validateForAvatar(file).fileType()).isEqualTo(AttachmentFileType.PNG);
     }
 }

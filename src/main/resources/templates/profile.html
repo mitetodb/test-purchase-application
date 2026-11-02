@@ -11,6 +11,7 @@
     <h2 th:text="#{ui.my_profile.e895}">My Profile</h2>
 
     <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+    <div th:if="${uploadError}" class="alert alert-danger" th:text="${uploadError}"></div>
 
     <form th:action="@{/profile}"
           th:object="${profile}"
@@ -34,6 +35,8 @@
 
                 <div class="mt-2">
                     <input type="file" name="imageFile" class="form-control form-control-sm">
+                    <div class="text-danger small" th:if="${#fields.hasErrors('imageFile')}"
+                         th:errors="*{imageFile}"></div>
                     <small class="text-muted" th:text="#{ui.upload_new_profile_picture.dc33}">Upload new profile picture</small>
                 </div>
             </div>

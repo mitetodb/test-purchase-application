@@ -1,10 +1,13 @@
 package app.controller;
 
+import app.exception.UploadRejectedException;
 import app.model.dto.UserProfileDTO;
 import app.service.UploadContentValidator;
+import app.service.UploadErrorMessages;
 import app.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -27,6 +30,7 @@ public class ProfileController {
 
     private final UserService userService;
     private final UploadContentValidator uploadContentValidator;
+    private final UploadErrorMessages uploadErrorMessages;
 
     @GetMapping("/profile")
     public String showProfile(Authentication authentication, Model model) {
@@ -60,10 +64,12 @@ public class ProfileController {
         String imageUrl = null;
         if (imageFile != null && !imageFile.isEmpty()) {
             try {
-                UploadContentValidator.ValidatedUpload validated = uploadContentValidator.validate(imageFile);
+                UploadContentValidator.ValidatedUpload validated = uploadContentValidator.validateForAvatar(imageFile);
                 imageUrl = saveAvatar(imageFile, username, validated.extension());
-            } catch (IllegalArgumentException ex) {
-                bindingResult.reject("imageFile", ex.getMessage());
+            } catch (UploadRejectedException ex) {
+                bindingResult.reject(
+                        "imageFile",
+                        uploadErrorMessages.forRejected(ex, LocaleContextHolder.getLocale()));
                 model.addAttribute("countries", app.model.enums.Country.values());
                 return "profile";
             } catch (IOException e) {
@@ -91,4 +97,3 @@ public class ProfileController {
         return "/uploads/" + newFileName;
     }
 }
-

@@ -2,15 +2,19 @@ package app.controller;
 
 import app.model.entity.Attachment;
 import app.model.enums.AttachmentFileType;
+import app.exception.UploadRejectedException;
 import app.service.AttachmentService;
 import app.service.FileStorageService;
+import app.service.UploadErrorMessages;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.core.io.*;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.UUID;
 
@@ -21,13 +25,15 @@ public class AttachmentController {
 
     private final AttachmentService attachmentService;
     private final FileStorageService storageService;
+    private final UploadErrorMessages uploadErrorMessages;
 
     @PostMapping("/upload")
     @PreAuthorize("hasAnyRole('ADMIN','ACCOUNT_MANAGER','MYSTERY_SHOPPER')")
     public String upload(
             @RequestParam("testPurchaseId") UUID tpId,
             @RequestParam("file") MultipartFile file,
-            @RequestParam(value = "category", required = false) String categoryString
+            @RequestParam(value = "category", required = false) String categoryString,
+            RedirectAttributes redirectAttributes
     ) {
 
         app.model.enums.AttachmentCategory category = null;
@@ -35,7 +41,14 @@ public class AttachmentController {
             category = app.model.enums.AttachmentCategory.valueOf(categoryString);
         }
 
-        attachmentService.upload(tpId, file, category);
+        try {
+            attachmentService.upload(tpId, file, category);
+        } catch (UploadRejectedException ex) {
+            redirectAttributes.addFlashAttribute(
+                    "uploadError",
+                    uploadErrorMessages.forRejected(ex, LocaleContextHolder.getLocale()));
+            return "redirect:/testpurchases/view/" + tpId;
+        }
 
         return "redirect:/testpurchases/view/" + tpId;
     }
