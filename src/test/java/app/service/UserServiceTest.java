@@ -9,6 +9,7 @@ import app.model.enums.Role;
 import app.repository.CustomerRepository;
 import app.repository.TestPurchaseRepository;
 import app.repository.UserRepository;
+import app.security.UserSessionInvalidationService;
 import app.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,6 +47,12 @@ class UserServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private LoginSecurityService loginSecurityService;
+
+    @Mock
+    private UserSessionInvalidationService userSessionInvalidationService;
 
     @InjectMocks
     private UserServiceImpl userService;

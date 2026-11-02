@@ -14,6 +14,7 @@ import app.model.enums.Role;
 import app.repository.CustomerRepository;
 import app.repository.TestPurchaseRepository;
 import app.repository.UserRepository;
+import app.security.UserSessionInvalidationService;
 import app.service.InviteTokenService;
 import app.service.LoginSecurityService;
 import app.service.UserService;
@@ -34,6 +35,7 @@ public class UserServiceImpl implements UserService {
     private final TestPurchaseRepository testPurchaseRepository;
     private final InviteTokenService inviteTokenService;
     private final LoginSecurityService loginSecurityService;
+    private final UserSessionInvalidationService userSessionInvalidationService;
 
     @Override
     @Transactional
@@ -243,6 +245,7 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
         user.setActive(false);
         userRepository.save(user);
+        userSessionInvalidationService.invalidateAllSessions(user.getUsername());
     }
 
     @Override

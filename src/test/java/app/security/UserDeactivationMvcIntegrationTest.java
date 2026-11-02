@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -273,6 +274,36 @@ class UserDeactivationMvcIntegrationTest {
             TestPurchase purchase = testPurchaseRepository.findById(linkedPurchase.getId()).orElseThrow();
             assertEquals(targetUser.getId(), purchase.getMysteryShopper().getId());
         });
+    }
+
+    @Test
+    void deactivatedUserExistingSessionRejectedOnNextRequest() throws Exception {
+        MockHttpSession targetSession = new MockHttpSession();
+
+        mockMvc.perform(post("/login")
+                        .session(targetSession)
+                        .with(csrf())
+                        .param("username", targetUser.getUsername())
+                        .param("password", "TargetPass1!"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/home"));
+
+        mockMvc.perform(get("/home").session(targetSession))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/users/deactivate/" + targetUser.getId())
+                        .with(user(admin.getUsername()).roles("ADMIN"))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/users"));
+
+        assertFalse(reload(targetUser.getId()).isActive(), "user must be inactive in DB before next request");
+
+        mockMvc.perform(get("/home").session(targetSession))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
+
+        assertTrue(targetSession.isInvalid(), "Deactivated user's session should be invalidated");
     }
 
     @Test
