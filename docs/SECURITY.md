@@ -352,7 +352,7 @@ Expect exactly one of each app header, no `X-Frame-Options`, and `Server` withou
 
 **User Rights:**
 - Right to access: Admins can export user data
-- Right to erasure: User accounts are deactivated only (never hard-deleted); admins may hard-delete other entity records where applicable (see [ROLES.md](ROLES.md))
+- Right to erasure: Normal admin operations never delete users, only deactivate. A formal GDPR Art. 17 erasure request is an exception: it is handled manually by the owner (Dimitar), after his explicit decision, by anonymizing the personal data of the deactivated account (no hard delete of rows that other records reference).
 - Right to rectification: Users can edit own profiles
 - Right to portability: Manual export by admin
 
