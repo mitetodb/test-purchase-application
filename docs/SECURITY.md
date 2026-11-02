@@ -40,6 +40,34 @@ public void assignMysteryShopperToPurchase(...) { ... }
 - Direct URL access blocked by Spring Security filters
 - Mystery shopper names hidden from Sales Manager and Customer roles
 
+### Browser Security Headers
+
+**Application (Spring Security)**
+- `Content-Security-Policy` with `frame-ancestors 'self'` (no separate `X-Frame-Options` header)
+- `X-Content-Type-Options: nosniff`
+- `Referrer-Policy: strict-origin-when-cross-origin`
+- `Permissions-Policy` disables geolocation, microphone, and camera by default
+- `script-src` uses `'unsafe-inline'` only where required for existing Thymeleaf inline scripts and `onclick` handlers; `'unsafe-eval'` is not allowed
+- `style-src` uses `'unsafe-inline'` for inline presentation attributes in templates
+
+**Reverse proxy (testkauf nginx vhost only)**
+- `Strict-Transport-Security` is set at the TLS edge (`deploy/nginx/testkauf.getinweb.de.conf`)
+- Other security headers are **not** duplicated in nginx (they come from the app only)
+- `server_tokens off` hides nginx version on the testkauf vhost
+
+**Verify headers (demo / local)**
+```bash
+# Direct app (integration tests cover this path)
+BASE_URL=http://127.0.0.1:8080 scripts/check-security-headers.sh /login
+
+# Production site (includes HSTS from nginx)
+BASE_URL=https://testkauf.getinweb.de scripts/check-security-headers.sh /login
+
+# Manual spot check
+curl -sI https://testkauf.getinweb.de/login | grep -iE '^(content-security-policy|x-frame-options|x-content-type-options|referrer-policy|permissions-policy|strict-transport-security|server:)'
+```
+Expect exactly one of each app header, no `X-Frame-Options`, and `Server` without an nginx version when the updated vhost is deployed.
+
 ### Network Security
 
 **Architecture**
@@ -155,9 +183,7 @@ public void assignMysteryShopperToPurchase(...) { ... }
    - Cannot track who changed what and when
    - Needed for compliance and incident investigation
 
-8. **[#14 CSP and security header cleanup](https://github.com/mitetodb/test-purchase-application/issues/14)**
-   - Content Security Policy not fully configured
-   - Missing or incomplete security headers
+8. **[#14 CSP and security header cleanup](https://github.com/mitetodb/test-purchase-application/issues/14)** — implemented: CSP and related headers from Spring Security; nginx adds HSTS only on the testkauf vhost
 
 9. **[#15 Pagination and filters](https://github.com/mitetodb/test-purchase-application/issues/15)**
    - Large result sets may impact performance
@@ -216,7 +242,7 @@ public void assignMysteryShopperToPurchase(...) { ... }
 7. **TLS Configuration**
    - Let's Encrypt certificates auto-renew
    - Test with: `certbot renew --dry-run`
-   - Ensure HSTS headers are set (nginx config)
+   - HSTS is set on the testkauf nginx vhost; run `scripts/check-security-headers.sh` after deploy
 
 ### For Developers
 
@@ -366,7 +392,7 @@ See [MASTERPLAN.md](MASTERPLAN.md) for the complete security improvement roadmap
 ### Soon (Medium Priority)
 
 7. Add comprehensive audit logging - [#13 Full audit log for clients, prices and users](https://github.com/mitetodb/test-purchase-application/issues/13)
-8. Improve security headers - [#14 CSP and security header cleanup](https://github.com/mitetodb/test-purchase-application/issues/14)
+8. Improve security headers - [#14 CSP and security header cleanup](https://github.com/mitetodb/test-purchase-application/issues/14) (done)
 9. Add pagination and filters - [#15 Pagination and filters](https://github.com/mitetodb/test-purchase-application/issues/15)
 
 ### Future
