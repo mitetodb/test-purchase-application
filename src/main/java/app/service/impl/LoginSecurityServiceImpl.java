@@ -5,10 +5,12 @@ import app.model.entity.LoginRateLimit;
 import app.model.entity.User;
 import app.repository.LoginRateLimitRepository;
 import app.repository.UserRepository;
+import app.security.LoginRateLimitKeys;
 import app.service.LoginSecurityService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,15 +33,15 @@ public class LoginSecurityServiceImpl implements LoginSecurityService {
     @Override
     @Transactional(readOnly = true)
     public boolean isRateLimitExceeded(String clientIp, String username) {
-        return isBucketExceeded(IP_PREFIX + normalize(clientIp))
-                || isBucketExceeded(USER_PREFIX + normalize(username));
+        return isBucketExceeded(IP_PREFIX, normalize(clientIp))
+                || isBucketExceeded(USER_PREFIX, normalize(username));
     }
 
     @Override
     @Transactional
     public void recordLoginAttempt(String clientIp, String username) {
-        incrementBucket(IP_PREFIX + normalize(clientIp));
-        incrementBucket(USER_PREFIX + normalize(username));
+        incrementBucket(IP_PREFIX, normalize(clientIp));
+        incrementBucket(USER_PREFIX, normalize(username));
     }
 
     @Override
@@ -98,10 +100,7 @@ public class LoginSecurityServiceImpl implements LoginSecurityService {
         if (user == null || user.getLockedUntil() == null) {
             return false;
         }
-        if (user.getLockedUntil().isAfter(LocalDateTime.now())) {
-            return true;
-        }
-        return false;
+        return user.getLockedUntil().isAfter(LocalDateTime.now());
     }
 
     @Override
@@ -114,7 +113,21 @@ public class LoginSecurityServiceImpl implements LoginSecurityService {
         }
     }
 
-    private boolean isBucketExceeded(String rateKey) {
+    @Override
+    @Transactional
+    public int purgeExpiredRateLimitRows() {
+        return deleteExpiredRateLimitRows();
+    }
+
+    @Transactional
+    public int deleteExpiredRateLimitRows() {
+        LocalDateTime cutoff = LocalDateTime.now()
+                .minusSeconds(properties.rateLimit().windowSeconds());
+        return rateLimitRepository.deleteExpiredWindows(cutoff);
+    }
+
+    private boolean isBucketExceeded(String prefix, String normalizedValue) {
+        String rateKey = LoginRateLimitKeys.storageKey(prefix, normalizedValue);
         Optional<LoginRateLimit> bucket = rateLimitRepository.findByRateKey(rateKey);
         if (bucket.isEmpty()) {
             return false;
@@ -126,21 +139,33 @@ public class LoginSecurityServiceImpl implements LoginSecurityService {
         return entry.getAttemptCount() >= properties.rateLimit().maxAttempts();
     }
 
-    private void incrementBucket(String rateKey) {
-        LoginRateLimit entry = rateLimitRepository.findByRateKey(rateKey)
-                .orElseGet(() -> LoginRateLimit.builder()
-                        .rateKey(rateKey)
-                        .attemptCount(0)
-                        .windowStart(LocalDateTime.now())
-                        .build());
+    private void incrementBucket(String prefix, String normalizedValue) {
+        String rateKey = LoginRateLimitKeys.storageKey(prefix, normalizedValue);
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime windowNotBefore = now.minusSeconds(properties.rateLimit().windowSeconds());
 
-        if (windowExpired(entry)) {
-            entry.setAttemptCount(1);
-            entry.setWindowStart(LocalDateTime.now());
-        } else {
-            entry.setAttemptCount(entry.getAttemptCount() + 1);
+        int updated = rateLimitRepository.incrementAttemptInActiveWindow(rateKey, windowNotBefore);
+        if (updated > 0) {
+            return;
         }
-        rateLimitRepository.save(entry);
+
+        updated = rateLimitRepository.resetWindowAndSetAttempts(rateKey, windowNotBefore, now, 1);
+        if (updated > 0) {
+            return;
+        }
+
+        try {
+            rateLimitRepository.save(LoginRateLimit.builder()
+                    .rateKey(rateKey)
+                    .attemptCount(1)
+                    .windowStart(now)
+                    .build());
+        } catch (DataIntegrityViolationException duplicateInsert) {
+            updated = rateLimitRepository.incrementAttemptInActiveWindow(rateKey, windowNotBefore);
+            if (updated == 0) {
+                rateLimitRepository.resetWindowAndSetAttempts(rateKey, windowNotBefore, now, 1);
+            }
+        }
     }
 
     private boolean windowExpired(LoginRateLimit entry) {

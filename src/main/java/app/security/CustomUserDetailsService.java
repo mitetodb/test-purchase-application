@@ -32,7 +32,6 @@ public class CustomUserDetailsService implements UserDetailsService {
         loginSecurityService.clearExpiredLock(user);
 
         boolean enabled = user.isActive();
-        boolean accountNonLocked = !loginSecurityService.isCurrentlyLocked(user);
 
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
@@ -40,7 +39,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 enabled,
                 true,
                 true,
-                accountNonLocked,
+                true,
                 List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
         );
     }

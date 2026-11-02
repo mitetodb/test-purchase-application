@@ -19,7 +19,7 @@ public class LoginRateLimit {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "rate_key", nullable = false, unique = true, length = 512)
+    @Column(name = "rate_key", nullable = false, unique = true, length = 64)
     private String rateKey;
 
     @Column(name = "attempt_count", nullable = false)

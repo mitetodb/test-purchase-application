@@ -28,6 +28,9 @@ class ScheduledTasksServiceTest {
     @Mock
     private TestPurchaseRepository testPurchaseRepository;
 
+    @Mock
+    private LoginSecurityService loginSecurityService;
+
     @InjectMocks
     private ScheduledTasksService scheduledTasksService;
 
@@ -58,6 +61,15 @@ class ScheduledTasksServiceTest {
 
         verify(passwordResetTokenRepository).findExpiredOrUsedTokens(any(LocalDateTime.class));
         verify(passwordResetTokenRepository, never()).deleteExpiredOrUsedTokens(any(LocalDateTime.class));
+    }
+
+    @Test
+    void testCleanupExpiredLoginRateLimits() {
+        when(loginSecurityService.purgeExpiredRateLimitRows()).thenReturn(3);
+
+        scheduledTasksService.cleanupExpiredLoginRateLimits();
+
+        verify(loginSecurityService).purgeExpiredRateLimitRows();
     }
 
     @Test

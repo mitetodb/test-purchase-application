@@ -20,6 +20,7 @@ public class ScheduledTasksService {
 
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final TestPurchaseRepository testPurchaseRepository;
+    private final LoginSecurityService loginSecurityService;
 
     @Scheduled(cron = "0 0 2 * * ?")
     @Transactional
@@ -35,6 +36,18 @@ public class ScheduledTasksService {
             log.info("Cleaned up {} expired or used password reset tokens", count);
         } else {
             log.info("No expired or used password reset tokens to clean up");
+        }
+    }
+
+    @Scheduled(cron = "0 30 2 * * ?")
+    @Transactional
+    public void cleanupExpiredLoginRateLimits() {
+        log.info("Starting scheduled task: cleanup expired login rate limit rows");
+        int deleted = loginSecurityService.purgeExpiredRateLimitRows();
+        if (deleted > 0) {
+            log.info("Cleaned up {} expired login rate limit rows", deleted);
+        } else {
+            log.info("No expired login rate limit rows to clean up");
         }
     }
 

@@ -17,4 +17,6 @@ public interface LoginSecurityService {
     boolean isCurrentlyLocked(app.model.entity.User user);
 
     void clearExpiredLock(app.model.entity.User user);
+
+    int purgeExpiredRateLimitRows();
 }
