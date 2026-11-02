@@ -51,8 +51,7 @@ public void assignMysteryShopperToPurchase(...) { ... }
 - `style-src` uses `'unsafe-inline'` for inline presentation attributes in templates
 
 **Reverse proxy (testkauf nginx vhost only)**
-- `Strict-Transport-Security` is set at the TLS edge (`deploy/nginx/testkauf.getinweb.de.conf`)
-- Other security headers are **not** duplicated in nginx (they come from the app only)
+- Security headers (including `Strict-Transport-Security` on HTTPS) come from the Spring app only; **do not** duplicate them in nginx
 - `server_tokens off` hides nginx version on the testkauf vhost
 
 **Verify headers (demo / local)**
@@ -60,7 +59,7 @@ public void assignMysteryShopperToPurchase(...) { ... }
 # Direct app (integration tests cover this path)
 BASE_URL=http://127.0.0.1:8080 scripts/check-security-headers.sh /login
 
-# Production site (includes HSTS from nginx)
+# Production site (HTTPS; includes HSTS from the app)
 BASE_URL=https://testkauf.getinweb.de scripts/check-security-headers.sh /login
 
 # Manual spot check
@@ -183,7 +182,7 @@ Expect exactly one of each app header, no `X-Frame-Options`, and `Server` withou
    - Cannot track who changed what and when
    - Needed for compliance and incident investigation
 
-8. **[#14 CSP and security header cleanup](https://github.com/mitetodb/test-purchase-application/issues/14)** — implemented: CSP and related headers from Spring Security; nginx adds HSTS only on the testkauf vhost
+8. **[#14 CSP and security header cleanup](https://github.com/mitetodb/test-purchase-application/issues/14)** — implemented: CSP, HSTS, and related headers from Spring Security; nginx does not duplicate them on the testkauf vhost
 
 9. **[#15 Pagination and filters](https://github.com/mitetodb/test-purchase-application/issues/15)**
    - Large result sets may impact performance
@@ -242,7 +241,7 @@ Expect exactly one of each app header, no `X-Frame-Options`, and `Server` withou
 7. **TLS Configuration**
    - Let's Encrypt certificates auto-renew
    - Test with: `certbot renew --dry-run`
-   - HSTS is set on the testkauf nginx vhost; run `scripts/check-security-headers.sh` after deploy
+   - Ensure HSTS is sent by the app (Spring Security) on HTTPS responses; do not duplicate it in nginx; run `scripts/check-security-headers.sh` after deploy
 
 ### For Developers
 
