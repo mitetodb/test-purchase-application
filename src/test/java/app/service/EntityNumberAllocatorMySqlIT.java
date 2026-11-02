@@ -48,6 +48,7 @@ class EntityNumberAllocatorMySqlIT {
         registry.add("spring.datasource.password", MYSQL::getPassword);
         registry.add("spring.datasource.driver-class-name", () -> "com.mysql.cj.jdbc.Driver");
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "validate");
+        registry.add("spring.jpa.properties.hibernate.hbm2ddl.auto", () -> "validate");
         registry.add("spring.flyway.enabled", () -> "true");
         registry.add("spring.jpa.database-platform", () -> "org.hibernate.dialect.MySQLDialect");
     }
@@ -72,7 +73,7 @@ class EntityNumberAllocatorMySqlIT {
         transactionTemplate.executeWithoutResult(status ->
                 entityNumberSequenceRepository.findById(EntityNumberSequenceName.SHOP.name())
                         .ifPresent(row -> {
-                            row.setLastValue(0L);
+                            row.setNextValue(0L);
                             entityNumberSequenceRepository.save(row);
                         }));
     }
@@ -80,13 +81,13 @@ class EntityNumberAllocatorMySqlIT {
     @Test
     void flywayV8SeedsSequenceRowsFromEmptyTables() {
         Long customerLast = jdbcTemplate.queryForObject(
-                "SELECT last_value FROM entity_number_sequence WHERE sequence_name = 'CUSTOMER'",
+                "SELECT next_value FROM entity_number_sequence WHERE sequence_name = 'CUSTOMER'",
                 Long.class);
         Long shopLast = jdbcTemplate.queryForObject(
-                "SELECT last_value FROM entity_number_sequence WHERE sequence_name = 'SHOP'",
+                "SELECT next_value FROM entity_number_sequence WHERE sequence_name = 'SHOP'",
                 Long.class);
         Long tpLast = jdbcTemplate.queryForObject(
-                "SELECT last_value FROM entity_number_sequence WHERE sequence_name = 'TEST_PURCHASE'",
+                "SELECT next_value FROM entity_number_sequence WHERE sequence_name = 'TEST_PURCHASE'",
                 Long.class);
 
         assertEquals(0L, customerLast);
@@ -127,7 +128,7 @@ class EntityNumberAllocatorMySqlIT {
         assertEquals(
                 PARALLEL_THREADS,
                 jdbcTemplate.queryForObject(
-                        "SELECT last_value FROM entity_number_sequence WHERE sequence_name = 'SHOP'",
+                        "SELECT next_value FROM entity_number_sequence WHERE sequence_name = 'SHOP'",
                         Long.class));
     }
 }
