@@ -5,6 +5,7 @@ import app.security.LoginAuthenticationFailureHandler;
 import app.security.LoginAuthenticationSuccessHandler;
 import app.security.LoginAwareDaoAuthenticationProvider;
 import app.security.LoginRateLimitFilter;
+import app.security.NotFoundOrLoginAuthenticationEntryPoint;
 import app.repository.UserRepository;
 import app.service.LoginSecurityService;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class SecurityConfig {
     private final LoginRateLimitFilter loginRateLimitFilter;
     private final LoginAuthenticationFailureHandler loginAuthenticationFailureHandler;
     private final LoginAuthenticationSuccessHandler loginAuthenticationSuccessHandler;
+    private final NotFoundOrLoginAuthenticationEntryPoint notFoundOrLoginAuthenticationEntryPoint;
 
     @Bean
     public LoginAwareDaoAuthenticationProvider loginAwareDaoAuthenticationProvider(
@@ -73,6 +75,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exceptionHandling -> exceptionHandling
+                        .authenticationEntryPoint(notFoundOrLoginAuthenticationEntryPoint)
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
                             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                             String accept = request.getHeader("Accept");
