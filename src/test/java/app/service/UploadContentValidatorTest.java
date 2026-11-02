@@ -21,7 +21,6 @@ class UploadContentValidatorTest {
                 "jpeg,png,pdf,docx,xlsx",
                 "jpeg,png",
                 DataSize.ofKilobytes(512));
-        avatarValidator = attachmentValidator;
     }
 
     @Test
@@ -59,6 +58,39 @@ class UploadContentValidatorTest {
                 .isEqualTo(UploadRejectedException.Reason.TYPE_NOT_ALLOWED);
 
         assertThatThrownBy(() -> attachmentValidator.validateForAttachment(xls))
+                .isInstanceOf(UploadRejectedException.class)
+                .extracting("reason")
+                .isEqualTo(UploadRejectedException.Reason.TYPE_NOT_ALLOWED);
+    }
+
+    @Test
+    void rejectsDocmRenamedAsDocx() throws Exception {
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "x.docx", "application/octet-stream", UploadFixtureBytes.minimalDocm());
+
+        assertThatThrownBy(() -> attachmentValidator.validateForAttachment(file))
+                .isInstanceOf(UploadRejectedException.class)
+                .extracting("reason")
+                .isEqualTo(UploadRejectedException.Reason.TYPE_NOT_ALLOWED);
+    }
+
+    @Test
+    void rejectsXlsmRenamedAsXlsx() throws Exception {
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "x.xlsx", "application/octet-stream", UploadFixtureBytes.minimalXlsm());
+
+        assertThatThrownBy(() -> attachmentValidator.validateForAttachment(file))
+                .isInstanceOf(UploadRejectedException.class)
+                .extracting("reason")
+                .isEqualTo(UploadRejectedException.Reason.TYPE_NOT_ALLOWED);
+    }
+
+    @Test
+    void rejectsPlainZipRenamedAsDocx() throws Exception {
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "x.docx", "application/octet-stream", UploadFixtureBytes.plainZipWithTextFile());
+
+        assertThatThrownBy(() -> attachmentValidator.validateForAttachment(file))
                 .isInstanceOf(UploadRejectedException.class)
                 .extracting("reason")
                 .isEqualTo(UploadRejectedException.Reason.TYPE_NOT_ALLOWED);

@@ -99,6 +99,10 @@ public final class UploadFixtureBytes {
                 """));
     }
 
+    public static byte[] plainZipWithTextFile() throws IOException {
+        return zip(Map.of("a.txt", "demo"));
+    }
+
     private static byte[] zip(Map<String, String> entries) throws IOException {
         Map<String, String> ordered = new LinkedHashMap<>(entries);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();

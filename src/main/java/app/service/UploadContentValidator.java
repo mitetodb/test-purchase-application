@@ -3,6 +3,7 @@ package app.service;
 import app.exception.UploadRejectedException;
 import app.exception.UploadRejectedException.UploadTarget;
 import app.model.enums.AttachmentFileType;
+import app.service.OoxmlPackageInspector.ZipDocumentKind;
 import org.apache.tika.Tika;
 import org.apache.tika.mime.MediaType;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,6 +12,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -57,12 +59,6 @@ public class UploadContentValidator {
         return validate(file, avatarAllowedTypes, UploadTarget.AVATAR);
     }
 
-    /** @deprecated use {@link #validateForAttachment} */
-    @Deprecated
-    public ValidatedUpload validate(MultipartFile file) {
-        return validateForAttachment(file);
-    }
-
     private ValidatedUpload validate(
             MultipartFile file, Set<AttachmentFileType> allowedTypes, UploadTarget target) {
         if (file == null || file.isEmpty()) {
@@ -101,22 +97,41 @@ public class UploadContentValidator {
     private record DetectedType(AttachmentFileType fileType, boolean blockedLegacyOrMacro) {}
 
     private DetectedType detectType(MultipartFile file, UploadTarget target) {
-        try (InputStream in = file.getInputStream()) {
-            String mediaTypeName = TIKA.detect(in, file.getOriginalFilename());
-            MediaType mediaType = MediaType.parse(mediaTypeName);
-            String base = mediaType.getBaseType().toString().toLowerCase(Locale.ROOT);
-            if (BLOCKED_MEDIA_TYPES.contains(base)) {
-                return new DetectedType(AttachmentFileType.OTHER, true);
+        try {
+            byte[] bytes = file.getBytes();
+            byte[] header = bytes.length >= 4 ? Arrays.copyOf(bytes, 4) : bytes;
+            if (OoxmlPackageInspector.isZipArchive(header)) {
+                return detectFromZip(bytes, target);
             }
-            AttachmentFileType type = switch (base) {
-                case "image/jpeg" -> AttachmentFileType.JPG;
-                case "image/png" -> AttachmentFileType.PNG;
-                case "application/pdf" -> AttachmentFileType.PDF;
-                case "application/vnd.openxmlformats-officedocument.wordprocessingml.document" -> AttachmentFileType.DOC;
-                case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" -> AttachmentFileType.XLS;
-                default -> AttachmentFileType.OTHER;
+            try (InputStream in = new ByteArrayInputStream(bytes)) {
+                String mediaTypeName = TIKA.detect(in);
+                MediaType mediaType = MediaType.parse(mediaTypeName);
+                String base = mediaType.getBaseType().toString().toLowerCase(Locale.ROOT);
+                if (BLOCKED_MEDIA_TYPES.contains(base)) {
+                    return new DetectedType(AttachmentFileType.OTHER, true);
+                }
+                AttachmentFileType type = switch (base) {
+                    case "image/jpeg" -> AttachmentFileType.JPG;
+                    case "image/png" -> AttachmentFileType.PNG;
+                    case "application/pdf" -> AttachmentFileType.PDF;
+                    default -> AttachmentFileType.OTHER;
+                };
+                return new DetectedType(type, false);
+            }
+        } catch (IOException e) {
+            throw new UploadRejectedException(UploadRejectedException.Reason.READ_ERROR, target);
+        }
+    }
+
+    private DetectedType detectFromZip(byte[] bytes, UploadTarget target) {
+        try {
+            ZipDocumentKind kind = OoxmlPackageInspector.inspect(bytes);
+            return switch (kind) {
+                case DOCX -> new DetectedType(AttachmentFileType.DOC, false);
+                case XLSX -> new DetectedType(AttachmentFileType.XLS, false);
+                case MACRO_OR_UNSUPPORTED, NOT_OOXML -> new DetectedType(AttachmentFileType.OTHER, true);
+                case NOT_ZIP -> new DetectedType(AttachmentFileType.OTHER, false);
             };
-            return new DetectedType(type, false);
         } catch (IOException e) {
             throw new UploadRejectedException(UploadRejectedException.Reason.READ_ERROR, target);
         }

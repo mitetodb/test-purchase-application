@@ -27,10 +27,10 @@ public class AttachmentController {
     private final FileStorageService storageService;
     private final UploadErrorMessages uploadErrorMessages;
 
-    @PostMapping("/upload")
+    @PostMapping("/upload/{testPurchaseId}")
     @PreAuthorize("hasAnyRole('ADMIN','ACCOUNT_MANAGER','MYSTERY_SHOPPER')")
     public String upload(
-            @RequestParam("testPurchaseId") UUID tpId,
+            @PathVariable("testPurchaseId") UUID tpId,
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "category", required = false) String categoryString,
             RedirectAttributes redirectAttributes

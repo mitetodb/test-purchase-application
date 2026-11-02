@@ -113,9 +113,8 @@ class AttachmentUploadMvcTest {
         MockMultipartFile file = new MockMultipartFile(
                 "file", "large.pdf", "application/pdf", payload);
 
-        MvcResult redirect = mockMvc.perform(multipart("/attachments/upload")
+        MvcResult redirect = mockMvc.perform(multipart("/attachments/upload/" + testPurchase.getId())
                         .file(file)
-                        .param("testPurchaseId", testPurchase.getId().toString())
                         .with(csrf())
                         .with(user(admin.getUsername()).roles("ADMIN")))
                 .andExpect(status().is3xxRedirection())
@@ -138,9 +137,8 @@ class AttachmentUploadMvcTest {
         MockMultipartFile file = new MockMultipartFile(
                 "file", "notes.doc", "application/msword", UploadFixtureBytes.LEGACY_OLE);
 
-        mockMvc.perform(multipart("/attachments/upload")
+        mockMvc.perform(multipart("/attachments/upload/" + testPurchase.getId())
                         .file(file)
-                        .param("testPurchaseId", testPurchase.getId().toString())
                         .with(csrf())
                         .with(user(admin.getUsername()).roles("ADMIN")))
                 .andExpect(status().is3xxRedirection())

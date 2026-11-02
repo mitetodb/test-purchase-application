@@ -67,9 +67,8 @@ public class ProfileController {
                 UploadContentValidator.ValidatedUpload validated = uploadContentValidator.validateForAvatar(imageFile);
                 imageUrl = saveAvatar(imageFile, username, validated.extension());
             } catch (UploadRejectedException ex) {
-                bindingResult.reject(
-                        "imageFile",
-                        uploadErrorMessages.forRejected(ex, LocaleContextHolder.getLocale()));
+                String message = uploadErrorMessages.forRejected(ex, LocaleContextHolder.getLocale());
+                model.addAttribute("uploadError", message);
                 model.addAttribute("countries", app.model.enums.Country.values());
                 return "profile";
             } catch (IOException e) {

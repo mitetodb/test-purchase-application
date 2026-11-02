@@ -35,8 +35,7 @@
 
                 <div class="mt-2">
                     <input type="file" name="imageFile" class="form-control form-control-sm">
-                    <div class="text-danger small" th:if="${#fields.hasErrors('imageFile')}"
-                         th:errors="*{imageFile}"></div>
+                    <div class="text-danger small" th:if="${uploadError}" th:text="${uploadError}"></div>
                     <small class="text-muted" th:text="#{ui.upload_new_profile_picture.dc33}">Upload new profile picture</small>
                 </div>
             </div>

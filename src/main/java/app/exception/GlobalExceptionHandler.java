@@ -3,6 +3,7 @@ package app.exception;
 import app.model.enums.Country;
 import app.service.UploadErrorMessages;
 import app.service.UserService;
+import jakarta.servlet.RequestDispatcher;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -21,12 +22,20 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.security.access.AccessDeniedException;
 
+import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
 @ControllerAdvice
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
+
+    private static final Pattern ATTACHMENT_UPLOAD_PATH =
+            Pattern.compile("^/attachments/upload/([0-9a-fA-F-]{36})$");
+
+    private static final String ATTACHMENT_UPLOAD_PREFIX = "/attachments/upload/";
 
     private final UploadErrorMessages uploadErrorMessages;
     private final UserService userService;
@@ -89,14 +98,12 @@ public class GlobalExceptionHandler {
         log.warn("[{}] Upload too large: {}", errorId, request.getRequestURI(), ex);
 
         var locale = LocaleContextHolder.getLocale();
-        String uri = request.getRequestURI();
+        String uri = resolveRequestUri(request);
 
-        if ("/attachments/upload".equals(uri)) {
-            String tpId = request.getParameter("testPurchaseId");
-            if (tpId != null && !tpId.isBlank()) {
-                redirectAttributes.addFlashAttribute("uploadError", uploadErrorMessages.attachmentTooLarge(locale));
-                return "redirect:/testpurchases/view/" + tpId;
-            }
+        Optional<String> purchaseId = extractAttachmentUploadPurchaseId(uri);
+        if (purchaseId.isPresent()) {
+            redirectAttributes.addFlashAttribute("uploadError", uploadErrorMessages.attachmentTooLarge(locale));
+            return "redirect:/testpurchases/view/" + purchaseId.get();
         }
 
         if ("/profile".equals(uri) && authentication != null) {
@@ -142,5 +149,30 @@ public class GlobalExceptionHandler {
         model.addAttribute("errorId", errorId);
         model.addAttribute("message", "An unexpected error occurred. Please try again or contact support.");
         return "error/general-error";
+    }
+
+    private static String resolveRequestUri(HttpServletRequest request) {
+        Object errorUri = request.getAttribute(RequestDispatcher.ERROR_REQUEST_URI);
+        if (errorUri instanceof String errorRequestUri && !errorRequestUri.isBlank()) {
+            return errorRequestUri;
+        }
+        return request.getRequestURI();
+    }
+
+    private static Optional<String> extractAttachmentUploadPurchaseId(String uri) {
+        if (uri == null) {
+            return Optional.empty();
+        }
+        Matcher matcher = ATTACHMENT_UPLOAD_PATH.matcher(uri);
+        if (matcher.matches()) {
+            return Optional.of(matcher.group(1));
+        }
+        if (uri.startsWith(ATTACHMENT_UPLOAD_PREFIX)) {
+            String tail = uri.substring(ATTACHMENT_UPLOAD_PREFIX.length());
+            if (tail.matches("[0-9a-fA-F-]{36}")) {
+                return Optional.of(tail);
+            }
+        }
+        return Optional.empty();
     }
 }

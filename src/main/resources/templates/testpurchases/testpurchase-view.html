@@ -83,8 +83,7 @@
 
     <div th:if="${uploadError}" class="alert alert-danger" th:text="${uploadError}"></div>
 
-    <form th:action="@{/attachments/upload}" method="post" enctype="multipart/form-data">
-        <input type="hidden" name="testPurchaseId" th:value="${purchase.id}"/>
+    <form th:action="@{'/attachments/upload/' + ${purchase.id}}" method="post" enctype="multipart/form-data">
         <input type="file" name="file" required/>
         <select name="category">
             <option value="" th:text="#{ui.category_optional.b35e}">--Category (optional)--</option>
