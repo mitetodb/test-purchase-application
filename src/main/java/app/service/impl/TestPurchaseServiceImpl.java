@@ -6,6 +6,8 @@ import app.model.dto.*;
 import app.model.entity.*;
 import app.model.enums.Role;
 import app.model.enums.TestPurchaseStatus;
+import app.model.filter.TestPurchaseListFilter;
+import app.repository.spec.TestPurchaseSpecifications;
 import app.repository.CustomerRepository;
 import app.repository.ShopRepository;
 import app.repository.TestPurchaseRepository;
@@ -18,6 +20,8 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -305,6 +309,34 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
         return purchases.stream()
                 .map(p -> TestPurchaseViewDTO.from(p, hideMysteryShopperName))
                 .toList();
+    }
+
+    @Override
+    public Page<TestPurchaseViewDTO> findPageForCurrentUser(TestPurchaseListFilter filter, Pageable pageable) {
+        User currentUser = accessControlService.getCurrentUserWithManagedCustomers();
+        boolean hideMysteryShopperName = accessControlService.shouldHideMysteryShopperName();
+        TestPurchaseListFilter effectiveFilter = sanitizeFilter(filter, currentUser);
+
+        var spec = TestPurchaseSpecifications.listQuery(currentUser, effectiveFilter);
+        return testPurchaseRepository.findAll(spec, pageable)
+                .map(p -> TestPurchaseViewDTO.from(p, hideMysteryShopperName));
+    }
+
+    private TestPurchaseListFilter sanitizeFilter(TestPurchaseListFilter filter, User currentUser) {
+        if (filter == null) {
+            return new TestPurchaseListFilter();
+        }
+        TestPurchaseListFilter copy = new TestPurchaseListFilter();
+        copy.setStatus(filter.getStatus());
+        copy.setCustomerId(filter.getCustomerId());
+        copy.setCreatedFrom(filter.getCreatedFrom());
+        copy.setCreatedTo(filter.getCreatedTo());
+
+        Role role = currentUser.getRole();
+        if (role == Role.ADMIN || role == Role.ACCOUNT_MANAGER) {
+            copy.setMysteryShopperId(filter.getMysteryShopperId());
+        }
+        return copy;
     }
 
     @Override

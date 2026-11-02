@@ -3,6 +3,7 @@ package app.controller;
 import app.model.entity.Customer;
 import app.model.enums.Country;
 import app.service.CustomerService;
+import app.support.ListPagingSupport;
 import app.security.CustomUserDetailsService;
 import app.security.LoginAuthenticationFailureHandler;
 import app.security.LoginAuthenticationSuccessHandler;
@@ -16,9 +17,14 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+
 import java.util.List;
 import java.util.UUID;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -38,6 +44,9 @@ class CustomerControllerTest {
 
     @MockBean
     private CustomerService customerService;
+
+    @MockBean
+    private ListPagingSupport listPagingSupport;
 
     @MockBean
     private LoginSecurityService loginSecurityService;
@@ -64,11 +73,14 @@ class CustomerControllerTest {
                 .number("0001")
                 .build();
 
-        given(customerService.findAllForCurrentUser()).willReturn(List.of(customer));
+        given(customerService.findPageForCurrentUser(any(), any()))
+                .willReturn(new PageImpl<>(List.of(customer), PageRequest.of(0, 20), 1));
+        given(listPagingSupport.forCustomers(any())).willReturn(PageRequest.of(0, 20));
 
         mockMvc.perform(get("/customers"))
                 .andExpect(status().isOk())
-                .andExpect(model().attributeExists("customers"));
+                .andExpect(model().attributeExists("customers"))
+                .andExpect(model().attributeExists("customerPage"));
     }
 
 }

@@ -1,11 +1,10 @@
 package app.service;
 
-import app.config.SecurityUtils;
 import app.model.dto.CustomerDTO;
 import app.model.entity.Customer;
-import app.repository.CustomerRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import app.model.filter.CustomerListFilter;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.UUID;
@@ -15,6 +14,8 @@ public interface CustomerService {
     List<Customer> findAll();
 
     List<Customer> findAllForCurrentUser();
+
+    Page<Customer> findPageForCurrentUser(CustomerListFilter filter, Pageable pageable);
 
     Customer findById(UUID id);
 

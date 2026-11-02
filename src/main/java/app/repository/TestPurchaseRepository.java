@@ -2,13 +2,14 @@ package app.repository;
 
 import app.model.entity.TestPurchase;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface TestPurchaseRepository extends JpaRepository<TestPurchase, UUID> {
+public interface TestPurchaseRepository extends JpaRepository<TestPurchase, UUID>, JpaSpecificationExecutor<TestPurchase> {
 
     @Query("""
         SELECT DISTINCT p FROM TestPurchase p

@@ -5,9 +5,14 @@ import app.model.dto.TestPurchaseEditDTO;
 import app.model.dto.TestPurchaseViewDTO;
 import app.model.entity.TestPurchase;
 import app.model.enums.TestPurchaseStatus;
+import app.model.filter.TestPurchaseListFilter;
 import app.service.*;
+import app.support.ListPagingSupport;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -29,11 +34,26 @@ public class TestPurchaseController {
     private final AttachmentService attachmentService;
     private final StatusHistoryService statusHistoryService;
     private final UserService userService;
+    private final ListPagingSupport listPagingSupport;
 
     @GetMapping
-    public String list(Model model) {
-        List<TestPurchaseViewDTO> purchases = testPurchaseService.findAllForCurrentUser();
-        model.addAttribute("purchases", purchases);
+    public String list(
+            @ModelAttribute("filter") TestPurchaseListFilter filter,
+            @PageableDefault(size = 20, sort = "createdOn") Pageable pageable,
+            Model model) {
+        Pageable safePageable = listPagingSupport.forTestPurchases(pageable);
+        Page<TestPurchaseViewDTO> purchasePage =
+                testPurchaseService.findPageForCurrentUser(filter, safePageable);
+        model.addAttribute("purchasePage", purchasePage);
+        model.addAttribute("purchases", purchasePage.getContent());
+        model.addAttribute("filterCustomers", customerService.findAllForCurrentUser());
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getAuthorities().stream().anyMatch(a ->
+                "ROLE_ADMIN".equals(a.getAuthority()) || "ROLE_ACCOUNT_MANAGER".equals(a.getAuthority()))) {
+            model.addAttribute("mysteryShoppers", userService.findAllMysteryShoppers());
+            model.addAttribute("canFilterMysteryShopper", true);
+        }
+        model.addAttribute("statuses", TestPurchaseStatus.values());
         return "testpurchases/testpurchases-list";
     }
 
