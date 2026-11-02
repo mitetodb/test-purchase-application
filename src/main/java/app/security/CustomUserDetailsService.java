@@ -31,12 +31,10 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         loginSecurityService.clearExpiredLock(user);
 
-        boolean enabled = user.isActive();
-
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),
-                enabled,
+                true,
                 true,
                 true,
                 true,

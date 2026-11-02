@@ -247,6 +247,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    public void reactivateUser(UUID id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        user.setActive(true);
+        userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
     public void unlockAccount(UUID id) {
         String adminUsername = SecurityUtils.getCurrentUsername();
         loginSecurityService.unlockAccount(id, adminUsername);
