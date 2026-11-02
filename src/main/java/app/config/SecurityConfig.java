@@ -1,28 +1,53 @@
 package app.config;
 
 import app.security.CustomUserDetailsService;
+import app.security.LoginAuthenticationFailureHandler;
+import app.security.LoginAuthenticationSuccessHandler;
+import app.security.LoginAwareDaoAuthenticationProvider;
+import app.security.LoginRateLimitFilter;
+import app.repository.UserRepository;
+import app.service.LoginSecurityService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import jakarta.servlet.http.HttpServletResponse;
 
 @EnableMethodSecurity(prePostEnabled = true)
 @Configuration
+@EnableConfigurationProperties(LoginSecurityProperties.class)
 @RequiredArgsConstructor
 public class SecurityConfig {
 
     private final CustomUserDetailsService customUserDetailsService;
+    private final LoginRateLimitFilter loginRateLimitFilter;
+    private final LoginAuthenticationFailureHandler loginAuthenticationFailureHandler;
+    private final LoginAuthenticationSuccessHandler loginAuthenticationSuccessHandler;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public LoginAwareDaoAuthenticationProvider loginAwareDaoAuthenticationProvider(
+            PasswordEncoder passwordEncoder,
+            UserRepository userRepository,
+            LoginSecurityService loginSecurityService) {
+        LoginAwareDaoAuthenticationProvider provider = new LoginAwareDaoAuthenticationProvider(
+                passwordEncoder, userRepository, loginSecurityService);
+        provider.setUserDetailsService(customUserDetailsService);
+        return provider;
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            LoginAwareDaoAuthenticationProvider loginAwareDaoAuthenticationProvider) throws Exception {
 
         http
                 .csrf(csrf -> csrf
@@ -58,10 +83,12 @@ public class SecurityConfig {
                             request.getRequestDispatcher("/access-denied").forward(request, response);
                         })
                 )
+                .authenticationProvider(loginAwareDaoAuthenticationProvider)
+                .addFilterBefore(loginRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .defaultSuccessUrl("/home", true)
-                        .failureUrl("/login?error")
+                        .successHandler(loginAuthenticationSuccessHandler)
+                        .failureHandler(loginAuthenticationFailureHandler)
                         .permitAll()
                 )
                 .logout(logout -> logout
@@ -81,7 +108,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(
+            LoginAwareDaoAuthenticationProvider loginAwareDaoAuthenticationProvider) {
+        return new ProviderManager(loginAwareDaoAuthenticationProvider);
     }
 }

@@ -15,6 +15,7 @@ import app.repository.CustomerRepository;
 import app.repository.TestPurchaseRepository;
 import app.repository.UserRepository;
 import app.service.InviteTokenService;
+import app.service.LoginSecurityService;
 import app.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class UserServiceImpl implements UserService {
     private final SecurityConfig securityConfig;
     private final TestPurchaseRepository testPurchaseRepository;
     private final InviteTokenService inviteTokenService;
+    private final LoginSecurityService loginSecurityService;
 
     @Override
     @Transactional
@@ -241,5 +243,12 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
         user.setActive(false);
         userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public void unlockAccount(UUID id) {
+        String adminUsername = SecurityUtils.getCurrentUsername();
+        loginSecurityService.unlockAccount(id, adminUsername);
     }
 }

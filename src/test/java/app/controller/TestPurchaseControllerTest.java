@@ -8,6 +8,11 @@ import app.service.CustomerService;
 import app.service.ShopService;
 import app.service.StatusHistoryService;
 import app.service.TestPurchaseService;
+import app.security.CustomUserDetailsService;
+import app.security.LoginAuthenticationFailureHandler;
+import app.security.LoginAuthenticationSuccessHandler;
+import app.security.LoginRateLimitFilter;
+import app.service.LoginSecurityService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -56,6 +61,21 @@ class TestPurchaseControllerTest {
 
     @MockBean
     private app.service.UserService userService;
+
+    @MockBean
+    private LoginSecurityService loginSecurityService;
+
+    @MockBean
+    private LoginRateLimitFilter loginRateLimitFilter;
+
+    @MockBean
+    private LoginAuthenticationFailureHandler loginAuthenticationFailureHandler;
+
+    @MockBean
+    private LoginAuthenticationSuccessHandler loginAuthenticationSuccessHandler;
+
+    @MockBean
+    private CustomUserDetailsService customUserDetailsService;
 
     @Test
     void testViewPageReturns200() throws Exception {

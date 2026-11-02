@@ -115,4 +115,10 @@ public class UserController {
         userService.deactivateUser(id);
         return "redirect:/users";
     }
+
+    @PostMapping("/unlock/{id}")
+    public String unlock(@PathVariable UUID id) {
+        userService.unlockAccount(id);
+        return "redirect:/users";
+    }
 }

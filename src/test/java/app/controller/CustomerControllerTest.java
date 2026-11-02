@@ -3,6 +3,11 @@ package app.controller;
 import app.model.entity.Customer;
 import app.model.enums.Country;
 import app.service.CustomerService;
+import app.security.CustomUserDetailsService;
+import app.security.LoginAuthenticationFailureHandler;
+import app.security.LoginAuthenticationSuccessHandler;
+import app.security.LoginRateLimitFilter;
+import app.service.LoginSecurityService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -33,6 +38,21 @@ class CustomerControllerTest {
 
     @MockBean
     private CustomerService customerService;
+
+    @MockBean
+    private LoginSecurityService loginSecurityService;
+
+    @MockBean
+    private LoginRateLimitFilter loginRateLimitFilter;
+
+    @MockBean
+    private LoginAuthenticationFailureHandler loginAuthenticationFailureHandler;
+
+    @MockBean
+    private LoginAuthenticationSuccessHandler loginAuthenticationSuccessHandler;
+
+    @MockBean
+    private CustomUserDetailsService customUserDetailsService;
 
     @Test
     @WithMockUser(roles = "ADMIN")
