@@ -307,6 +307,34 @@ class UserDeactivationMvcIntegrationTest {
     }
 
     @Test
+    void missingUserRecordInvalidatesExistingSession() throws Exception {
+        MockHttpSession targetSession = new MockHttpSession();
+
+        mockMvc.perform(post("/login")
+                        .session(targetSession)
+                        .with(csrf())
+                        .param("username", targetUser.getUsername())
+                        .param("password", "TargetPass1!"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/home"));
+
+        mockMvc.perform(get("/home").session(targetSession))
+                .andExpect(status().isOk());
+
+        transactionTemplate.executeWithoutResult(status -> {
+            User u = userRepository.findById(targetUser.getId()).orElseThrow();
+            u.setUsername("removed_" + suffix);
+            userRepository.save(u);
+        });
+
+        mockMvc.perform(get("/home").session(targetSession))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
+
+        assertTrue(targetSession.isInvalid(), "Session should be invalidated when user record is gone");
+    }
+
+    @Test
     void usersListShowsDeactivateAndReactivateNotDelete() throws Exception {
         mockMvc.perform(get("/users")
                         .with(user(admin.getUsername()).roles("ADMIN")))

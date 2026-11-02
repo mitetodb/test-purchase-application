@@ -18,6 +18,8 @@ import java.io.IOException;
 /**
  * Ends the request as unauthenticated when the logged-in user's account was deactivated in the DB
  * (works across app restarts; complements {@link UserSessionInvalidationService}).
+ * <p>
+ * Performs one {@code findByUsername} per authenticated request (fail-closed if missing or lookup fails).
  */
 public class InactiveUserSessionFilter extends OncePerRequestFilter {
 
@@ -40,12 +42,7 @@ public class InactiveUserSessionFilter extends OncePerRequestFilter {
                 && authentication.isAuthenticated()
                 && !(authentication instanceof AnonymousAuthenticationToken)) {
 
-            String username = authentication.getName();
-            Boolean deactivated = transactionTemplate.execute(status -> userRepository.findByUsername(username)
-                    .map(user -> !user.isActive())
-                    .orElse(false));
-
-            if (Boolean.TRUE.equals(deactivated)) {
+            if (isSessionUserDeactivated(authentication.getName())) {
                 SecurityContextLogoutHandler logoutHandler = new SecurityContextLogoutHandler();
                 logoutHandler.setInvalidateHttpSession(true);
                 logoutHandler.setClearAuthentication(true);
@@ -56,5 +53,16 @@ public class InactiveUserSessionFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private boolean isSessionUserDeactivated(String username) {
+        try {
+            Boolean deactivated = transactionTemplate.execute(status -> userRepository.findByUsername(username)
+                    .map(user -> !user.isActive())
+                    .orElse(true));
+            return deactivated == null || deactivated;
+        } catch (RuntimeException ex) {
+            return true;
+        }
     }
 }
