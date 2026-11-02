@@ -11,9 +11,11 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.containsString;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
@@ -33,7 +35,7 @@ class UnknownUrlNotFoundMvcTest {
     void anonymousUnknownUrlReturns404NotLoginRedirect() throws Exception {
         mvc.perform(get("/no-such-page-" + System.nanoTime()))
                 .andExpect(status().isNotFound())
-                .andExpect(view().name("error/not-found"));
+                .andExpect(forwardedUrl("/error"));
     }
 
     @Test
@@ -59,7 +61,7 @@ class UnknownUrlNotFoundMvcTest {
 
     @Test
     void anonymousDeleteHomeDoesNotReturn405() throws Exception {
-        mvc.perform(delete("/home"))
+        mvc.perform(delete("/home").with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrlPattern("**/login"));
     }

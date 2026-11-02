@@ -36,11 +36,10 @@ public class MvcHandlerPresenceChecker {
                 : null;
         try {
             ServletRequestPathUtils.parseAndCache(request);
-            if (hasControllerHandler(request, request.getMethod())) {
+            if (matchesController(request, request.getMethod())) {
                 return true;
             }
-            if (!"GET".equalsIgnoreCase(request.getMethod())
-                    && hasControllerHandler(request, "GET")) {
+            if (!"GET".equalsIgnoreCase(request.getMethod()) && matchesController(request, "GET")) {
                 return true;
             }
             return false;
@@ -51,7 +50,29 @@ public class MvcHandlerPresenceChecker {
         }
     }
 
-    private boolean hasControllerHandler(HttpServletRequest request, String httpMethod) throws Exception {
+    private boolean matchesController(HttpServletRequest request, String httpMethod) throws Exception {
+        if (hasControllerHandlerForRequest(request, httpMethod)) {
+            return true;
+        }
+        String uri = request.getRequestURI();
+        if (uri.length() > 1 && uri.endsWith("/")) {
+            HttpServletRequest withoutSlash = new RequestUriOverridingWrapper(
+                    request, uri.substring(0, uri.length() - 1));
+            RequestPath slashPath = ServletRequestPathUtils.hasParsedRequestPath(withoutSlash)
+                    ? ServletRequestPathUtils.getParsedRequestPath(withoutSlash)
+                    : null;
+            try {
+                ServletRequestPathUtils.clearParsedRequestPath(withoutSlash);
+                ServletRequestPathUtils.parseAndCache(withoutSlash);
+                return hasControllerHandlerForRequest(withoutSlash, httpMethod);
+            } finally {
+                restoreParsedRequestPath(withoutSlash, slashPath);
+            }
+        }
+        return false;
+    }
+
+    private boolean hasControllerHandlerForRequest(HttpServletRequest request, String httpMethod) throws Exception {
         HttpServletRequest effectiveRequest = httpMethod.equalsIgnoreCase(request.getMethod())
                 ? request
                 : new HttpMethodOverridingRequestWrapper(request, httpMethod);
@@ -102,6 +123,32 @@ public class MvcHandlerPresenceChecker {
         @Override
         public String getMethod() {
             return method;
+        }
+    }
+
+    private static final class RequestUriOverridingWrapper extends HttpServletRequestWrapper {
+
+        private final String requestUri;
+
+        RequestUriOverridingWrapper(HttpServletRequest request, String requestUri) {
+            super(request);
+            this.requestUri = requestUri;
+        }
+
+        @Override
+        public String getRequestURI() {
+            return requestUri;
+        }
+
+        @Override
+        public StringBuffer getRequestURL() {
+            StringBuffer url = new StringBuffer();
+            url.append(getScheme()).append("://").append(getServerName());
+            if (getServerPort() != 80 && getServerPort() != 443) {
+                url.append(':').append(getServerPort());
+            }
+            url.append(requestUri);
+            return url;
         }
     }
 }
