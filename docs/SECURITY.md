@@ -29,7 +29,7 @@ This document outlines security practices, considerations, and planned improveme
 **Method-Level Security**
 ```java
 @PreAuthorize("hasRole('ADMIN')")
-public void deleteUser(UUID id) { ... }
+public void deactivateUser(UUID id) { ... }
 
 @PreAuthorize("hasAnyRole('ADMIN', 'ACCOUNT_MANAGER')")
 public void assignMysteryShopperToPurchase(...) { ... }
@@ -352,7 +352,7 @@ Expect exactly one of each app header, no `X-Frame-Options`, and `Server` withou
 
 **User Rights:**
 - Right to access: Admins can export user data
-- Right to deletion: Admin can deactivate (soft delete) or hard delete
+- Right to erasure: User accounts are deactivated only (never hard-deleted); admins may hard-delete other entity records where applicable (see [ROLES.md](ROLES.md))
 - Right to rectification: Users can edit own profiles
 - Right to portability: Manual export by admin
 
