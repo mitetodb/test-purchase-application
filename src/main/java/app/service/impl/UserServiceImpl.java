@@ -1,6 +1,5 @@
 package app.service.impl;
 
-import app.config.SecurityConfig;
 import app.config.SecurityUtils;
 import app.model.dto.RegistrationDTO;
 import app.model.dto.UserCreateDTO;
@@ -17,9 +16,11 @@ import app.repository.UserRepository;
 import app.security.UserSessionInvalidationService;
 import app.service.InviteTokenService;
 import app.service.LoginSecurityService;
+import app.service.PasswordPolicyService;
 import app.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,11 +32,12 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final CustomerRepository customerRepository;
-    private final SecurityConfig securityConfig;
+    private final PasswordEncoder passwordEncoder;
     private final TestPurchaseRepository testPurchaseRepository;
     private final InviteTokenService inviteTokenService;
     private final LoginSecurityService loginSecurityService;
     private final UserSessionInvalidationService userSessionInvalidationService;
+    private final PasswordPolicyService passwordPolicyService;
 
     @Override
     @Transactional
@@ -51,9 +53,11 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("Passwords do not match.");
         }
 
+        passwordPolicyService.validateOrThrow(dto.getPassword());
+
         User user = User.builder()
                 .username(dto.getUsername())
-                .password(securityConfig.passwordEncoder().encode(dto.getPassword()))
+                .password(passwordEncoder.encode(dto.getPassword()))
                 .role(Role.MYSTERY_SHOPPER)  // Always MYSTERY_SHOPPER for public registration
                 .email(dto.getEmail())
                 .country(dto.getCountry())
@@ -82,9 +86,11 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("Username already taken.");
         }
 
+        passwordPolicyService.validateOrThrow(userCreateDTO.getPassword());
+
         User user = User.builder()
                 .username(userCreateDTO.getUsername())
-                .password(securityConfig.passwordEncoder().encode(userCreateDTO.getPassword()))
+                .password(passwordEncoder.encode(userCreateDTO.getPassword()))
                 .email(userCreateDTO.getEmail())
                 .role(userCreateDTO.getRole())
                 .country(userCreateDTO.getCountry())
@@ -131,7 +137,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void changePassword(User user, String newPassword) {
-        user.setPassword(securityConfig.passwordEncoder().encode(newPassword));
+        passwordPolicyService.validateOrThrow(newPassword);
+        user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }
 

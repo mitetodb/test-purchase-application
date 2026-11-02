@@ -7,9 +7,12 @@ import app.model.entity.TestPurchase;
 import app.model.entity.User;
 import app.model.enums.*;
 import app.repository.CustomerRepository;
+import app.repository.PasswordResetTokenRepository;
 import app.repository.ShopRepository;
 import app.repository.TestPurchaseRepository;
 import app.repository.UserRepository;
+import app.repository.UserTotpRecoveryCodeRepository;
+import app.support.TestDatabaseCleanup;
 import app.service.TestPurchaseService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,6 +51,12 @@ class NullCustomerSecurityTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private PasswordResetTokenRepository passwordResetTokenRepository;
+
+    @Autowired
+    private UserTotpRecoveryCodeRepository userTotpRecoveryCodeRepository;
+
     private User customerUserWithNullCustomer;
     private User salesManagerWithNullManaged;
     private TestPurchase orphanPurchase;
@@ -56,7 +65,8 @@ class NullCustomerSecurityTest {
     void setUp() {
         testPurchaseRepository.deleteAll();
         customerRepository.deleteAll();
-        userRepository.deleteAll();
+        TestDatabaseCleanup.deleteAllUsersAndDependents(
+                userRepository, passwordResetTokenRepository, userTotpRecoveryCodeRepository);
         shopRepository.deleteAll();
 
         // Create a customer user with NO customer link

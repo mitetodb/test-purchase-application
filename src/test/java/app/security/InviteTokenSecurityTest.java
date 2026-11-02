@@ -7,7 +7,10 @@ import app.model.entity.User;
 import app.model.enums.Country;
 import app.model.enums.Role;
 import app.repository.InviteTokenRepository;
+import app.repository.PasswordResetTokenRepository;
 import app.repository.UserRepository;
+import app.repository.UserTotpRecoveryCodeRepository;
+import app.support.TestDatabaseCleanup;
 import app.service.InviteTokenService;
 import app.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,6 +50,12 @@ class InviteTokenSecurityTest {
     private UserRepository userRepository;
 
     @Autowired
+    private PasswordResetTokenRepository passwordResetTokenRepository;
+
+    @Autowired
+    private UserTotpRecoveryCodeRepository userTotpRecoveryCodeRepository;
+
+    @Autowired
     private jakarta.persistence.EntityManager entityManager;
 
     private User adminUser;
@@ -56,7 +65,8 @@ class InviteTokenSecurityTest {
     @BeforeEach
     void setUp() {
         inviteTokenRepository.deleteAll();
-        userRepository.deleteAll();
+        TestDatabaseCleanup.deleteAllUsersAndDependents(
+                userRepository, passwordResetTokenRepository, userTotpRecoveryCodeRepository);
 
         // Create admin
         adminUser = new User();
@@ -119,8 +129,8 @@ class InviteTokenSecurityTest {
     void registrationWithoutTokenFails() {
         RegistrationDTO dto = new RegistrationDTO();
         dto.setUsername("newuser");
-        dto.setPassword("password123");
-        dto.setConfirmPassword("password123");
+        dto.setPassword("password1234");
+        dto.setConfirmPassword("password1234");
         dto.setEmail("newuser@test.com");
         dto.setCountry(Country.GERMANY);
         dto.setInviteToken(null);
@@ -134,8 +144,8 @@ class InviteTokenSecurityTest {
     void registrationWithInvalidTokenFails() {
         RegistrationDTO dto = new RegistrationDTO();
         dto.setUsername("newuser");
-        dto.setPassword("password123");
-        dto.setConfirmPassword("password123");
+        dto.setPassword("password1234");
+        dto.setConfirmPassword("password1234");
         dto.setEmail("newuser@test.com");
         dto.setCountry(Country.GERMANY);
         dto.setInviteToken("invalid-token-12345");
@@ -154,8 +164,8 @@ class InviteTokenSecurityTest {
 
         RegistrationDTO dto = new RegistrationDTO();
         dto.setUsername("newuser");
-        dto.setPassword("password123");
-        dto.setConfirmPassword("password123");
+        dto.setPassword("password1234");
+        dto.setConfirmPassword("password1234");
         dto.setEmail("newuser@test.com");
         dto.setCountry(Country.GERMANY);
         dto.setInviteToken(token);
@@ -183,8 +193,8 @@ class InviteTokenSecurityTest {
         // First registration
         RegistrationDTO dto1 = new RegistrationDTO();
         dto1.setUsername("user1");
-        dto1.setPassword("password123");
-        dto1.setConfirmPassword("password123");
+        dto1.setPassword("password1234");
+        dto1.setConfirmPassword("password1234");
         dto1.setEmail("user1@test.com");
         dto1.setCountry(Country.GERMANY);
         dto1.setInviteToken(token);
@@ -193,8 +203,8 @@ class InviteTokenSecurityTest {
         // Second registration with same token
         RegistrationDTO dto2 = new RegistrationDTO();
         dto2.setUsername("user2");
-        dto2.setPassword("password123");
-        dto2.setConfirmPassword("password123");
+        dto2.setPassword("password1234");
+        dto2.setConfirmPassword("password1234");
         dto2.setEmail("user2@test.com");
         dto2.setCountry(Country.GERMANY);
         dto2.setInviteToken(token);
@@ -219,8 +229,8 @@ class InviteTokenSecurityTest {
 
         RegistrationDTO dto = new RegistrationDTO();
         dto.setUsername("newuser");
-        dto.setPassword("password123");
-        dto.setConfirmPassword("password123");
+        dto.setPassword("password1234");
+        dto.setConfirmPassword("password1234");
         dto.setEmail("newuser@test.com");
         dto.setCountry(Country.GERMANY);
         dto.setInviteToken(token);
@@ -239,8 +249,8 @@ class InviteTokenSecurityTest {
 
         RegistrationDTO dto = new RegistrationDTO();
         dto.setUsername("newuser");
-        dto.setPassword("password123");
-        dto.setConfirmPassword("password123");
+        dto.setPassword("password1234");
+        dto.setConfirmPassword("password1234");
         dto.setEmail("newuser@test.com");
         dto.setCountry(Country.GERMANY);
         dto.setInviteToken(token);
@@ -285,8 +295,8 @@ class InviteTokenSecurityTest {
         
         RegistrationDTO dto = new RegistrationDTO();
         dto.setUsername("notoken");
-        dto.setPassword("password123");
-        dto.setConfirmPassword("password123");
+        dto.setPassword("password1234");
+        dto.setConfirmPassword("password1234");
         dto.setEmail("notoken@test.com");
         dto.setCountry(Country.GERMANY);
         dto.setInviteToken(null);
@@ -304,8 +314,8 @@ class InviteTokenSecurityTest {
         
         RegistrationDTO dto = new RegistrationDTO();
         dto.setUsername("badtoken");
-        dto.setPassword("password123");
-        dto.setConfirmPassword("password123");
+        dto.setPassword("password1234");
+        dto.setConfirmPassword("password1234");
         dto.setEmail("badtoken@test.com");
         dto.setCountry(Country.GERMANY);
         dto.setInviteToken("forged-token-xyz");
@@ -326,8 +336,8 @@ class InviteTokenSecurityTest {
         // First registration succeeds
         RegistrationDTO dto1 = new RegistrationDTO();
         dto1.setUsername("first");
-        dto1.setPassword("password123");
-        dto1.setConfirmPassword("password123");
+        dto1.setPassword("password1234");
+        dto1.setConfirmPassword("password1234");
         dto1.setEmail("first@test.com");
         dto1.setCountry(Country.GERMANY);
         dto1.setInviteToken(token);
@@ -338,8 +348,8 @@ class InviteTokenSecurityTest {
         // Second registration with same token fails
         RegistrationDTO dto2 = new RegistrationDTO();
         dto2.setUsername("second");
-        dto2.setPassword("password123");
-        dto2.setConfirmPassword("password123");
+        dto2.setPassword("password1234");
+        dto2.setConfirmPassword("password1234");
         dto2.setEmail("second@test.com");
         dto2.setCountry(Country.GERMANY);
         dto2.setInviteToken(token);
@@ -367,8 +377,8 @@ class InviteTokenSecurityTest {
 
         RegistrationDTO dto = new RegistrationDTO();
         dto.setUsername("expired");
-        dto.setPassword("password123");
-        dto.setConfirmPassword("password123");
+        dto.setPassword("password1234");
+        dto.setConfirmPassword("password1234");
         dto.setEmail("expired@test.com");
         dto.setCountry(Country.GERMANY);
         dto.setInviteToken(token);
@@ -399,16 +409,16 @@ class InviteTokenSecurityTest {
         long timestamp = System.currentTimeMillis();
         RegistrationDTO dto1 = new RegistrationDTO();
         dto1.setUsername("concurrent1_" + timestamp);
-        dto1.setPassword("password123");
-        dto1.setConfirmPassword("password123");
+        dto1.setPassword("password1234");
+        dto1.setConfirmPassword("password1234");
         dto1.setEmail("concurrent1_" + timestamp + "@test.com");
         dto1.setCountry(Country.GERMANY);
         dto1.setInviteToken(token);
 
         RegistrationDTO dto2 = new RegistrationDTO();
         dto2.setUsername("concurrent2_" + timestamp);
-        dto2.setPassword("password123");
-        dto2.setConfirmPassword("password123");
+        dto2.setPassword("password1234");
+        dto2.setConfirmPassword("password1234");
         dto2.setEmail("concurrent2_" + timestamp + "@test.com");
         dto2.setCountry(Country.GERMANY);
         dto2.setInviteToken(token);

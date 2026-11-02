@@ -89,6 +89,10 @@ public class PasswordResetController {
 
             return "redirect:/login?passwordReset";
         } catch (IllegalArgumentException ex) {
+            if ("password.policy.tooShort".equals(ex.getMessage())) {
+                bindingResult.rejectValue("password", "password.policy.tooShort");
+                return "auth/reset-password";
+            }
             model.addAttribute("errorMessage", ex.getMessage());
             return "auth/reset-password";
         }

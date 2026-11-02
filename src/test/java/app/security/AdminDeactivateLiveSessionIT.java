@@ -5,6 +5,7 @@ import app.model.entity.User;
 import app.model.enums.Country;
 import app.model.enums.Role;
 import app.repository.UserRepository;
+import app.service.impl.TwoFactorServiceImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,6 +63,9 @@ class AdminDeactivateLiveSessionIT {
     private UserRepository userRepository;
 
     @Autowired
+    private TwoFactorServiceImpl twoFactorService;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
@@ -101,6 +105,9 @@ class AdminDeactivateLiveSessionIT {
                     .active(true)
                     .build());
             createdUserIds.add(adminUser.getId());
+            String secret = twoFactorService.generateSecret();
+            String code = twoFactorService.generateCurrentCode(secret);
+            twoFactorService.completeEnrollmentAndIssueRecoveryCodes(adminUser, secret, code);
         });
     }
 
@@ -207,8 +214,30 @@ class AdminDeactivateLiveSessionIT {
                 HttpResponse.BodyHandlers.ofString());
 
         assertThat(loginResponse.statusCode()).isEqualTo(302);
-        assertThat(loginResponse.headers().firstValue("Location"))
-                .hasValueSatisfying(location -> assertThat(location).contains("/home"));
+        String location = loginResponse.headers().firstValue("Location").orElse("");
+        if (location.contains("/2fa/verify")) {
+            completeTotpVerify(client, username);
+            return;
+        }
+        assertThat(location).contains("/home");
+    }
+
+    private void completeTotpVerify(HttpClient client, String username) throws Exception {
+        User user = userRepository.findByUsername(username).orElseThrow();
+        String code = twoFactorService.generateCurrentCodeForUser(user);
+        HttpResponse<String> verifyPage = client.send(
+                HttpRequest.newBuilder(URI.create(baseUrl + "/2fa/verify")).GET().build(),
+                HttpResponse.BodyHandlers.ofString());
+        String csrf = parseCsrfToken(verifyPage.body());
+        HttpResponse<String> verifyResponse = client.send(
+                HttpRequest.newBuilder(URI.create(baseUrl + "/2fa/verify"))
+                        .header("Content-Type", "application/x-www-form-urlencoded")
+                        .POST(HttpRequest.BodyPublishers.ofString(
+                                "code=" + urlEncode(code) + "&_csrf=" + urlEncode(csrf)))
+                        .build(),
+                HttpResponse.BodyHandlers.ofString());
+        assertThat(verifyResponse.statusCode()).isEqualTo(302);
+        assertThat(verifyResponse.headers().firstValue("Location").orElse("")).contains("/home");
     }
 
     private Object findPrincipalForUsername(String username) {

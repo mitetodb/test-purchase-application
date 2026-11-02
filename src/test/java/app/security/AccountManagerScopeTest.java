@@ -9,9 +9,12 @@ import app.model.entity.TestPurchase;
 import app.model.entity.User;
 import app.model.enums.*;
 import app.repository.CustomerRepository;
+import app.repository.PasswordResetTokenRepository;
 import app.repository.ShopRepository;
 import app.repository.TestPurchaseRepository;
 import app.repository.UserRepository;
+import app.repository.UserTotpRecoveryCodeRepository;
+import app.support.TestDatabaseCleanup;
 import app.service.TestPurchaseService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,6 +56,12 @@ class AccountManagerScopeTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private PasswordResetTokenRepository passwordResetTokenRepository;
+
+    @Autowired
+    private UserTotpRecoveryCodeRepository userTotpRecoveryCodeRepository;
+
     @org.springframework.boot.test.mock.mockito.MockBean
     private app.client.PricingClient pricingClient;
 
@@ -67,7 +76,8 @@ class AccountManagerScopeTest {
     @BeforeEach
     void setUp() {
         testPurchaseRepository.deleteAll();
-        userRepository.deleteAll();
+        TestDatabaseCleanup.deleteAllUsersAndDependents(
+                userRepository, passwordResetTokenRepository, userTotpRecoveryCodeRepository);
         customerRepository.deleteAll();
 
         // Create two customers
