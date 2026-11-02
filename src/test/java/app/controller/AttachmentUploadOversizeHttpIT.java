@@ -149,12 +149,8 @@ class AttachmentUploadOversizeHttpIT {
     }
 
     @Test
-    void oversizeUploadOnTomcatRedirectsToPurchaseViewWithLocalizedMessage() throws Exception {
-        HttpClient client = HttpClient.newBuilder()
-                .followRedirects(HttpClient.Redirect.NEVER)
-                .cookieHandler(new CookieManager(null, CookiePolicy.ACCEPT_ALL))
-                .connectTimeout(Duration.ofSeconds(15))
-                .build();
+    void oversizeAttachmentUploadUsesRenderedFormActionAndShowsLocalizedFlash() throws Exception {
+        HttpClient client = newHttpClient();
 
         loginViaForm(client, admin.getUsername(), "UploadAdminPass1!");
 
@@ -164,16 +160,20 @@ class AttachmentUploadOversizeHttpIT {
                         .build(),
                 HttpResponse.BodyHandlers.ofString());
         assertThat(viewPage.statusCode()).isEqualTo(200);
-        String csrf = parseCsrfToken(viewPage.body());
 
+        String html = viewPage.body();
+        String uploadAction = parseFormAction(html, "attachment-upload-form");
+        assertThat(uploadAction).contains("_csrf=");
+        assertThat(html).contains("data-max-upload-bytes=\"2048\"");
+
+        String csrf = parseCsrfTokenInForm(html, "attachment-upload-form");
         byte[] payload = new byte[4 * 1024];
         String boundary = "----UploadBoundary" + UUID.randomUUID();
-        byte[] body = buildFileOnlyMultipart(boundary, "large.pdf", "application/pdf", payload);
+        byte[] body = buildMultipartWithCsrf(
+                boundary, "file", "large.pdf", "application/pdf", payload, csrf);
 
         HttpResponse<String> uploadResponse = client.send(
-                HttpRequest.newBuilder(URI.create(
-                                baseUrl + "/attachments/upload/" + testPurchase.getId()
-                                        + "?_csrf=" + urlEncode(csrf)))
+                HttpRequest.newBuilder(resolveAction(baseUrl, uploadAction))
                         .header("Content-Type", "multipart/form-data; boundary=" + boundary)
                         .POST(HttpRequest.BodyPublishers.ofByteArray(body))
                         .build(),
@@ -191,6 +191,54 @@ class AttachmentUploadOversizeHttpIT {
         assertThat(afterRedirect.statusCode()).isEqualTo(200);
         assertThat(afterRedirect.body()).contains("too large");
         assertThat(afterRedirect.body()).contains("DOCX");
+    }
+
+    @Test
+    void oversizeAvatarUploadUsesRenderedFormActionAndShowsLocalizedMessage() throws Exception {
+        HttpClient client = newHttpClient();
+
+        loginViaForm(client, admin.getUsername(), "UploadAdminPass1!");
+
+        HttpResponse<String> profilePage = client.send(
+                HttpRequest.newBuilder(URI.create(baseUrl + "/profile")).GET().build(),
+                HttpResponse.BodyHandlers.ofString());
+        assertThat(profilePage.statusCode()).isEqualTo(200);
+
+        String html = profilePage.body();
+        String profileAction = parseFormAction(html, "profile-upload-form");
+        assertThat(profileAction).contains("_csrf=");
+        assertThat(html).contains("data-max-upload-bytes=\"2048\"");
+
+        String csrf = parseCsrfTokenInForm(html, "profile-upload-form");
+        byte[] payload = new byte[4 * 1024];
+        String boundary = "----AvatarBoundary" + UUID.randomUUID();
+        byte[] body = buildProfileMultipart(
+                boundary,
+                csrf,
+                payload,
+                admin.getUsername(),
+                admin.getEmail(),
+                admin.getCountry().name(),
+                admin.getRole().name());
+
+        HttpResponse<String> uploadResponse = client.send(
+                HttpRequest.newBuilder(resolveAction(baseUrl, profileAction))
+                        .header("Content-Type", "multipart/form-data; boundary=" + boundary)
+                        .POST(HttpRequest.BodyPublishers.ofByteArray(body))
+                        .build(),
+                HttpResponse.BodyHandlers.ofString());
+
+        assertThat(uploadResponse.statusCode()).isEqualTo(200);
+        assertThat(uploadResponse.body()).contains("too large");
+        assertThat(uploadResponse.body()).contains("JPEG");
+    }
+
+    private static HttpClient newHttpClient() {
+        return HttpClient.newBuilder()
+                .followRedirects(HttpClient.Redirect.NEVER)
+                .cookieHandler(new CookieManager(null, CookiePolicy.ACCEPT_ALL))
+                .connectTimeout(Duration.ofSeconds(15))
+                .build();
     }
 
     private void loginViaForm(HttpClient client, String username, String password) throws Exception {
@@ -211,12 +259,81 @@ class AttachmentUploadOversizeHttpIT {
         assertThat(loginResponse.statusCode()).isEqualTo(302);
     }
 
-    private static byte[] buildFileOnlyMultipart(
-            String boundary, String filename, String contentType, byte[] fileBytes) throws Exception {
+    private static String parseFormAction(String html, String formId) {
+        Pattern actionAfterId = Pattern.compile(
+                "id=\"" + Pattern.quote(formId) + "\"[^>]*action=\"([^\"]+)\"",
+                Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+        Matcher m = actionAfterId.matcher(html);
+        if (m.find()) {
+            return m.group(1);
+        }
+        Pattern actionBeforeId = Pattern.compile(
+                "action=\"([^\"]+)\"[^>]*id=\"" + Pattern.quote(formId) + "\"",
+                Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+        m = actionBeforeId.matcher(html);
+        assertThat(m.find()).as("form action for id=%s", formId).isTrue();
+        return m.group(1);
+    }
+
+    private static String parseCsrfTokenInForm(String html, String formId) {
+        int formStart = html.indexOf("id=\"" + formId + "\"");
+        assertThat(formStart).isGreaterThanOrEqualTo(0);
+        int formEnd = html.indexOf("</form>", formStart);
+        assertThat(formEnd).isGreaterThan(formStart);
+        String formHtml = html.substring(formStart, formEnd);
+        return parseCsrfToken(formHtml);
+    }
+
+    private static URI resolveAction(String baseUrl, String action) {
+        if (action.startsWith("http://") || action.startsWith("https://")) {
+            return URI.create(action);
+        }
+        if (action.startsWith("/")) {
+            return URI.create(baseUrl + action);
+        }
+        return URI.create(baseUrl + "/" + action);
+    }
+
+    private static byte[] buildMultipartWithCsrf(
+            String boundary,
+            String fileFieldName,
+            String filename,
+            String contentType,
+            byte[] fileBytes,
+            String csrfToken) throws Exception {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        writeFile(out, boundary, "file", filename, contentType, fileBytes);
+        writeField(out, boundary, "_csrf", csrfToken);
+        writeFile(out, boundary, fileFieldName, filename, contentType, fileBytes);
         out.write(("--" + boundary + "--\r\n").getBytes(StandardCharsets.UTF_8));
         return out.toByteArray();
+    }
+
+    private static byte[] buildProfileMultipart(
+            String boundary,
+            String csrfToken,
+            byte[] imageBytes,
+            String username,
+            String email,
+            String country,
+            String role) throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        writeField(out, boundary, "_csrf", csrfToken);
+        writeField(out, boundary, "username", username);
+        writeField(out, boundary, "email", email);
+        writeField(out, boundary, "country", country);
+        writeField(out, boundary, "role", role);
+        writeFile(out, boundary, "imageFile", "large.jpg", "image/jpeg", imageBytes);
+        out.write(("--" + boundary + "--\r\n").getBytes(StandardCharsets.UTF_8));
+        return out.toByteArray();
+    }
+
+    private static void writeField(
+            ByteArrayOutputStream out, String boundary, String name, String value) throws Exception {
+        out.write(("--" + boundary + "\r\n").getBytes(StandardCharsets.UTF_8));
+        out.write(("Content-Disposition: form-data; name=\"" + name + "\"\r\n\r\n")
+                .getBytes(StandardCharsets.UTF_8));
+        out.write(value.getBytes(StandardCharsets.UTF_8));
+        out.write("\r\n".getBytes(StandardCharsets.UTF_8));
     }
 
     private static void writeFile(

@@ -59,7 +59,24 @@ public class UploadErrorMessages {
                 locale);
     }
 
+    public long getMaxFileSizeBytes() {
+        return maxFileSize.toBytes();
+    }
+
+    public String formatMaxSizeDisplay(Locale locale) {
+        return formatMaxSize(locale);
+    }
+
     private String formatMaxSize(Locale locale) {
+        long bytes = maxFileSize.toBytes();
+        if (bytes < 1024 * 1024) {
+            long kilobytes = Math.max(1, bytes / 1024);
+            return messageSource.getMessage(
+                    "error.upload.max_size_kb",
+                    new Object[]{kilobytes},
+                    kilobytes + " KB",
+                    locale);
+        }
         long megabytes = Math.max(1, maxFileSize.toMegabytes());
         return messageSource.getMessage(
                 "error.upload.max_size_mb",
