@@ -10,6 +10,10 @@ import app.model.enums.Role;
 import app.repository.CustomerRepository;
 import app.repository.UserRepository;
 import app.service.AccessControlService;
+import app.audit.AuditChangeSummary;
+import app.model.enums.AuditAction;
+import app.model.enums.AuditEntityType;
+import app.service.AuditLogService;
 import app.service.CustomerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +37,7 @@ public class CustomerServiceImpl implements CustomerService {
     private final UserRepository userRepository;
     private final PricingCustomerClient pricingCustomerClient;
     private final AccessControlService accessControlService;
+    private final AuditLogService auditLogService;
 
     private static final Set<Role> CAN_SYNC_BASE_FEE = Set.of(
             Role.ADMIN,
@@ -122,6 +127,15 @@ public class CustomerServiceImpl implements CustomerService {
 
         syncBaseFeeWithPricingApi(saved);
 
+        auditLogService.record(
+                AuditAction.CUSTOMER_CREATE,
+                AuditEntityType.CUSTOMER,
+                saved.getId(),
+                AuditChangeSummary.join(
+                        AuditChangeSummary.kv("number", saved.getNumber()),
+                        AuditChangeSummary.kv("name", saved.getName()),
+                        AuditChangeSummary.kv("baseServiceFee", saved.getBaseServiceFee())));
+
         return saved;
     }
 
@@ -131,6 +145,9 @@ public class CustomerServiceImpl implements CustomerService {
     public Customer update(UUID id, CustomerDTO dto) {
         Customer customer = findByIdForCurrentUser(id);
         accessControlService.checkCanEditCustomer(customer);
+
+        String previousName = customer.getName();
+        Double previousFee = customer.getBaseServiceFee();
 
         // Check pricing permission if baseServiceFee is being changed
         if (dto.getBaseServiceFee() != null && 
@@ -153,6 +170,14 @@ public class CustomerServiceImpl implements CustomerService {
 
         syncBaseFeeWithPricingApi(saved);
 
+        auditLogService.record(
+                AuditAction.CUSTOMER_UPDATE,
+                AuditEntityType.CUSTOMER,
+                saved.getId(),
+                AuditChangeSummary.join(
+                        AuditChangeSummary.fieldChange("name", previousName, dto.getName()),
+                        AuditChangeSummary.fieldChange("baseServiceFee", previousFee, dto.getBaseServiceFee())));
+
         return customerRepository.save(saved);
     }
 
@@ -163,12 +188,27 @@ public class CustomerServiceImpl implements CustomerService {
         Customer customer = findByIdForCurrentUser(id);
 
         if (accessControlService.canHardDelete()) {
+            auditLogService.record(
+                    AuditAction.CUSTOMER_DEACTIVATE,
+                    AuditEntityType.CUSTOMER,
+                    customer.getId(),
+                    AuditChangeSummary.join(
+                            AuditChangeSummary.kv("number", customer.getNumber()),
+                            AuditChangeSummary.kv("name", customer.getName()),
+                            AuditChangeSummary.kv("hardDelete", true)));
             deleteBaseFeeInPricingApi(customer);
             customerRepository.delete(customer);
         } else {
             customer.setActive(false);
             customer.setUpdatedByUser(SecurityUtils.getCurrentUsername());
             customerRepository.save(customer);
+            auditLogService.record(
+                    AuditAction.CUSTOMER_DEACTIVATE,
+                    AuditEntityType.CUSTOMER,
+                    customer.getId(),
+                    AuditChangeSummary.join(
+                            AuditChangeSummary.kv("number", customer.getNumber()),
+                            AuditChangeSummary.kv("name", customer.getName())));
         }
     }
 

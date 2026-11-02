@@ -43,6 +43,9 @@ class CustomerServiceTest {
     @Mock
     private AccessControlService accessControlService;
 
+    @Mock
+    private AuditLogService auditLogService;
+
     @InjectMocks
     private CustomerServiceImpl customerService;
 

@@ -29,6 +29,9 @@ class ShopServiceTest {
     @Mock
     private ShopRepository shopRepository;
 
+    @Mock
+    private AuditLogService auditLogService;
+
     @InjectMocks
     private ShopService shopService;
 

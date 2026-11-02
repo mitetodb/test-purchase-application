@@ -54,6 +54,9 @@ class UserServiceTest {
     @Mock
     private UserSessionInvalidationService userSessionInvalidationService;
 
+    @Mock
+    private AuditLogService auditLogService;
+
     @InjectMocks
     private UserServiceImpl userService;
 
