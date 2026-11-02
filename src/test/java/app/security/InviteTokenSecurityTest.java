@@ -165,6 +165,12 @@ class InviteTokenSecurityTest {
         assertNotNull(registeredUser);
         assertEquals(Role.MYSTERY_SHOPPER, registeredUser.getRole());
         assertEquals("newuser", registeredUser.getUsername());
+
+        String tokenHash = hashToken(token);
+        InviteToken consumed = inviteTokenRepository.findByTokenHash(tokenHash).orElseThrow();
+        assertNotNull(consumed.getUsedAt());
+        assertNotNull(consumed.getUsedBy());
+        assertEquals(registeredUser.getId(), consumed.getUsedBy().getId());
     }
 
     @Test
@@ -372,6 +378,9 @@ class InviteTokenSecurityTest {
         });
 
         assertEquals(userCountBefore, userRepository.count(), "No user should be created with expired token");
+
+        InviteToken tokenEntity = inviteTokenRepository.findByTokenHash(tokenHash).orElseThrow();
+        assertNull(tokenEntity.getUsedBy(), "Expired token must not record usedBy");
     }
 
     @Test
@@ -445,5 +454,12 @@ class InviteTokenSecurityTest {
         assertEquals(1, failureCount.get(), "Exactly one registration should fail");
         long userCountAfter = userRepository.count();
         assertEquals(userCountBefore + 1, userCountAfter, "Only one user should be created");
+
+        String tokenHash = hashToken(token);
+        InviteToken consumed = inviteTokenRepository.findByTokenHash(tokenHash).orElseThrow();
+        assertNotNull(consumed.getUsedBy(), "Winning registration should record usedBy");
+        assertEquals(1, inviteTokenRepository.findAll().stream()
+                .filter(t -> t.getUsedBy() != null)
+                .count(), "Exactly one token should reference a consumer");
     }
 }
