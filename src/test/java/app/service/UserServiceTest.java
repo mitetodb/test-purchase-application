@@ -109,7 +109,13 @@ class UserServiceTest {
         when(userRepository.findByUsername("newuser")).thenReturn(Optional.empty());
         when(securityConfig.passwordEncoder()).thenReturn(passwordEncoder);
         when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User saved = invocation.getArgument(0);
+            if (saved.getId() == null) {
+                saved.setId(userId);
+            }
+            return saved;
+        });
 
         User result = userService.register(dto);
 
@@ -118,6 +124,7 @@ class UserServiceTest {
         assertThat(result.getRole()).isEqualTo(Role.MYSTERY_SHOPPER);
         assertThat(result.isActive()).isTrue();
         verify(inviteTokenService).validateAndConsumeToken("valid-token");
+        verify(inviteTokenService).recordTokenUsedBy("valid-token", result);
         verify(userRepository).save(any(User.class));
     }
 
