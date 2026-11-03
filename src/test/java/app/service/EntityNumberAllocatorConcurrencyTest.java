@@ -1,15 +1,12 @@
 package app.service;
 
 import app.TestPurchaseApplication;
-import app.model.entity.EntityNumberSequence;
-import app.model.enums.EntityNumberSequenceName;
-import app.repository.EntityNumberSequenceRepository;
+import app.support.TestPurchaseTestDataCleaner;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -37,22 +34,11 @@ class EntityNumberAllocatorConcurrencyTest {
     private EntityNumberAllocator entityNumberAllocator;
 
     @Autowired
-    private EntityNumberSequenceRepository entityNumberSequenceRepository;
-
-    @Autowired
-    private TransactionTemplate transactionTemplate;
+    private TestPurchaseTestDataCleaner testPurchaseTestDataCleaner;
 
     @BeforeEach
     void resetSequences() {
-        transactionTemplate.executeWithoutResult(status -> {
-            entityNumberSequenceRepository.deleteAll();
-            entityNumberSequenceRepository.save(
-                    new EntityNumberSequence(EntityNumberSequenceName.CUSTOMER.name(), 0L));
-            entityNumberSequenceRepository.save(
-                    new EntityNumberSequence(EntityNumberSequenceName.SHOP.name(), 0L));
-            entityNumberSequenceRepository.save(
-                    new EntityNumberSequence(EntityNumberSequenceName.TEST_PURCHASE.name(), 1000L));
-        });
+        testPurchaseTestDataCleaner.resetEntityNumberSequencesToDefaults();
     }
 
     @Test
