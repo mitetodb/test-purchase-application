@@ -94,11 +94,4 @@ public class AttachmentService {
         return att;
     }
 
-    public void delete(UUID id) {
-        Attachment att = findById(id);
-        accessControlService.checkCanHardDelete();
-        storageService.delete(att.getFilePath());
-        attachmentRepository.deleteById(id);
-    }
-
 }
