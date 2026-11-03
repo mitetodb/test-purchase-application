@@ -35,7 +35,9 @@ Server-side role-based access control is enforced in controllers, services, and 
 | View customers | ✅ All | ✅ Managed only | ✅ Owned only | ❌ | ❌ |
 | Create customer | ✅ | ✅ (auto-managed) | ✅ (auto-owned) | ❌ | ❌ |
 | Edit customer | ✅ | ✅ **Managed only** | ✅ **Owned only** | ❌ | ❌ |
-| Delete customer | ✅ Hard delete | ⚠️ Soft delete | ⚠️ Soft delete | ❌ | ❌ |
+| Delete customer | ❌ Deactivate only | ⚠️ Deactivate (soft) | ⚠️ Deactivate (soft) | ❌ | ❌ |
+| Deactivate customer | ✅ | ⚠️ Soft (service) | ⚠️ Soft (service) | ❌ | ❌ |
+| Reactivate customer | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Set pricing | ✅ | ✅ | ✅ | ❌ | ❌ |
 
 ### Users and System
@@ -112,9 +114,9 @@ Server-side role-based access control is enforced in controllers, services, and 
 Each role can only access their authorized resources, tested with comprehensive IDOR (Insecure Direct Object Reference) tests.
 
 ### Soft Delete
-Non-admin roles deactivate records via `active` flags; inactive records are filtered from queries. Only Admin can hard delete (permanently remove from database).
+Non-admin roles deactivate records via `active` flags; inactive records are filtered from queries. Only Admin can hard delete some entity types (test purchases, shops).
 
-**Users are never deleted**, only deactivated. Even Admins cannot delete user records—they can only set `active = false`.
+**Users and customers are never deleted**, only deactivated. Even Admins cannot delete user or customer records—they can only set `active = false`.
 
 ### Registration Security
 Mystery Shoppers join by invitation only. Admins and Account Managers send one-time invite links that expire after 7 days. There is no public self-registration endpoint.
@@ -193,9 +195,9 @@ The `User.customer` link determines which company they belong to.
 ### Delete vs. Deactivate
 
 **Hard Delete (Physical Delete)**
-- **Only Admin** can hard delete entities (customers, test purchases, shops)
+- **Only Admin** can hard delete entities (test purchases, shops)
 - Permanently removes data from the database
-- **Users are never deleted**—only deactivated (`active = false`)
+- **Users and customers are never deleted**—only deactivated (`active = false`)
 - Used sparingly for data cleanup
 
 **Soft Delete (Deactivate)**

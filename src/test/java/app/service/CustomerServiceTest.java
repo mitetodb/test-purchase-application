@@ -134,18 +134,17 @@ class CustomerServiceTest {
     }
 
     @Test
-    void testDelete() {
+    void testDeactivateCustomer() {
         when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
-        when(accessControlService.canHardDelete()).thenReturn(true);
-        when(accessControlService.getCurrentUser()).thenReturn(adminUser);
-        doNothing().when(pricingCustomerClient).deleteBaseFee(any(UUID.class));
+        doNothing().when(accessControlService).checkCanViewCustomer(any(Customer.class));
 
         try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
             mockedSecurityUtils.when(SecurityUtils::getCurrentUsername).thenReturn("admin");
 
-            customerService.delete(customerId);
+            customerService.deactivateCustomer(customerId);
 
-            verify(customerRepository).delete(customer);
+            verify(customerRepository).save(customer);
+            assertThat(customer.isActive()).isFalse();
         }
     }
 }
