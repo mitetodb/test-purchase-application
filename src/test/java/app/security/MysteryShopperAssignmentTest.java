@@ -12,6 +12,7 @@ import app.repository.TestPurchaseRepository;
 import app.repository.UserRepository;
 import app.service.TestPurchaseService;
 import app.support.TestActiveUsers;
+import app.support.TestPurchaseTestDataCleaner;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,6 +63,9 @@ class MysteryShopperAssignmentTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private TestPurchaseTestDataCleaner testPurchaseTestDataCleaner;
+
     @org.springframework.boot.test.mock.mockito.MockBean
     private app.client.PricingClient pricingClient;
 
@@ -70,9 +74,8 @@ class MysteryShopperAssignmentTest {
 
     @BeforeEach
     void setUp() {
-        testPurchaseRepository.deleteAll();
-        userRepository.deleteAll();
-        customerRepository.deleteAll();
+        testPurchaseTestDataCleaner.resetPurchaseGraphAndBusinessFixtures(
+                customerRepository, userRepository, shopRepository);
         TestActiveUsers.seedStandardUsers(userRepository, passwordEncoder);
 
         // Create a customer

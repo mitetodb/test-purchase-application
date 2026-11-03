@@ -18,7 +18,7 @@ if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
 else
   echo "    Docker not available — MySQL Testcontainers IT skipped (disabledWithoutDocker)"
 fi
-./mvnw -B -q verify
+./mvnw -B -q verify -Dsurefire.runOrder=random
 
 echo "==> 3/4 compose config"
 if command -v docker >/dev/null && docker compose version >/dev/null 2>&1; then
