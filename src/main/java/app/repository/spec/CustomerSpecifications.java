@@ -19,7 +19,14 @@ public final class CustomerSpecifications {
     public static Specification<Customer> listQuery(User currentUser, CustomerListFilter filter) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-            predicates.add(cb.isTrue(root.get("active")));
+
+            boolean includeDeactivated = filter != null
+                    && filter.isShowDeactivated()
+                    && currentUser.getRole() == app.model.enums.Role.ADMIN;
+            if (!includeDeactivated) {
+                predicates.add(cb.isTrue(root.get("active")));
+            }
+
             predicates.add(roleScope(currentUser, root, query, cb));
 
             if (filter != null) {

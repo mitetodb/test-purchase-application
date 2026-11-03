@@ -15,11 +15,13 @@ public interface CustomerService {
 
     List<Customer> findAllForCurrentUser();
 
+    List<Customer> findAllForCurrentUser(boolean includeDeactivated);
+
     Page<Customer> findPageForCurrentUser(CustomerListFilter filter, Pageable pageable);
 
     long countForList(CustomerListFilter filter);
 
-    java.util.List<Customer> findAllForListExport(CustomerListFilter filter, Pageable sortPageable, int maxRows);
+    List<Customer> findAllForListExport(CustomerListFilter filter, Pageable sortPageable, int maxRows);
 
     Customer findById(UUID id);
 
@@ -29,5 +31,7 @@ public interface CustomerService {
 
     Customer update(UUID id, CustomerDTO dto);
 
-    void delete(UUID id);
+    void deactivateCustomer(UUID id);
+
+    void reactivateCustomer(UUID id);
 }

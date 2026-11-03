@@ -1,6 +1,10 @@
 package app.security;
 
+import app.model.entity.User;
+import app.repository.UserRepository;
+import app.security.TwoFactorSessionKeys;
 import app.service.LoginSecurityService;
+import app.service.TwoFactorService;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,6 +21,8 @@ import java.io.IOException;
 public class LoginAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final LoginSecurityService loginSecurityService;
+    private final UserRepository userRepository;
+    private final TwoFactorService twoFactorService;
 
     @PostConstruct
     void init() {
@@ -33,6 +39,20 @@ public class LoginAuthenticationSuccessHandler extends SimpleUrlAuthenticationSu
         if (authentication != null && authentication.getName() != null) {
             loginSecurityService.handleSuccessfulLogin(authentication.getName());
         }
+
+        if (authentication != null && authentication.getName() != null) {
+            var session = request.getSession(true);
+            session.setAttribute(TwoFactorSessionKeys.PASSWORD_LOGIN, Boolean.TRUE);
+            User user = userRepository.findByUsername(authentication.getName()).orElse(null);
+            if (user != null && twoFactorService.requiresTwoFactor(user)) {
+                session.setAttribute(TwoFactorSessionKeys.VERIFIED, Boolean.FALSE);
+                setDefaultTargetUrl(user.isTotpEnabled() ? "/2fa/verify" : "/2fa/enroll");
+            } else {
+                session.setAttribute(TwoFactorSessionKeys.VERIFIED, Boolean.TRUE);
+                setDefaultTargetUrl("/home");
+            }
+        }
+
         super.onAuthenticationSuccess(request, response, authentication);
     }
 }

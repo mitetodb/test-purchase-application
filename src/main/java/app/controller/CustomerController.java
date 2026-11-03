@@ -10,6 +10,7 @@ import app.support.ListExportResponseFactory;
 import app.support.ListExportRows;
 import app.support.ListFilterRedirectBuilder;
 import app.support.ListPagingSupport;
+import app.support.ListSortAllowlist;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -47,9 +48,10 @@ public class CustomerController {
         model.addAttribute("customerPage", customerPage);
         model.addAttribute("customers", customerPage.getContent());
         model.addAttribute("countries", Country.values());
+        model.addAttribute("showDeactivated", filter.isShowDeactivated());
         model.addAttribute("listSort",
-                app.support.ListSortAllowlist.toRequestSortParameter(
-                        safePageable.getSort(), app.support.ListSortAllowlist.ListKind.CUSTOMER));
+                ListSortAllowlist.toRequestSortParameter(
+                        safePageable.getSort(), ListSortAllowlist.ListKind.CUSTOMER));
         return "customers/customers-list";
     }
 
@@ -144,10 +146,17 @@ public class CustomerController {
         return "redirect:/customers";
     }
 
-    @PostMapping("/delete/{id}")
+    @PostMapping("/deactivate/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public String delete(@PathVariable UUID id) {
-        customerService.delete(id);
+    public String deactivate(@PathVariable UUID id) {
+        customerService.deactivateCustomer(id);
         return "redirect:/customers";
+    }
+
+    @PostMapping("/reactivate/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String reactivate(@PathVariable UUID id) {
+        customerService.reactivateCustomer(id);
+        return "redirect:/customers?showDeactivated=true";
     }
 }

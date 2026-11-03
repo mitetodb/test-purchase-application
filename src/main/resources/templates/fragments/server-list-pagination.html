@@ -15,7 +15,7 @@
     <ul class="pagination pagination-sm mb-0" th:if="${page.totalPages > 1}">
         <li class="page-item" th:classappend="${page.first} ? 'disabled'">
             <a class="page-link"
-               th:href="@{${listPath}(page=${page.number - 1}, size=${page.size}, status=${filter.status}, customerId=${filter.customerId}, createdFrom=${filter.createdFrom}, createdTo=${filter.createdTo}, mysteryShopperId=${filter.mysteryShopperId}, name=${filter.name}, category=${filter.category}, country=${filter.country}, role=${filter.role}, active=${filter.active}, username=${filter.username})}"
+               th:href="@{${listPath}(page=${page.number - 1}, size=${page.size}, status=${filter.status}, customerId=${filter.customerId}, createdFrom=${filter.createdFrom}, createdTo=${filter.createdTo}, mysteryShopperId=${filter.mysteryShopperId}, name=${filter.name}, category=${filter.category}, country=${filter.country}, showDeactivated=${filter.showDeactivated}, role=${filter.role}, active=${filter.active}, username=${filter.username})}"
                th:text="#{list.pagination.previous}">Previous</a>
         </li>
         <li class="page-item disabled">
@@ -24,7 +24,7 @@
         </li>
         <li class="page-item" th:classappend="${page.last} ? 'disabled'">
             <a class="page-link"
-               th:href="@{${listPath}(page=${page.number + 1}, size=${page.size}, status=${filter.status}, customerId=${filter.customerId}, createdFrom=${filter.createdFrom}, createdTo=${filter.createdTo}, mysteryShopperId=${filter.mysteryShopperId}, name=${filter.name}, category=${filter.category}, country=${filter.country}, role=${filter.role}, active=${filter.active}, username=${filter.username})}"
+               th:href="@{${listPath}(page=${page.number + 1}, size=${page.size}, status=${filter.status}, customerId=${filter.customerId}, createdFrom=${filter.createdFrom}, createdTo=${filter.createdTo}, mysteryShopperId=${filter.mysteryShopperId}, name=${filter.name}, category=${filter.category}, country=${filter.country}, showDeactivated=${filter.showDeactivated}, role=${filter.role}, active=${filter.active}, username=${filter.username})}"
                th:text="#{list.pagination.next}">Next</a>
         </li>
     </ul>

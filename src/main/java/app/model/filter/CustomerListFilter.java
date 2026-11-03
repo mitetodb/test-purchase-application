@@ -11,4 +11,7 @@ public class CustomerListFilter {
     private Country country;
 
     private String category;
+
+    /** Admin only: include deactivated customers in list/export (default active-only). */
+    private boolean showDeactivated;
 }

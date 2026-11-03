@@ -47,6 +47,9 @@ public final class ListFilterRedirectBuilder {
         if (filter.getCategory() != null && !filter.getCategory().isBlank()) {
             b.queryParam("category", filter.getCategory());
         }
+        if (filter.isShowDeactivated()) {
+            b.queryParam("showDeactivated", true);
+        }
         return b.build().toUriString();
     }
 

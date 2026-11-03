@@ -43,6 +43,9 @@ class CustomerServiceTest {
     @Mock
     private AccessControlService accessControlService;
 
+    @Mock
+    private EntityNumberAllocator entityNumberAllocator;
+
     @InjectMocks
     private CustomerServiceImpl customerService;
 
@@ -105,7 +108,7 @@ class CustomerServiceTest {
         dto.setCountry(Country.BULGARIA);
         dto.setBaseServiceFee(100.0);
 
-        when(customerRepository.findLastSequence()).thenReturn(0L);
+        when(entityNumberAllocator.nextCustomerNumber()).thenReturn("0001");
         when(customerRepository.save(any(Customer.class))).thenAnswer(invocation -> {
             Customer customer = invocation.getArgument(0);
             if (customer.getId() == null) {
@@ -131,18 +134,17 @@ class CustomerServiceTest {
     }
 
     @Test
-    void testDelete() {
+    void testDeactivateCustomer() {
         when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
-        when(accessControlService.canHardDelete()).thenReturn(true);
-        when(accessControlService.getCurrentUser()).thenReturn(adminUser);
-        doNothing().when(pricingCustomerClient).deleteBaseFee(any(UUID.class));
+        doNothing().when(accessControlService).checkCanViewCustomer(any(Customer.class));
 
         try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
             mockedSecurityUtils.when(SecurityUtils::getCurrentUsername).thenReturn("admin");
 
-            customerService.delete(customerId);
+            customerService.deactivateCustomer(customerId);
 
-            verify(customerRepository).delete(customer);
+            verify(customerRepository).save(customer);
+            assertThat(customer.isActive()).isFalse();
         }
     }
 }

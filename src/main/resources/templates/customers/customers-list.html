@@ -36,7 +36,13 @@
                 <input type="text" id="filter-category" name="category" class="form-control form-control-sm"
                        th:value="${filter.category}" th:placeholder="#{ui.search_category.4218}"/>
             </div>
-            <div class="col-md-auto d-flex gap-2">
+            <div class="col-md-auto d-flex flex-wrap gap-3 align-items-center">
+                <div sec:authorize="hasRole('ADMIN')" class="form-check mb-0">
+                    <input class="form-check-input" type="checkbox" name="showDeactivated" value="true"
+                           id="showDeactivatedCustomers" th:checked="${showDeactivated}"/>
+                    <label class="form-check-label" for="showDeactivatedCustomers"
+                           th:text="#{ui.show_deactivated_customers.f7a8}">Show deactivated customers</label>
+                </div>
                 <button type="submit" class="btn btn-sm btn-primary" th:text="#{list.filter.apply}">Apply</button>
                 <a th:href="@{/customers}" class="btn btn-sm btn-outline-secondary" th:text="#{list.filter.reset}">Reset</a>
             </div>
@@ -50,10 +56,10 @@
 
     <div class="mb-3 d-flex flex-wrap gap-2">
         <a class="btn btn-success btn-sm"
-           th:href="@{/customers/export.csv(name=${filter.name}, country=${filter.country}, category=${filter.category}, sort=${listSort})}"
+           th:href="@{/customers/export.csv(name=${filter.name}, country=${filter.country}, category=${filter.category}, showDeactivated=${filter.showDeactivated}, sort=${listSort})}"
            th:text="#{list.export.csv}">Export CSV</a>
         <a class="btn btn-secondary btn-sm"
-           th:href="@{/customers/export.xlsx(name=${filter.name}, country=${filter.country}, category=${filter.category}, sort=${listSort})}"
+           th:href="@{/customers/export.xlsx(name=${filter.name}, country=${filter.country}, category=${filter.category}, showDeactivated=${filter.showDeactivated}, sort=${listSort})}"
            th:text="#{list.export.excel}">Export Excel</a>
     </div>
 
@@ -66,6 +72,7 @@
             <th th:text="#{ui.country.5971}">Country</th>
             <th th:text="#{ui.email.ce8a}">Email</th>
             <th th:text="#{ui.service_fee.a90d}">Service Fee</th>
+            <th sec:authorize="hasRole('ADMIN')" th:text="#{ui.active.4d3d}">Active</th>
             <th sec:authorize="hasRole('ADMIN')" th:text="#{ui.updated_by.eb4d}">Updated By</th>
             <th th:text="#{ui.actions.06df}">Actions</th>
         </tr>
@@ -79,21 +86,36 @@
             <td th:text="${c.country}"></td>
             <td th:text="${c.email}"></td>
             <td th:text="${c.baseServiceFee}"></td>
+            <td sec:authorize="hasRole('ADMIN')">
+                <span th:text="${c.active ? 'Yes' : 'No'}"></span>
+            </td>
             <td sec:authorize="hasRole('ADMIN')" th:text="${c.updatedByUser}"></td>
             <td>
-                <a th:if="${#authorization.expression('hasAnyRole(''ADMIN'',''ACCOUNT_MANAGER'',''SALES_MANAGER'')')}"
+                <a th:if="${#authorization.expression('hasAnyRole(''ADMIN'',''ACCOUNT_MANAGER'',''SALES_MANAGER'')') and c.active}"
                    th:href="@{'/customers/edit/' + ${c.id}}" class="btn btn-warning btn-sm" th:text="#{ui.edit.7dce}">Edit</a>
 
-                <form th:if="${#authorization.expression('hasRole(''ADMIN'')')}"
-                      th:action="@{'/customers/delete/' + ${c.id}}"
+                <form th:if="${#authorization.expression('hasRole(''ADMIN'')') and c.active}"
+                      th:action="@{'/customers/deactivate/' + ${c.id}}"
                       method="post" style="display:inline;">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                    <button class="btn btn-danger btn-sm" type="submit" th:text="#{ui.delete.f2a6}">Delete</button>
+                    <button class="btn btn-sm btn-outline-danger"
+                            type="submit"
+                            th:attr="data-confirm=#{ui.confirm_deactivate_customer.a2b3}"
+                            onclick="return confirm(this.dataset.confirm);"
+                            th:text="#{ui.deactivate_customer.c4d5}">Deactivate</button>
+                </form>
+
+                <form th:if="${#authorization.expression('hasRole(''ADMIN'')') and !c.active}"
+                      th:action="@{'/customers/reactivate/' + ${c.id}}"
+                      method="post" style="display:inline;">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <button class="btn btn-sm btn-outline-success"
+                            type="submit" th:text="#{ui.reactivate_customer.e6f7}">Reactivate</button>
                 </form>
             </td>
         </tr>
         <tr th:if="${#lists.isEmpty(customers)}">
-            <td colspan="8" class="text-muted text-center" th:text="#{list.empty}">No records found.</td>
+            <td colspan="9" class="text-muted text-center" th:text="#{list.empty}">No records found.</td>
         </tr>
         </tbody>
     </table>
