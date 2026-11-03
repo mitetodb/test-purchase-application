@@ -12,6 +12,7 @@ import app.repository.ShopRepository;
 import app.repository.TestPurchaseRepository;
 import app.repository.UserRepository;
 import app.service.TestPurchaseService;
+import app.support.TestPurchaseTestDataCleaner;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +52,9 @@ class MysteryShopperViewCorruptionTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private TestPurchaseTestDataCleaner testPurchaseTestDataCleaner;
+
     private User salesManagerUser;
     private User customerUser;
     private User mysteryShopperUser;
@@ -59,9 +63,8 @@ class MysteryShopperViewCorruptionTest {
 
     @BeforeEach
     void setUp() {
-        testPurchaseRepository.deleteAll();
-        userRepository.deleteAll();
-        customerRepository.deleteAll();
+        testPurchaseTestDataCleaner.resetPurchaseGraphAndBusinessFixtures(
+                customerRepository, userRepository, shopRepository);
 
         // Create a customer
         customer = new Customer();
