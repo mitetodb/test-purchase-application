@@ -53,9 +53,16 @@ public class TestPurchaseTestDataCleaner {
             UserRepository userRepository,
             ShopRepository shopRepository) {
         deleteAllPurchasesAndDependents();
+        deleteUserAuthDependents();
         customerRepository.deleteAll();
         userRepository.deleteAll();
         shopRepository.deleteAll();
+    }
+
+    private void deleteUserAuthDependents() {
+        jdbcTemplate.update("DELETE FROM \"invite_tokens\"");
+        jdbcTemplate.update("DELETE FROM \"password_reset_tokens\"");
+        jdbcTemplate.update("DELETE FROM \"user_totp_recovery_code\"");
     }
 
     private void deleteWherePurchaseIdIn(String table, String column, List<UUID> ids) {

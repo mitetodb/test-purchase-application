@@ -68,6 +68,7 @@ services:
       PRICING_API_KEY: ${PRICING_API_KEY}
       APP_BASE_URL: ${APP_BASE_URL:-https://testkauf.getinweb.de}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      APP_TOTP_ENCRYPTION_KEY: ${APP_TOTP_ENCRYPTION_KEY:-}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-testkauf@getinweb.de}
       DEMO_DATA_ENABLED: ${DEMO_DATA_ENABLED:-false}
       DEMO_PURCHASES: ${DEMO_PURCHASES:-0}

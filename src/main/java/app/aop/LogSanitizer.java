@@ -7,10 +7,10 @@ public final class LogSanitizer {
 
     static final String MASK = "***";
     private static final Pattern SENSITIVE_NAME =
-            Pattern.compile("(?i).*(password|passwd|secret|token|api[-_]?key|credential).*");
+            Pattern.compile("(?i).*(password|passwd|secret|token|totp|recovery|api[-_]?key|credential).*");
     /** key=value / key: value pairs, e.g. DTO toString() or query strings (?token=...). */
     private static final Pattern SENSITIVE_PAIR = Pattern.compile(
-            "(?i)([A-Za-z_]*(?:password|passwd|secret|token|api[-_]?key|credential)[A-Za-z_]*)(\\s*[=:]\\s*)([^,;&)\\]\\s]+)");
+            "(?i)([A-Za-z_]*(?:password|passwd|secret|token|totp|recovery|api[-_]?key|credential)[A-Za-z_]*)(\\s*[=:]\\s*)([^,;&)\\]\\s]+)");
 
     private LogSanitizer() {}
 

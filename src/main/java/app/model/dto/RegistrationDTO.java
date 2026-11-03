@@ -1,7 +1,7 @@
 package app.model.dto;
 
 import app.model.enums.Country;
-import app.model.enums.Role;
+import app.validation.ValidPassword;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.Email;
@@ -17,7 +17,7 @@ public class RegistrationDTO {
     private String username;
 
     @NotBlank
-    @Size(min = 6, message = "Password must be at least 6 characters.")
+    @ValidPassword
     private String password;
 
     @NotBlank

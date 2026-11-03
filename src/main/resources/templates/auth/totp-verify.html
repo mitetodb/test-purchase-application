@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html th:replace="~{layout :: layout(~{::title}, ~{::main})}"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title th:text="#{twoFactor.verify.title}">Two-factor verification</title>
+</head>
+<body>
+<main>
+    <h2 th:text="#{twoFactor.verify.title}">Two-factor verification</h2>
+    <p th:text="#{twoFactor.verify.intro}">Enter the code from your authenticator app.</p>
+
+    <div th:if="${errorMessageKey}" class="alert alert-danger" th:text="#{${errorMessageKey}}"></div>
+    <div th:if="${successMessageKey}" class="alert alert-success" th:text="#{${successMessageKey}}"></div>
+
+    <form th:action="@{/2fa/verify}" method="post" class="mb-4">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <div class="mb-3">
+            <label class="form-label" th:text="#{twoFactor.verify.codeLabel}">Authentication code</label>
+            <input type="text" name="code" class="form-control" inputmode="numeric" autocomplete="one-time-code" required/>
+        </div>
+        <button class="btn btn-primary" type="submit" th:text="#{twoFactor.verify.submit}">Verify</button>
+    </form>
+
+    <h3 th:text="#{twoFactor.recovery.title}">Use a recovery code</h3>
+    <form th:action="@{/2fa/recovery}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <div class="mb-3">
+            <label class="form-label" th:text="#{twoFactor.recovery.label}">Recovery code</label>
+            <input type="text" name="recoveryCode" class="form-control" autocomplete="off"/>
+        </div>
+        <button class="btn btn-outline-secondary" type="submit" th:text="#{twoFactor.recovery.submit}">Use recovery code</button>
+    </form>
+</main>
+</body>
+</html>
