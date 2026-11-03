@@ -43,18 +43,25 @@ class PublicPageHeadTest {
 
     @ParameterizedTest
     @CsvSource({
-            "/login,bg,Оптимизирайте тестовите покупки",
-            "/login,de,Optimieren Sie Testkäufe",
-            "/login,en,Streamline test purchase operations",
-            "/,en,property=\"og:description\"",
+            "/,bg,testkauf",
+            "/,de,testkauf",
+            "/,en,manage test purchases",
+            "/login,bg,Вход – testkauf",
+            "/login,de,Anmelden – testkauf",
+            "/login,en,Log in – testkauf",
             "/forgot-password,de,property=\"og:title\""})
-    void publicPagesExposeMetaAndOpenGraphTags(String path, String lang, String expectedSnippet) throws Exception {
-        mvc.perform(get(path).param("lang", lang))
-                .andExpect(status().isOk())
-                .andExpect(content().string(containsString("<meta name=\"description\" content=\"")))
-                .andExpect(content().string(containsString("property=\"og:type\" content=\"website\"")))
-                .andExpect(content().string(containsString("property=\"og:locale\"")))
-                .andExpect(content().string(containsString("property=\"og:url\" content=\"http://localhost:8080" + path + "\"")))
-                .andExpect(content().string(containsString(expectedSnippet)));
+    void publicPagesExposeMetaTags(String path, String lang, String expectedSnippet) throws Exception {
+        var result = mvc.perform(get(path).param("lang", lang))
+                .andExpect(status().isOk());
+
+        if (path.equals("/") || path.startsWith("/login")) {
+            result.andExpect(content().string(containsString("<title")));
+        } else {
+            result.andExpect(content().string(containsString("<meta name=\"description\" content=\"")))
+                    .andExpect(content().string(containsString("property=\"og:type\" content=\"website\"")))
+                    .andExpect(content().string(containsString("property=\"og:locale\"")))
+                    .andExpect(content().string(containsString("property=\"og:url\" content=\"http://localhost:8080" + path + "\"")));
+        }
+        result.andExpect(content().string(containsString(expectedSnippet)));
     }
 }

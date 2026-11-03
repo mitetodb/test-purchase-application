@@ -1,95 +1,67 @@
 <!DOCTYPE html>
-<html th:replace="~{layout :: layout(~{::title}, ~{::main})}"
-      xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+<!-- testkauf login – standalone (does NOT use layout.html, so no CDN assets). -->
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
 <head>
-    <title th:text="#{ui.login_test_purchase_system.6645}">Login - Test Purchase System</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title th:text="#{tk.login.page}">Log in – testkauf</title>
+  <link rel="icon" th:href="@{/images/testkauf/testkauf-icon.svg}">
+  <link rel="stylesheet" th:href="@{/css/testkauf.css}">
 </head>
-<body>
-<main>
-    <div class="login-container">
-        <div class="login-card">
-            <div class="login-header">
-                <div class="mb-3">
-                    <i class="fas fa-shopping-bag" style="font-size: 3rem; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;"></i>
-                </div>
-                <h2 th:text="#{login.title}">Welcome Back</h2>
-                <p class="text-muted" th:text="#{ui.sign_in_to_your_account.41c7}">Sign in to your account</p>
-            </div>
+<body class="login-page">
+<div class="login-bg" data-bgvideo aria-hidden="true"
+     th:data-portrait-webm="@{/video/testkauf-portrait.webm}" th:data-portrait-mp4="@{/video/testkauf-portrait.mp4}" th:data-portrait-poster="@{/video/testkauf-portrait-poster.webp}">
+  <video muted autoplay loop playsinline preload="metadata" th:poster="@{/video/testkauf-poster.webp}">
+    <source th:src="@{/video/testkauf.webm}" type="video/webm">
+    <source th:src="@{/video/testkauf.mp4}" type="video/mp4">
+  </video>
+</div>
+<header class="login-top">
+  <a th:href="@{/}"><img th:src="@{/images/testkauf/testkauf-wordmark.svg}" alt="testkauf" width="130" height="36"></a>
+  <nav class="langs" th:aria-label="#{tk.lang.label}">
+    <a th:href="@{/login(lang=de)}" lang="de" hreflang="de" title="Deutsch" th:attr="aria-current=${#locale.language=='de'}?'true'">DE</a>
+    <a th:href="@{/login(lang=en)}" lang="en" hreflang="en" title="English" th:attr="aria-current=${#locale.language=='en'}?'true'">EN</a>
+    <a th:href="@{/login(lang=bg)}" lang="bg" hreflang="bg" title="Български" th:attr="aria-current=${#locale.language=='bg'}?'true'">BG</a>
+  </nav>
+</header>
+<main class="login-main">
+  <div class="card">
+    <img class="mark" th:src="@{/images/testkauf/testkauf-icon.svg}" alt="" width="48" height="48">
+    <h1 th:text="#{tk.login.title}">Welcome back</h1>
+    <p class="muted" th:text="#{tk.login.sub}">Sign in to testkauf.</p>
 
-            <!-- Error Message -->
-            <div th:if="${param.error}" class="alert alert-danger" role="alert">
-                <i class="fas fa-exclamation-circle me-2"></i>
-                <th:block th:text="#{login.error.generic}">Invalid username or password. Please try again.</th:block>
-            </div>
-
-            <!-- Logout Message -->
-            <div th:if="${param.logout}" class="alert alert-success" role="alert">
-                <i class="fas fa-check-circle me-2"></i>
-                <th:block th:text="#{ui.you_have_been_logged_out_successfully.ab54}">You have been logged out successfully.</th:block>
-            </div>
-
-            <!-- Registration Success Message -->
-            <div th:if="${param.registered}" class="alert alert-success" role="alert">
-                <i class="fas fa-check-circle me-2"></i>
-                <th:block th:text="#{ui.registration_successful_please_login_wit.67df}">Registration successful! Please login with your credentials.</th:block>
-            </div>
-
-            <form th:action="@{/login}" method="post" class="login-form">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-
-                <div class="form-group">
-                    <label for="username" class="form-label">
-                        <i class="fas fa-user me-2"></i><span th:text="#{login.username}">Username</span>
-                    </label>
-                    <input type="text"
-                           class="form-control"
-                           id="username"
-                           name="username"
-                           placeholder="Enter your username" th:placeholder="#{ui.enter_your_username.dd62}"
-                           required
-                           autofocus/>
-                </div>
-
-                <div class="form-group">
-                    <label for="password" class="form-label">
-                        <i class="fas fa-lock me-2"></i><span th:text="#{login.password}">Password</span>
-                    </label>
-                    <input type="password"
-                           class="form-control"
-                           id="password"
-                           name="password"
-                           placeholder="Enter your password" th:placeholder="#{ui.enter_your_password.e8d2}"
-                           required/>
-                </div>
-
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="rememberMe" name="remember-me">
-                        <label class="form-check-label" for="rememberMe" th:text="#{ui.remember_me.8785}">
-                            Remember me
-                        </label>
-                    </div>
-                    <a th:href="@{/forgot-password}" class="text-decoration-none" style="color: var(--primary-color);">
-                        <i class="fas fa-question-circle me-1"></i><span th:text="#{login.forgot}">Forgot Password?</span>
-                    </a>
-                </div>
-
-                <button type="submit" class="btn btn-primary w-100 mb-3">
-                    <i class="fas fa-sign-in-alt me-2"></i><span th:text="#{login.submit}">Sign In</span>
-                </button>
-
-                <div class="text-center">
-                    <p class="mb-0">
-                        <th:block th:text="#{ui.don_t_have_an_account.a5f6}">Don't have an account?</th:block>
-                        <a th:href="@{/register}" class="text-decoration-none fw-bold" style="color: var(--primary-color);">
-                            <i class="fas fa-user-plus me-1"></i><span th:text="#{login.register}">Register here</span>
-                        </a>
-                    </p>
-                </div>
-            </form>
-        </div>
+    <div th:if="${param.error}" id="err" class="alert alert-err" role="alert">
+      <span aria-hidden="true">!</span><span th:text="#{tk.login.error}">Invalid username or password.</span>
     </div>
+    <div th:if="${param.logout}" class="alert alert-ok" role="status">
+      <span th:text="#{tk.login.logout}">You have been logged out.</span>
+    </div>
+    <div th:if="${param.registered}" class="alert alert-ok" role="status">
+      <span th:text="#{ui.registration_successful_please_login_wit.67df}">Registration successful!</span>
+    </div>
+
+    <form th:action="@{/login}" method="post">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+      <div class="field">
+        <label for="username" th:text="#{tk.login.username}">Username</label>
+        <input id="username" name="username" autocomplete="username" required autofocus>
+      </div>
+      <div class="field">
+        <label for="password" th:text="#{tk.login.password}">Password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+      </div>
+      <div class="row">
+        <label><input type="checkbox" name="remember-me"><span th:text="#{tk.login.remember}">Remember me</span></label>
+        <a th:href="@{/forgot-password}" th:text="#{tk.login.forgot}">Forgot password?</a>
+      </div>
+      <button class="btn btn-p" type="submit" th:text="#{tk.login.submit}">Sign in</button>
+    </form>
+    <p class="invite" th:text="#{tk.login.invite}">No account? Registration is by invitation only.</p>
+  </div>
 </main>
+<footer class="login-foot"><span>© 2026 Getinweb ·
+  <a href="https://getinweb.de/impressum" th:text="#{tk.foot.imprint}">Imprint</a> ·
+  <a href="https://getinweb.de/datenschutz" target="_blank" rel="noopener noreferrer" th:text="#{tk.foot.privacy}">Privacy</a></span></footer>
+<script th:src="@{/js/testkauf-bg-video.js}" defer></script>
 </body>
 </html>
