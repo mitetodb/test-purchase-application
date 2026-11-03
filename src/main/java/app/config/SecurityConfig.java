@@ -1,5 +1,6 @@
 package app.config;
 
+import app.security.CsrfTokenEagerMaterializationFilter;
 import app.security.CustomUserDetailsService;
 import app.security.InactiveUserSessionFilter;
 import app.security.LoginAuthenticationFailureHandler;
@@ -27,6 +28,7 @@ import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWrite
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CsrfFilter;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -124,6 +126,7 @@ public class SecurityConfig {
             http.addFilterAfter(inactiveUserSessionFilter, UsernamePasswordAuthenticationFilter.class);
         }
         http.addFilterAfter(twoFactorGateFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterAfter(new CsrfTokenEagerMaterializationFilter(), CsrfFilter.class);
         return http
                 .formLogin(form -> form
                         .loginPage("/login")
