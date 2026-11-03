@@ -313,21 +313,22 @@ class RolePermissionsTest {
     void nonAdminCannotHardDeleteCustomer() {
         authenticateAs(salesManagerUser);
 
-        customerService.delete(customer1.getId());
+        customerService.deactivateCustomer(customer1.getId());
 
         Customer c = customerRepository.findById(customer1.getId()).orElse(null);
         assertNotNull(c, "Customer should still exist in database");
-        assertFalse(c.isActive(), "Customer should be soft-deleted (inactive)");
+        assertFalse(c.isActive(), "Customer should be deactivated (inactive)");
     }
 
     @Test
-    void adminCanHardDeleteCustomer() {
+    void adminDeactivateCustomerDoesNotHardDelete() {
         authenticateAs(adminUser);
 
-        customerService.delete(customer1.getId());
+        customerService.deactivateCustomer(customer1.getId());
 
         Customer c = customerRepository.findById(customer1.getId()).orElse(null);
-        assertNull(c, "Admin should hard-delete customer from database");
+        assertNotNull(c, "Customer should still exist in database after admin deactivate");
+        assertFalse(c.isActive(), "Customer should be deactivated (inactive)");
     }
 
     @Test

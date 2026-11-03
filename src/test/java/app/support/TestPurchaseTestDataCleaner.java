@@ -53,9 +53,16 @@ public class TestPurchaseTestDataCleaner {
             UserRepository userRepository,
             ShopRepository shopRepository) {
         deleteAllPurchasesAndDependents();
+        deleteUserAuthDependents();
         customerRepository.deleteAll();
         userRepository.deleteAll();
         shopRepository.deleteAll();
+    }
+
+    private void deleteUserAuthDependents() {
+        jdbcTemplate.update("DELETE FROM \"invite_tokens\"");
+        jdbcTemplate.update("DELETE FROM \"password_reset_tokens\"");
+        jdbcTemplate.update("DELETE FROM \"user_totp_recovery_code\"");
     }
 
     private void deleteWherePurchaseIdIn(String table, String column, List<UUID> ids) {
@@ -67,5 +74,23 @@ public class TestPurchaseTestDataCleaner {
         jdbcTemplate.update(
                 "DELETE FROM " + table + " WHERE " + column + " IN (" + placeholders + ")",
                 ids.toArray());
+    }
+
+    /** Resets entity number counters to empty-database defaults (H2 integration tests). */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void resetEntityNumberSequencesToDefaults() {
+        jdbcTemplate.update("DELETE FROM \"entity_number_sequence\"");
+        jdbcTemplate.update(
+                "INSERT INTO \"entity_number_sequence\" (\"sequence_name\", \"last_used_value\") VALUES (?, ?)",
+                "CUSTOMER",
+                0L);
+        jdbcTemplate.update(
+                "INSERT INTO \"entity_number_sequence\" (\"sequence_name\", \"last_used_value\") VALUES (?, ?)",
+                "SHOP",
+                0L);
+        jdbcTemplate.update(
+                "INSERT INTO \"entity_number_sequence\" (\"sequence_name\", \"last_used_value\") VALUES (?, ?)",
+                "TEST_PURCHASE",
+                1000L);
     }
 }

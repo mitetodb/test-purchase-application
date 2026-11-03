@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import jakarta.validation.constraints.NotBlank;
+import app.validation.ValidPassword;
 
 @Data
 public class UserCreateDTO {
@@ -14,6 +15,7 @@ public class UserCreateDTO {
     private String username;
 
     @NotBlank(message = "Password is required.")
+    @ValidPassword
     private String password;
 
     @NotBlank(message = "Confirm password is required.")

@@ -23,9 +23,12 @@ public class CustomerController {
     private final CustomerService customerService;
 
     @GetMapping
-    public String listCustomers(Model model) {
-        List<Customer> customers = customerService.findAllForCurrentUser();
+    public String listCustomers(
+            @RequestParam(value = "showDeactivated", defaultValue = "false") boolean showDeactivated,
+            Model model) {
+        List<Customer> customers = customerService.findAllForCurrentUser(showDeactivated);
         model.addAttribute("customers", customers);
+        model.addAttribute("showDeactivated", showDeactivated);
         return "customers/customers-list";
     }
 
@@ -77,10 +80,17 @@ public class CustomerController {
         return "redirect:/customers";
     }
 
-    @PostMapping("/delete/{id}")
+    @PostMapping("/deactivate/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public String delete(@PathVariable UUID id) {
-        customerService.delete(id);
+    public String deactivate(@PathVariable UUID id) {
+        customerService.deactivateCustomer(id);
         return "redirect:/customers";
+    }
+
+    @PostMapping("/reactivate/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String reactivate(@PathVariable UUID id) {
+        customerService.reactivateCustomer(id);
+        return "redirect:/customers?showDeactivated=true";
     }
 }

@@ -23,6 +23,7 @@ public class ShopService {
 
     private final ShopRepository shopRepository;
     private final AuditLogService auditLogService;
+    private final EntityNumberAllocator entityNumberAllocator;
 
     @Cacheable(value = "shops", key = "'all'")
     public List<Shop> findAll() {
@@ -35,8 +36,8 @@ public class ShopService {
                 .orElseThrow(() -> new ResourceNotFoundException("Shop not found with id: " + id));
     }
 
-    @CacheEvict(value = "shops", allEntries = true)
     @Transactional
+    @CacheEvict(value = "shops", allEntries = true)
     public Shop create(ShopDTO dto) {
         Shop shop = Shop.builder()
                 .name(dto.getName())
@@ -45,11 +46,7 @@ public class ShopService {
                 .description(dto.getDescription())
                 .build();
 
-        Long lastSeq = shopRepository.findLastSequence();
-        long nextSeq = lastSeq + 1;
-
-        String number = String.format("%04d", nextSeq);
-        shop.setNumber(number);
+        shop.setNumber(entityNumberAllocator.nextShopNumber());
 
         shop.setUpdatedByUser(SecurityUtils.getCurrentUsername());
 

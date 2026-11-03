@@ -239,7 +239,7 @@ class AuditLogIntegrationTest {
             Customer created = customerService.create(customerDto);
             customerDto.setName("Audit Customer Updated");
             customerService.update(created.getId(), customerDto);
-            customerService.delete(created.getId());
+            customerService.deactivateCustomer(created.getId());
         });
 
         List<AuditAction> actions = auditLogRepository.findAll().stream()

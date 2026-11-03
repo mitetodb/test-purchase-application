@@ -101,7 +101,7 @@ Deactivated users cannot log in but their data is preserved.
 
 To reactivate: Check **Active** and save.
 
-**Note:** Users are never permanently deleted—only deactivated. This preserves audit trails and data integrity.
+**Note:** Users and customers are never permanently deleted—only deactivated. This preserves audit trails and data integrity.
 
 ### Inviting Mystery Shoppers
 
@@ -164,12 +164,18 @@ Account Managers are responsible for specific customers:
 
 Account Managers can now manage test purchases for this customer.
 
-### Deactivating/Deleting Customers
+### Deactivating and reactivating customers
 
-- **Deactivate**: Uncheck **Active** when editing (preferred method)
-- **Delete (permanent)**: Click **Delete** button and confirm (removes customer record permanently)
+Customers are never removed from the database—only marked inactive (`active = false`), like users.
 
-**Note:** Only customers, shops, and test purchases can be hard deleted. Users are never deleted—only deactivated.
+1. Go to **Customers**
+2. Click **Deactivate** next to the customer (confirm in the dialog)
+3. Deactivated customers are hidden from the list by default; check **Show deactivated customers** to see them again
+4. To reactivate, click **Reactivate** on the same list (with the filter enabled)
+
+Existing test purchases remain in the system; new test purchases cannot be created for a deactivated customer.
+
+**Note:** Users and customers are never hard-deleted. Admins may still hard-delete **shops** and **test purchases** when necessary (see below).
 
 ## Shop Management
 
@@ -369,9 +375,9 @@ Environment configuration is in `deploy/.env` on the server:
 
 ### Data Protection
 
-- Hard-delete customers, shops, or purchases only when absolutely necessary
-- **Users are never deleted**—only deactivated
-- Use deactivation (soft delete) by default for all entities
+- Hard-delete **shops** or **test purchases** only when absolutely necessary
+- **Users and customers are never deleted**—only deactivated (Deactivate / Reactivate on the Users and Customers lists)
+- Use deactivation by default for all entities that support it
 - Keep backups secure
 - Limit access to sensitive data
 

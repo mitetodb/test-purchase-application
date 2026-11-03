@@ -15,6 +15,7 @@ import app.model.enums.AuditAction;
 import app.model.enums.AuditEntityType;
 import app.service.AccessControlService;
 import app.service.AuditLogService;
+import app.service.EntityNumberAllocator;
 import app.service.StatusHistoryService;
 import app.service.TestPurchaseService;
 import jakarta.persistence.EntityNotFoundException;
@@ -38,6 +39,7 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
     private final UserRepository userRepository;
     private final AccessControlService accessControlService;
     private final AuditLogService auditLogService;
+    private final EntityNumberAllocator entityNumberAllocator;
 
     @Override
     @Transactional
@@ -81,10 +83,7 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
 
         purchase.setProductPrice(itemsTotalPrice(purchase));
 
-        Long lastSeq = testPurchaseRepository.findLastSequence();
-        Long nextSeq = lastSeq + 1;
-        String number = "TP-" + String.format("%04d", nextSeq);
-        purchase.setNumber(number);
+        purchase.setNumber(entityNumberAllocator.nextTestPurchaseNumber());
 
         PriceCalculationResponseDTO responseDTO = calculatePriceInternal(
                 customer.getId(),

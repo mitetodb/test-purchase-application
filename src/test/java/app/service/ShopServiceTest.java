@@ -32,6 +32,9 @@ class ShopServiceTest {
     @Mock
     private AuditLogService auditLogService;
 
+    @Mock
+    private EntityNumberAllocator entityNumberAllocator;
+
     @InjectMocks
     private ShopService shopService;
 
@@ -85,7 +88,7 @@ class ShopServiceTest {
         dto.setName("New Shop");
         dto.setCountry(Country.BULGARIA);
 
-        when(shopRepository.findLastSequence()).thenReturn(0L);
+        when(entityNumberAllocator.nextShopNumber()).thenReturn("0001");
         when(shopRepository.save(any(Shop.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {

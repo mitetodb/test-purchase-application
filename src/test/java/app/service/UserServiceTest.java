@@ -1,6 +1,5 @@
 package app.service;
 
-import app.config.SecurityConfig;
 import app.model.dto.RegistrationDTO;
 import app.model.dto.UserProfileDTO;
 import app.model.entity.User;
@@ -37,9 +36,6 @@ class UserServiceTest {
     private CustomerRepository customerRepository;
 
     @Mock
-    private SecurityConfig securityConfig;
-
-    @Mock
     private TestPurchaseRepository testPurchaseRepository;
 
     @Mock
@@ -57,6 +53,9 @@ class UserServiceTest {
     @Mock
     private AuditLogService auditLogService;
 
+    @Mock
+    private PasswordPolicyService passwordPolicyService;
+
     @InjectMocks
     private UserServiceImpl userService;
 
@@ -65,6 +64,13 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
+        org.mockito.Mockito.lenient().doAnswer(invocation -> {
+            String pw = invocation.getArgument(0);
+            if (pw == null || pw.length() < 12) {
+                throw new IllegalArgumentException("password.policy.tooShort");
+            }
+            return null;
+        }).when(passwordPolicyService).validateOrThrow(org.mockito.ArgumentMatchers.anyString());
         userId = UUID.randomUUID();
         user = User.builder()
                 .id(userId)
@@ -100,8 +106,8 @@ class UserServiceTest {
     void testRegister() {
         RegistrationDTO dto = new RegistrationDTO();
         dto.setUsername("newuser");
-        dto.setPassword("password123");
-        dto.setConfirmPassword("password123");
+        dto.setPassword("password1234");
+        dto.setConfirmPassword("password1234");
         dto.setEmail("newuser@example.com");
         dto.setCountry(Country.BULGARIA);
         dto.setInviteToken("valid-token");
@@ -110,8 +116,7 @@ class UserServiceTest {
         doNothing().when(inviteTokenService).validateAndConsumeToken("valid-token");
         
         when(userRepository.findByUsername("newuser")).thenReturn(Optional.empty());
-        when(securityConfig.passwordEncoder()).thenReturn(passwordEncoder);
-        when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
+        when(passwordEncoder.encode("password1234")).thenReturn("encodedPassword");
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
             User saved = invocation.getArgument(0);
             if (saved.getId() == null) {
@@ -135,8 +140,8 @@ class UserServiceTest {
     void testRegisterUsernameAlreadyTaken() {
         RegistrationDTO dto = new RegistrationDTO();
         dto.setUsername("existinguser");
-        dto.setPassword("password123");
-        dto.setConfirmPassword("password123");
+        dto.setPassword("password1234");
+        dto.setConfirmPassword("password1234");
         dto.setInviteToken("valid-token");
 
         doNothing().when(inviteTokenService).validateAndConsumeToken("valid-token");
@@ -167,8 +172,8 @@ class UserServiceTest {
     void testRegisterWithoutTokenFails() {
         RegistrationDTO dto = new RegistrationDTO();
         dto.setUsername("newuser");
-        dto.setPassword("password123");
-        dto.setConfirmPassword("password123");
+        dto.setPassword("password1234");
+        dto.setConfirmPassword("password1234");
         dto.setEmail("newuser@example.com");
         dto.setCountry(Country.BULGARIA);
         dto.setInviteToken(null);
@@ -203,11 +208,10 @@ class UserServiceTest {
 
     @Test
     void testChangePassword() {
-        when(securityConfig.passwordEncoder()).thenReturn(passwordEncoder);
-        when(passwordEncoder.encode("newPassword")).thenReturn("newEncodedPassword");
+        when(passwordEncoder.encode("newPassword12")).thenReturn("newEncodedPassword");
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        userService.changePassword(user, "newPassword");
+        userService.changePassword(user, "newPassword12");
 
         verify(userRepository).save(any(User.class));
     }

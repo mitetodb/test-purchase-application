@@ -142,7 +142,8 @@ DB_PASSWORD=<generate-strong-password>
 PRICING_DB_PASSWORD=<generate-strong-password>
 
 # Application
-ADMIN_PASSWORD=<initial-admin-password>
+ADMIN_PASSWORD=<initial-admin-password-min-12-chars>
+APP_TOTP_ENCRYPTION_KEY=<base64-32-byte-key-from-openssl-rand-base64-32>
 APP_BASE_URL=https://testkauf.getinweb.de
 SPRING_PROFILES_ACTIVE=prod
 
