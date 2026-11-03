@@ -196,23 +196,37 @@ class AuditLogIntegrationTest {
         runAsAdmin(() -> {
             inviteTokenService.createInviteToken();
 
-            CustomerDTO customerDto = new CustomerDTO();
-            customerDto.setName("Audit Customer");
-            customerDto.setCategory("S");
-            customerDto.setCountry(Country.GERMANY);
-            customerDto.setEmail("cust@example.com");
-            customerDto.setBaseServiceFee(10.0);
-            Customer created = customerService.create(customerDto);
-            customerDto.setName("Audit Customer Updated");
-            customerService.update(created.getId(), customerDto);
-            customerService.delete(created.getId());
-
             ShopDTO shopDto = new ShopDTO();
             shopDto.setName("Audit Shop");
             shopDto.setCountry(Country.GERMANY);
             Shop shop = shopService.create(shopDto);
             shopDto.setName("Audit Shop Updated");
             shopService.update(shop.getId(), shopDto);
+        });
+
+        User salesManager = transactionTemplate.execute(status -> {
+            String suffix = UUID.randomUUID().toString().substring(0, 8);
+            return userRepository.save(User.builder()
+                    .username("audit_sm_" + suffix)
+                    .password(passwordEncoder.encode("SmPass123!"))
+                    .email("audit-sm-" + suffix + "@example.com")
+                    .role(Role.SALES_MANAGER)
+                    .country(Country.GERMANY)
+                    .active(true)
+                    .build());
+        });
+
+        runAs(salesManager, Role.SALES_MANAGER, () -> {
+            CustomerDTO customerDto = new CustomerDTO();
+            customerDto.setName("Audit Customer");
+            customerDto.setCategory("S");
+            customerDto.setCountry(Country.GERMANY);
+            customerDto.setEmail("cust-" + UUID.randomUUID().toString().substring(0, 6) + "@example.com");
+            customerDto.setBaseServiceFee(10.0);
+            Customer created = customerService.create(customerDto);
+            customerDto.setName("Audit Customer Updated");
+            customerService.update(created.getId(), customerDto);
+            customerService.delete(created.getId());
         });
 
         List<AuditAction> actions = auditLogRepository.findAll().stream()
@@ -324,11 +338,15 @@ class AuditLogIntegrationTest {
     }
 
     private void runAsAdmin(Runnable action) {
+        runAs(admin, Role.ADMIN, action);
+    }
+
+    private void runAs(User user, Role role, Runnable action) {
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(
-                        admin.getUsername(),
+                        user.getUsername(),
                         "n/a",
-                        List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+                        List.of(new SimpleGrantedAuthority("ROLE_" + role.name()))));
         AuditContext.setClientIp("127.0.0.1");
         try {
             transactionTemplate.executeWithoutResult(status -> action.run());

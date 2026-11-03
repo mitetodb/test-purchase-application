@@ -188,14 +188,6 @@ public class CustomerServiceImpl implements CustomerService {
         Customer customer = findByIdForCurrentUser(id);
 
         if (accessControlService.canHardDelete()) {
-            auditLogService.record(
-                    AuditAction.CUSTOMER_DEACTIVATE,
-                    AuditEntityType.CUSTOMER,
-                    customer.getId(),
-                    AuditChangeSummary.join(
-                            AuditChangeSummary.kv("number", customer.getNumber()),
-                            AuditChangeSummary.kv("name", customer.getName()),
-                            AuditChangeSummary.kv("hardDelete", true)));
             deleteBaseFeeInPricingApi(customer);
             customerRepository.delete(customer);
         } else {
