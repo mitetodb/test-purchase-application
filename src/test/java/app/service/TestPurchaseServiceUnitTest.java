@@ -58,6 +58,9 @@ class TestPurchaseServiceUnitTest {
     @Mock
     private AccessControlService accessControlService;
 
+    @Mock
+    private AuditLogService auditLogService;
+
     @InjectMocks
     private TestPurchaseServiceImpl testPurchaseService;
 
