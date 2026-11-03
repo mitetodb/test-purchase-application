@@ -21,6 +21,6 @@ public class EntityNumberSequence {
     @Column(name = "sequence_name", length = 64, nullable = false)
     private String sequenceName;
 
-    @Column(name = "next_value", nullable = false)
-    private long nextValue;
+    @Column(name = "last_used_value", nullable = false)
+    private long lastUsedValue;
 }

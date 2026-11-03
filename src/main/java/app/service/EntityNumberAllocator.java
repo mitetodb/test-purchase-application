@@ -35,8 +35,8 @@ public class EntityNumberAllocator {
         EntityNumberSequence row = entityNumberSequenceRepository
                 .findBySequenceNameForUpdate(name.name())
                 .orElseThrow(() -> new IllegalStateException("Missing entity number sequence: " + name));
-        long next = row.getNextValue() + 1;
-        row.setNextValue(next);
+        long next = row.getLastUsedValue() + 1;
+        row.setLastUsedValue(next);
         entityNumberSequenceRepository.save(row);
         return next;
     }

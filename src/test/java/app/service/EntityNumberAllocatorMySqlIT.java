@@ -73,7 +73,7 @@ class EntityNumberAllocatorMySqlIT {
         transactionTemplate.executeWithoutResult(status ->
                 entityNumberSequenceRepository.findById(EntityNumberSequenceName.SHOP.name())
                         .ifPresent(row -> {
-                            row.setNextValue(0L);
+                            row.setLastUsedValue(0L);
                             entityNumberSequenceRepository.save(row);
                         }));
     }
@@ -81,13 +81,13 @@ class EntityNumberAllocatorMySqlIT {
     @Test
     void flywayV8SeedsSequenceRowsFromEmptyTables() {
         Long customerLast = jdbcTemplate.queryForObject(
-                "SELECT next_value FROM entity_number_sequence WHERE sequence_name = 'CUSTOMER'",
+                "SELECT last_used_value FROM entity_number_sequence WHERE sequence_name = 'CUSTOMER'",
                 Long.class);
         Long shopLast = jdbcTemplate.queryForObject(
-                "SELECT next_value FROM entity_number_sequence WHERE sequence_name = 'SHOP'",
+                "SELECT last_used_value FROM entity_number_sequence WHERE sequence_name = 'SHOP'",
                 Long.class);
         Long tpLast = jdbcTemplate.queryForObject(
-                "SELECT next_value FROM entity_number_sequence WHERE sequence_name = 'TEST_PURCHASE'",
+                "SELECT last_used_value FROM entity_number_sequence WHERE sequence_name = 'TEST_PURCHASE'",
                 Long.class);
 
         assertEquals(0L, customerLast);
@@ -128,7 +128,7 @@ class EntityNumberAllocatorMySqlIT {
         assertEquals(
                 PARALLEL_THREADS,
                 jdbcTemplate.queryForObject(
-                        "SELECT next_value FROM entity_number_sequence WHERE sequence_name = 'SHOP'",
+                        "SELECT last_used_value FROM entity_number_sequence WHERE sequence_name = 'SHOP'",
                         Long.class));
     }
 }

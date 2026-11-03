@@ -31,11 +31,11 @@ public class EntityNumberSequenceBootstrap {
         seedIfAbsent(EntityNumberSequenceName.TEST_PURCHASE, 1000L);
     }
 
-    private void seedIfAbsent(EntityNumberSequenceName name, long defaultNextValue) {
+    private void seedIfAbsent(EntityNumberSequenceName name, long defaultLastUsedValue) {
         if (entityNumberSequenceRepository.existsById(name.name())) {
             return;
         }
         entityNumberSequenceRepository.save(
-                new EntityNumberSequence(name.name(), defaultNextValue));
+                new EntityNumberSequence(name.name(), defaultLastUsedValue));
     }
 }
