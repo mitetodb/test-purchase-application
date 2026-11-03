@@ -35,4 +35,6 @@ public interface TwoFactorService {
 
     /** Generates the TOTP code for an explicit time step (tests). */
     String generateCodeForTimeStep(String plainSecret, long timeStep);
+
+    String generateCodeForUserAtTimeStep(User user, long timeStep);
 }

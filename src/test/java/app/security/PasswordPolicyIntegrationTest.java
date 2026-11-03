@@ -2,7 +2,6 @@ package app.security;
 
 import app.TestPurchaseApplication;
 import app.model.entity.User;
-import app.repository.PasswordResetTokenRepository;
 import app.repository.UserRepository;
 import app.service.PasswordResetService;
 import org.junit.jupiter.api.Test;
@@ -12,9 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -25,7 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = TestPurchaseApplication.class)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@Transactional(propagation = Propagation.NOT_SUPPORTED)
+@Transactional
 class PasswordPolicyIntegrationTest {
 
     @org.springframework.boot.test.mock.mockito.MockBean
@@ -43,32 +40,16 @@ class PasswordPolicyIntegrationTest {
     @Autowired
     private PasswordResetService passwordResetService;
 
-    @Autowired
-    private TransactionTemplate transactionTemplate;
-
-    @Autowired
-    private app.repository.PasswordResetTokenRepository passwordResetTokenRepository;
-
-    @AfterEach
-    void cleanupResetFixture() {
-        transactionTemplate.executeWithoutResult(status -> {
-            passwordResetTokenRepository.deleteAll();
-            userRepository.findByUsername("reset_short").ifPresent(u -> userRepository.deleteById(u.getId()));
-        });
-    }
-
     @Test
     void resetPasswordRejectsShortPassword() throws Exception {
-        User user = transactionTemplate.execute(status -> {
-            User u = new User();
-            u.setUsername("reset_short");
-            u.setEmail("reset_short@example.com");
-            u.setPassword(passwordEncoder.encode("LongEnough12!"));
-            u.setRole(app.model.enums.Role.MYSTERY_SHOPPER);
-            u.setActive(true);
-            u.setCountry(app.model.enums.Country.GERMANY);
-            return userRepository.save(u);
-        });
+        User user = new User();
+        user.setUsername("reset_short");
+        user.setEmail("reset_short@example.com");
+        user.setPassword(passwordEncoder.encode("LongEnough12!"));
+        user.setRole(app.model.enums.Role.MYSTERY_SHOPPER);
+        user.setActive(true);
+        user.setCountry(app.model.enums.Country.GERMANY);
+        user = userRepository.save(user);
 
         String token = passwordResetService.createTokenForUser(user);
 

@@ -224,7 +224,9 @@ class AdminDeactivateLiveSessionIT {
 
     private void completeTotpVerify(HttpClient client, String username) throws Exception {
         User user = userRepository.findByUsername(username).orElseThrow();
-        String code = twoFactorService.generateCurrentCodeForUser(user);
+        long step = user.getTotpLastTimeStep() == null ? twoFactorService.currentTimeStep()
+                : user.getTotpLastTimeStep() + 1;
+        String code = twoFactorService.generateCodeForUserAtTimeStep(user, step);
         HttpResponse<String> verifyPage = client.send(
                 HttpRequest.newBuilder(URI.create(baseUrl + "/2fa/verify")).GET().build(),
                 HttpResponse.BodyHandlers.ofString());

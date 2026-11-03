@@ -13,6 +13,7 @@ import app.repository.ShopRepository;
 import app.repository.TestPurchaseRepository;
 import app.repository.UserRepository;
 import app.repository.UserTotpRecoveryCodeRepository;
+import app.repository.TestPurchaseStatusHistoryRepository;
 import app.support.TestDatabaseCleanup;
 import app.service.TestPurchaseService;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,6 +61,9 @@ class MysteryShopperViewCorruptionTest {
     @Autowired
     private UserTotpRecoveryCodeRepository userTotpRecoveryCodeRepository;
 
+    @Autowired
+    private TestPurchaseStatusHistoryRepository testPurchaseStatusHistoryRepository;
+
     private User salesManagerUser;
     private User customerUser;
     private User mysteryShopperUser;
@@ -68,6 +72,7 @@ class MysteryShopperViewCorruptionTest {
 
     @BeforeEach
     void setUp() {
+        testPurchaseStatusHistoryRepository.deleteAll();
         testPurchaseRepository.deleteAll();
         TestDatabaseCleanup.deleteAllUsersAndDependents(
                 userRepository, passwordResetTokenRepository, userTotpRecoveryCodeRepository);

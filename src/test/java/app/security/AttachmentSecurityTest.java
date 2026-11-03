@@ -9,9 +9,13 @@ import app.model.entity.User;
 import app.model.enums.*;
 import app.repository.AttachmentRepository;
 import app.repository.CustomerRepository;
+import app.repository.PasswordResetTokenRepository;
 import app.repository.ShopRepository;
 import app.repository.TestPurchaseRepository;
+import app.repository.TestPurchaseStatusHistoryRepository;
 import app.repository.UserRepository;
+import app.repository.UserTotpRecoveryCodeRepository;
+import app.support.TestDatabaseCleanup;
 import app.service.AttachmentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,6 +58,15 @@ class AttachmentSecurityTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private TestPurchaseStatusHistoryRepository testPurchaseStatusHistoryRepository;
+
+    @Autowired
+    private PasswordResetTokenRepository passwordResetTokenRepository;
+
+    @Autowired
+    private UserTotpRecoveryCodeRepository userTotpRecoveryCodeRepository;
+
     private User adminUser;
     private TestPurchase testPurchase;
     private Attachment attachmentWithPurchase;
@@ -62,8 +75,10 @@ class AttachmentSecurityTest {
     @BeforeEach
     void setUp() {
         attachmentRepository.deleteAll();
+        testPurchaseStatusHistoryRepository.deleteAll();
         testPurchaseRepository.deleteAll();
-        userRepository.deleteAll();
+        TestDatabaseCleanup.deleteAllUsersAndDependents(
+                userRepository, passwordResetTokenRepository, userTotpRecoveryCodeRepository);
         customerRepository.deleteAll();
 
         // Create admin user

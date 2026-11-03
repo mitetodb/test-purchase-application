@@ -139,11 +139,14 @@ public class TwoFactorServiceImpl implements TwoFactorService {
     @Transactional
     public List<String> completeEnrollmentAndIssueRecoveryCodes(
             User user, String plainSecret, String confirmationCode) {
-        if (!verifyTotpCode(plainSecret, confirmationCode, user)) {
+        String normalized = confirmationCode.replaceAll("\\s+", "");
+        Long matchedStep = findMatchedTimeStep(plainSecret, normalized);
+        if (matchedStep == null) {
             throw new IllegalArgumentException("twoFactor.error.invalidCode");
         }
         user.setTotpSecretEncrypted(encryptor.encrypt(plainSecret));
         user.setTotpEnabled(true);
+        user.setTotpLastTimeStep(matchedStep);
         userRepository.save(user);
         return regenerateRecoveryCodes(user);
     }
@@ -208,6 +211,14 @@ public class TwoFactorServiceImpl implements TwoFactorService {
         } catch (CodeGenerationException ex) {
             throw new IllegalStateException(ex);
         }
+    }
+
+    @Override
+    public String generateCodeForUserAtTimeStep(User user, long timeStep) {
+        if (user == null || user.getTotpSecretEncrypted() == null) {
+            throw new IllegalStateException("User has no TOTP secret");
+        }
+        return generateCodeForTimeStep(encryptor.decrypt(user.getTotpSecretEncrypted()), timeStep);
     }
 
     private static String formatRecoveryCode(SecureRandom random) {
