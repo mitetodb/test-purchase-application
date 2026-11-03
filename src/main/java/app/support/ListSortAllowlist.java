@@ -2,6 +2,7 @@ package app.support;
 
 import org.springframework.data.domain.Sort;
 
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -75,6 +76,32 @@ public final class ListSortAllowlist {
 
     public static Set<String> publicSortKeys(ListKind kind) {
         return allowlist(kind).keySet();
+    }
+
+    /**
+     * Rebuilds a {@code sort=} query value using public column keys (for pagination/export links).
+     */
+    public static String toRequestSortParameter(Sort sanitizedSort, ListKind kind) {
+        if (sanitizedSort == null || sanitizedSort.isUnsorted()) {
+            return null;
+        }
+        Map<String, String> allowed = allowlist(kind);
+        for (Sort.Order order : sanitizedSort) {
+            String publicKey = null;
+            for (Map.Entry<String, String> entry : allowed.entrySet()) {
+                if (entry.getValue().equals(order.getProperty())) {
+                    publicKey = entry.getKey();
+                    break;
+                }
+            }
+            if (publicKey == null && allowed.containsKey(order.getProperty())) {
+                publicKey = order.getProperty();
+            }
+            if (publicKey != null) {
+                return publicKey + "," + order.getDirection().name().toLowerCase(Locale.ROOT);
+            }
+        }
+        return null;
     }
 
     private static Map<String, String> allowlist(ListKind kind) {

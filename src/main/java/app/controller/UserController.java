@@ -54,6 +54,9 @@ public class UserController {
         model.addAttribute("users", userPage.getContent());
         model.addAttribute("roles", Role.values());
         model.addAttribute("countries", Country.values());
+        model.addAttribute("listSort",
+                app.support.ListSortAllowlist.toRequestSortParameter(
+                        safePageable.getSort(), app.support.ListSortAllowlist.ListKind.USER));
         return "users/users-list";
     }
 

@@ -62,10 +62,10 @@
 
     <div class="mb-3 d-flex flex-wrap gap-2">
         <a class="btn btn-success btn-sm"
-           th:href="@{/users/export.csv(username=${filter.username}, role=${filter.role}, active=${filter.active}, country=${filter.country})}"
+           th:href="@{/users/export.csv(username=${filter.username}, role=${filter.role}, active=${filter.active}, country=${filter.country}, sort=${listSort})}"
            th:text="#{list.export.csv}">Export CSV</a>
         <a class="btn btn-secondary btn-sm"
-           th:href="@{/users/export.xlsx(username=${filter.username}, role=${filter.role}, active=${filter.active}, country=${filter.country})}"
+           th:href="@{/users/export.xlsx(username=${filter.username}, role=${filter.role}, active=${filter.active}, country=${filter.country}, sort=${listSort})}"
            th:text="#{list.export.excel}">Export Excel</a>
     </div>
 

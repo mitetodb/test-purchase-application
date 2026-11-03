@@ -47,6 +47,9 @@ public class CustomerController {
         model.addAttribute("customerPage", customerPage);
         model.addAttribute("customers", customerPage.getContent());
         model.addAttribute("countries", Country.values());
+        model.addAttribute("listSort",
+                app.support.ListSortAllowlist.toRequestSortParameter(
+                        safePageable.getSort(), app.support.ListSortAllowlist.ListKind.CUSTOMER));
         return "customers/customers-list";
     }
 

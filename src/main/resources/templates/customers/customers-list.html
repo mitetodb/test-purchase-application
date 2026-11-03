@@ -50,10 +50,10 @@
 
     <div class="mb-3 d-flex flex-wrap gap-2">
         <a class="btn btn-success btn-sm"
-           th:href="@{/customers/export.csv(name=${filter.name}, country=${filter.country}, category=${filter.category})}"
+           th:href="@{/customers/export.csv(name=${filter.name}, country=${filter.country}, category=${filter.category}, sort=${listSort})}"
            th:text="#{list.export.csv}">Export CSV</a>
         <a class="btn btn-secondary btn-sm"
-           th:href="@{/customers/export.xlsx(name=${filter.name}, country=${filter.country}, category=${filter.category})}"
+           th:href="@{/customers/export.xlsx(name=${filter.name}, country=${filter.country}, category=${filter.category}, sort=${listSort})}"
            th:text="#{list.export.excel}">Export Excel</a>
     </div>
 

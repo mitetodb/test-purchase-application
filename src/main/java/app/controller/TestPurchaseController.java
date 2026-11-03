@@ -62,6 +62,9 @@ public class TestPurchaseController {
             model.addAttribute("canFilterMysteryShopper", true);
         }
         model.addAttribute("statuses", TestPurchaseStatus.values());
+        model.addAttribute("listSort",
+                app.support.ListSortAllowlist.toRequestSortParameter(
+                        safePageable.getSort(), app.support.ListSortAllowlist.ListKind.TEST_PURCHASE));
         return "testpurchases/testpurchases-list";
     }
 
