@@ -31,9 +31,12 @@ public class TestPurchaseController {
     private final UserService userService;
 
     @GetMapping
-    public String list(Model model) {
-        List<TestPurchaseViewDTO> purchases = testPurchaseService.findAllForCurrentUser();
+    public String list(
+            @RequestParam(value = "showArchived", defaultValue = "false") boolean showArchived,
+            Model model) {
+        List<TestPurchaseViewDTO> purchases = testPurchaseService.findAllForCurrentUser(showArchived);
         model.addAttribute("purchases", purchases);
+        model.addAttribute("showArchived", showArchived);
         return "testpurchases/testpurchases-list";
     }
 
@@ -132,11 +135,18 @@ public class TestPurchaseController {
         return "redirect:/testpurchases";
     }
 
-    @PostMapping("/delete/{id}")
+    @PostMapping("/archive/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public String delete(@PathVariable UUID id) {
-        testPurchaseService.delete(id);
+    public String archive(@PathVariable UUID id) {
+        testPurchaseService.archive(id);
         return "redirect:/testpurchases";
+    }
+
+    @PostMapping("/unarchive/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String unarchive(@PathVariable UUID id) {
+        testPurchaseService.unarchive(id);
+        return "redirect:/testpurchases/view/" + id;
     }
 
     @GetMapping("/view/{id}")
@@ -145,7 +155,9 @@ public class TestPurchaseController {
         model.addAttribute("purchase", purchase);
         model.addAttribute("attachments", attachmentService.getByTestPurchase(id));
         model.addAttribute("history", statusHistoryService.getHistory(id));
-        model.addAttribute("statuses", TestPurchaseStatus.values());
+        model.addAttribute("statuses", java.util.Arrays.stream(TestPurchaseStatus.values())
+                .filter(s -> !s.isArchived())
+                .toList());
         var auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getAuthorities().stream().anyMatch(a ->
                 "ROLE_ADMIN".equals(a.getAuthority()) || "ROLE_ACCOUNT_MANAGER".equals(a.getAuthority()))) {

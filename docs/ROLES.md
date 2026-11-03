@@ -6,7 +6,7 @@ This document defines the five roles in the Test Purchase Application and their 
 
 | Role | Purpose | Key Responsibilities |
 |------|---------|---------------------|
-| **Admin** | System administrator | Full system access, user management, can hard delete entities |
+| **Admin** | System administrator | Full system access, user management; deactivates or archives records (never hard-deletes) |
 | **Account Manager** | Customer relationship management | Manage assigned customers, assign mystery shoppers |
 | **Sales Manager** | Sales oversight | View assigned customers' purchases, generate reports (no shopper names) |
 | **Customer** | Request test purchases | Create and track company's test purchases (no shopper names) |
@@ -23,7 +23,7 @@ Server-side role-based access control is enforced in controllers, services, and 
 | View test purchases | ✅ All | ✅ Managed customers' | ✅ Owned customers' | ✅ Own company's | ✅ Assigned only |
 | Create test purchase | ✅ | ✅ | ❌ | ✅ (company only) | ❌ |
 | Edit test purchase | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Delete test purchase | ✅ Hard delete | ⚠️ Soft delete | ⚠️ Soft delete | ⚠️ Soft delete | ⚠️ Soft delete |
+| Delete / archive test purchase | ✅ Archive | ❌ | ❌ | ❌ | ❌ |
 | **Change status** | ✅ | ✅ | ❌ | ❌ | ✅ **Own assignments** |
 | **Assign mystery shopper** | ✅ | ✅ | ❌ | ❌ | ❌ |
 | **See mystery shopper name** | ✅ | ✅ | ❌ | ❌ | ✅ (own) |
@@ -61,8 +61,8 @@ Server-side role-based access control is enforced in controllers, services, and 
 | View all shops | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Create shop | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Edit any shop | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Deactivate shop | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Hard delete shop | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Deactivate shop | ✅ | ❌ (Admin UI) | ❌ | ❌ | ❌ |
+| Reactivate shop | ✅ | ❌ | ❌ | ❌ | ❌ |
 
 ### Items (Purchase Line Items)
 
@@ -81,8 +81,8 @@ Server-side role-based access control is enforced in controllers, services, and 
 | View attachments (any) | ✅ | ✅ Managed | ✅ Owned | ❌ | ❌ |
 | View attachments (own/assigned) | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Upload attachment | ✅ | ✅ | ❌ | ✅ | ✅ |
-| Delete attachment (any) | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Delete attachment (own) | ✅ | ✅ | ❌ | ✅ | ✅ |
+| Delete attachment (any) | ❌ Retained | ❌ | ❌ | ❌ | ❌ |
+| Delete attachment (own) | ❌ Retained | ❌ | ❌ | ❌ | ❌ |
 
 ### Status History
 
@@ -113,10 +113,13 @@ Server-side role-based access control is enforced in controllers, services, and 
 ### IDOR Protection
 Each role can only access their authorized resources, tested with comprehensive IDOR (Insecure Direct Object Reference) tests.
 
-### Soft Delete
-Non-admin roles deactivate records via `active` flags; inactive records are filtered from queries. Only Admin can hard delete some entity types (test purchases, shops).
+### Deactivate and archive (no hard delete)
 
-**Users and customers are never deleted**, only deactivated. Even Admins cannot delete user or customer records—they can only set `active = false`.
+Users, customers, and shops are **never hard-deleted**—only deactivated via an `active` flag. Test purchases are **never hard-deleted**—Admins **archive** them (`ARCHIVED` status with status history). Attachments are retained with their test purchase.
+
+Inactive or archived records are hidden from default lists; Admins can use list filters to show deactivated customers/shops or archived test purchases. Existing test purchases remain readable; new test purchases cannot be created for inactive customers or shops. Archived test purchases are read-only.
+
+**GDPR Art. 17 erasure** is handled manually by the owner via anonymization of deactivated accounts—not via application delete buttons.
 
 ### Registration Security
 Mystery Shoppers join by invitation only. Admins and Account Managers send one-time invite links that expire after 7 days. There is no public self-registration endpoint.
@@ -192,22 +195,14 @@ They cannot change status, assign shoppers, or edit purchases.
 
 The `User.customer` link determines which company they belong to.
 
-### Delete vs. Deactivate
+### Delete vs. deactivate vs. archive
 
-**Hard Delete (Physical Delete)**
-- **Only Admin** can hard delete entities (test purchases, shops)
-- Permanently removes data from the database
-- **Users and customers are never deleted**—only deactivated (`active = false`)
-- Used sparingly for data cleanup
+The application **does not expose hard delete** for users, customers, shops, test purchases, or attachments.
 
-**Soft Delete (Deactivate)**
-- **Admin, Account Manager, Sales Manager** can soft delete records they can access
-- Records remain in database with `active = false`
-- Preferred method for "deleting" in normal operations
-- Allows data recovery and maintains audit trails
-
-**For other roles:**
-- They cannot delete at all, or soft deletes are scoped to their access
+- **Users, customers, shops:** Admin **Deactivate** / **Reactivate** (`active` flag). Rows and relationships stay in the database.
+- **Test purchases:** Admin **Archive** / **Unarchive** (`ARCHIVED` status + status history). Rows, items, attachments, and history stay in the database; archived purchases are read-only.
+- **Attachments:** Always kept with the test purchase (download only; no delete action).
+- **GDPR Art. 17:** Formal erasure is handled manually by the owner via anonymization—not via in-app delete buttons.
 
 ### Status Workflow Permissions
 

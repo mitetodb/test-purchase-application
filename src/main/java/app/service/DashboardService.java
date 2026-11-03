@@ -25,7 +25,7 @@ public class DashboardService {
         Role role = currentUser.getRole();
 
         return switch (role) {
-            case ADMIN -> testPurchaseRepository.count();
+            case ADMIN -> testPurchaseRepository.countNonArchived();
             case ACCOUNT_MANAGER -> getAccountManagerTestPurchaseCount(currentUser.getId());
             case SALES_MANAGER -> getSalesManagerTestPurchaseCount(currentUser.getId());
             case CUSTOMER -> getCustomerTestPurchaseCount(currentUser);
@@ -51,7 +51,7 @@ public class DashboardService {
     }
 
     public long getShopCount() {
-        return shopRepository.count();
+        return shopRepository.countByActiveTrue();
     }
 
     private long getAccountManagerTestPurchaseCount(UUID accountManagerId) {

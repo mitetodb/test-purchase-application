@@ -23,9 +23,12 @@ public class ShopController {
     private final ShopService shopService;
 
     @GetMapping
-    public String list(Model model) {
-        List<Shop> shops = shopService.findAll();
+    public String list(
+            @RequestParam(value = "showDeactivated", defaultValue = "false") boolean showDeactivated,
+            Model model) {
+        List<Shop> shops = shopService.findAllForList(showDeactivated);
         model.addAttribute("shops", shops);
+        model.addAttribute("showDeactivated", showDeactivated);
         return "shops/shops-list";
     }
 
@@ -76,10 +79,17 @@ public class ShopController {
         return "redirect:/shops";
     }
 
-    @PostMapping("/delete/{id}")
+    @PostMapping("/deactivate/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public String delete(@PathVariable UUID id) {
-        shopService.delete(id);
+    public String deactivate(@PathVariable UUID id) {
+        shopService.deactivateShop(id);
         return "redirect:/shops";
+    }
+
+    @PostMapping("/reactivate/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String reactivate(@PathVariable UUID id) {
+        shopService.reactivateShop(id);
+        return "redirect:/shops?showDeactivated=true";
     }
 }

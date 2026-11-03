@@ -75,15 +75,6 @@ public class AttachmentController {
                 .replace("\r", "");                         // Remove carriage returns
     }
 
-    @PostMapping("/delete/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public String delete(@PathVariable UUID id) {
-        Attachment att = attachmentService.findById(id);
-        UUID tpId = att.getTestPurchase().getId();
-        attachmentService.delete(id);
-        return "redirect:/testpurchases/view/" + tpId;
-    }
-
     @GetMapping("/{id}/preview")
     public ResponseEntity<Resource> previewImage(@PathVariable UUID id) {
         Attachment att = attachmentService.findById(id);

@@ -175,7 +175,7 @@ Customers are never removed from the database—only marked inactive (`active = 
 
 Existing test purchases remain in the system; new test purchases cannot be created for a deactivated customer.
 
-**Note:** Users and customers are never hard-deleted. Admins may still hard-delete **shops** and **test purchases** when necessary (see below).
+**Note:** Users, customers, and shops are never hard-deleted—only deactivated. Test purchases are archived (not deleted). Attachments are retained.
 
 ## Shop Management
 
@@ -203,10 +203,14 @@ Shops are the locations where mystery shopping occurs.
 2. Update fields as needed
 3. Click **Save**
 
-### Deactivating/Deleting Shops
+### Deactivating / reactivating shops
 
-- **Deactivate**: Uncheck **Active** (preferred method)
-- **Delete**: Click **Delete** (permanently removes shop record)
+1. Go to **Shops**
+2. For an active shop, click **Deactivate** (Admin only)
+3. Deactivated shops are hidden by default; check **Show deactivated shops** to list them again
+4. Click **Reactivate** to restore a shop for new test purchases
+
+Existing test purchases that used the shop remain readable; new test purchases cannot select an inactive shop.
 
 ## Test Purchase Management
 
@@ -286,8 +290,7 @@ Mystery shoppers and customers can upload files:
 
 1. Open the purchase
 2. Scroll to **Attachments** section
-3. View or download any attachment
-4. Delete attachments if needed
+3. View or download any attachment (attachments cannot be deleted from the application)
 
 Allowed file types: PDF, images (JPG, PNG)
 
@@ -375,9 +378,10 @@ Environment configuration is in `deploy/.env` on the server:
 
 ### Data Protection
 
-- Hard-delete **shops** or **test purchases** only when absolutely necessary
-- **Users and customers are never deleted**—only deactivated (Deactivate / Reactivate on the Users and Customers lists)
-- Use deactivation by default for all entities that support it
+- Archive test purchases instead of deleting them (**Archive** on the list; **Unarchive** from the detail view or list filter)
+- Deactivate shops and customers instead of removing them
+- **Users, customers, shops, test purchases, and attachments are never hard-deleted** from the application
+- Use deactivation/archiving by default
 - Keep backups secure
 - Limit access to sensitive data
 

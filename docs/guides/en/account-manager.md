@@ -60,7 +60,7 @@ As an **Account Manager**, you:
 
 ❌ **Cannot do:**
 - Create users with Admin, Sales Manager, or Customer roles (Admin only)
-- Hard delete **shops** or **test purchases** (Admin only; you can deactivate customers you manage via backend rules—contact an Admin for customer deactivation in the UI)
+- Hard delete **shops**, **test purchases**, or **attachments** (Admin archives/deactivates instead; attachments are kept)
 - Access system administration features
 - Change system settings
 

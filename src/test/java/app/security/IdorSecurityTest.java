@@ -332,15 +332,18 @@ class IdorSecurityTest {
     }
 
     @Test
-    void inactiveTestPurchaseShouldNotBeAccessible() {
-        testPurchase1.setActive(false);
+    void archivedTestPurchaseHiddenFromListButViewableWhenAssigned() {
+        testPurchase1.setStatus(TestPurchaseStatus.ARCHIVED);
         testPurchaseRepository.save(testPurchase1);
 
         authenticateAs(mysteryShopperUser1);
 
-        assertThrows(EntityNotFoundException.class, () -> {
-            testPurchaseService.findByIdForCurrentUser(testPurchase1.getId());
-        }, "Inactive test purchase should return 404 not 403");
+        assertDoesNotThrow(() ->
+                testPurchaseService.findByIdForCurrentUser(testPurchase1.getId()));
+
+        assertTrue(testPurchaseService.findAllForCurrentUser().stream()
+                        .noneMatch(p -> p.getId().equals(testPurchase1.getId())),
+                "Archived test purchase should be hidden from default list");
     }
 
     @Test

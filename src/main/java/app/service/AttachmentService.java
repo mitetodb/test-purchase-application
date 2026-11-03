@@ -3,8 +3,9 @@ package app.service;
 import app.config.SecurityUtils;
 import app.model.entity.Attachment;
 import app.model.entity.TestPurchase;
-import app.model.enums.AttachmentFileType;
 import app.model.enums.AttachmentCategory;
+import app.model.enums.AttachmentFileType;
+import app.model.enums.TestPurchaseStatus;
 import app.repository.AttachmentRepository;
 import app.repository.TestPurchaseRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,10 @@ public class AttachmentService {
                 .orElseThrow(() -> new IllegalArgumentException("TestPurchase not found"));
 
         accessControlService.checkCanViewTestPurchase(tp);
+
+        if (tp.getStatus().isArchived()) {
+            throw new IllegalArgumentException("Cannot upload attachments to an archived test purchase");
+        }
 
         if (file.isEmpty()) {
             throw new IllegalArgumentException("File is empty");
@@ -75,13 +80,6 @@ public class AttachmentService {
         accessControlService.checkCanViewTestPurchase(att.getTestPurchase());
         
         return att;
-    }
-
-    public void delete(UUID id) {
-        Attachment att = findById(id);
-        accessControlService.checkCanHardDelete();
-        storageService.delete(att.getFilePath());
-        attachmentRepository.deleteById(id);
     }
 
     private AttachmentFileType determineFileType(String filename) {

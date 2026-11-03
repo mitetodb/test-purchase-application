@@ -34,6 +34,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -88,7 +89,9 @@ public class DemoPurchaseSeeder implements CommandLineRunner {
             new Product("Apple", "Apple iPad Pro 13\" M4 256GB", 1549.00, TestPurchaseCategory.M, "ipad-pro-m4"),
             new Product("Apple", "Apple iPad 10.9\" 64GB (10th gen)", 399.00, TestPurchaseCategory.M, "ipad-10"));
 
-    static final TestPurchaseStatus[] TARGETS = TestPurchaseStatus.values();
+    static final TestPurchaseStatus[] TARGETS = Arrays.stream(TestPurchaseStatus.values())
+            .filter(s -> !s.isArchived())
+            .toArray(TestPurchaseStatus[]::new);
 
     @Override
     public void run(String... args) {

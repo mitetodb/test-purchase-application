@@ -16,7 +16,9 @@ public interface TestPurchaseService {
 
     TestPurchase edit(UUID id, TestPurchaseEditDTO dto);
 
-    void delete(UUID id);
+    void archive(UUID id);
+
+    void unarchive(UUID id);
 
     TestPurchase findById(UUID id);
 
@@ -25,6 +27,8 @@ public interface TestPurchaseService {
     void changeStatus(UUID id, TestPurchaseStatus newStatus, String comment);
 
     List<TestPurchaseViewDTO> findAllForCurrentUser();
+
+    List<TestPurchaseViewDTO> findAllForCurrentUser(boolean includeArchived);
 
     TestPurchaseViewDTO findByIdForCurrentUser(UUID id);
 
