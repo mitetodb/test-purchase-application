@@ -63,12 +63,9 @@ class I18nLocaleSwitchTest {
     void loginPageIncludesAccessibleLanguageSwitcher() throws Exception {
         mvc.perform(get("/login").param("lang", "en"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("id=\"app-language-switcher\"")))
-                .andExpect(content().string(containsString("id=\"app-lang-switcher-toggle\"")))
-                .andExpect(content().string(containsString("id=\"app-lang-switcher-menu\"")))
-                .andExpect(content().string(containsString("role=\"menu\"")))
-                .andExpect(content().string(containsString("role=\"menuitem\"")))
-                .andExpect(content().string(containsString("aria-controls=\"app-lang-switcher-menu\"")))
+                .andExpect(content().string(containsString("class=\"langs\"")))
+                .andExpect(content().string(containsString("aria-label=\"Language\"")))
+                .andExpect(content().string(containsString("hreflang=\"de\"")))
                 .andExpect(content().string(containsString("lang=bg")))
                 .andExpect(content().string(containsString("lang=de")));
     }

@@ -32,7 +32,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @EnableMethodSecurity(prePostEnabled = true)
 @Configuration
-@EnableConfigurationProperties({LoginSecurityProperties.class, PasswordPolicyProperties.class, TotpProperties.class, TwoFactorSecurityProperties.class})
+@EnableConfigurationProperties({LoginSecurityProperties.class, PasswordPolicyProperties.class, TotpProperties.class, TwoFactorSecurityProperties.class, ContactProperties.class})
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -84,7 +84,8 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/login", "/register", "/forgot-password", "/reset-password" ,
-                                "/css/**", "/js/**", "/images/**", "/avatars/**",
+                                "/contact",
+                                "/css/**", "/js/**", "/images/**", "/avatars/**", "/video/**", "/fonts/**",
                                 "/access-denied", "/favicon.ico", "/error",
                                 "/actuator/health", "/actuator/health/**", "/actuator/info",
                                 "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()

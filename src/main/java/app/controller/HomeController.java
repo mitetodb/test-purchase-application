@@ -7,7 +7,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class HomeController {
 
     @GetMapping("/")
-    public String index() {
+    public String index(org.springframework.ui.Model model) {
+        model.addAttribute("contactFormTs", System.currentTimeMillis());
         return "index";
     }
 

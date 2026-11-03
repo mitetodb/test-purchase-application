@@ -17,6 +17,7 @@ public final class SecurityHeadersPolicy {
             "style-src 'self' https://cdn.jsdelivr.net https://cdn.datatables.net https://cdnjs.cloudflare.com https://fonts.googleapis.com 'unsafe-inline'",
             "font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com data:",
             "img-src 'self' data: blob:",
+            "media-src 'self'",
             "connect-src 'self'",
             "frame-ancestors 'self'",
             "object-src 'none'",

@@ -66,6 +66,48 @@ public class EmailService {
         );
     }
 
+    public boolean sendContactInquiry(String recipient,
+                                      String replyToEmail,
+                                      String name,
+                                      String company,
+                                      String message) {
+        if (!mailEnabled) {
+            log.info("Mail disabled (app.mail.enabled=false); skipping contact inquiry");
+            return false;
+        }
+        String body = """
+                New testkauf contact form submission
+
+                Name: %s
+                Company: %s
+                Email: %s
+
+                Message:
+                %s
+                """.formatted(name.trim(), company.trim(), replyToEmail.trim(), message.trim());
+
+        MimeMessage mime = javaMailSender.createMimeMessage();
+        try {
+            MimeMessageHelper helper = new MimeMessageHelper(mime, false, "UTF-8");
+            helper.setTo(recipient);
+            if (!mailFrom.isBlank()) {
+                helper.setFrom(mailFrom);
+            }
+            helper.setReplyTo(replyToEmail.trim());
+            helper.setSubject("testkauf contact: " + name.trim());
+            helper.setText(body, false);
+            javaMailSender.send(mime);
+            log.info("Contact inquiry mail sent to {}", recipient);
+            return true;
+        } catch (org.springframework.mail.MailException e) {
+            log.warn("Contact mail send failed: {}", e.getMostSpecificCause().getMessage());
+            return false;
+        } catch (MessagingException e) {
+            log.warn("Contact mail build failed: {}", e.getMessage());
+            return false;
+        }
+    }
+
     private void sendHtmlEmail(String to,
                                String subject,
                                String templateName,
