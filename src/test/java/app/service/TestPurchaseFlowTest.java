@@ -11,6 +11,8 @@ import app.model.enums.TestPurchaseType;
 import app.repository.CustomerRepository;
 import app.repository.ShopRepository;
 import app.repository.TestPurchaseRepository;
+import app.support.TestPurchaseTestDataCleaner;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,7 +24,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @ActiveProfiles("test")
-@org.springframework.test.annotation.DirtiesContext(classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS)
 class TestPurchaseFlowTest {
 
     @org.springframework.boot.test.mock.mockito.MockBean
@@ -61,6 +62,9 @@ class TestPurchaseFlowTest {
     @Autowired
     private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private TestPurchaseTestDataCleaner testPurchaseTestDataCleaner;
+
     @org.junit.jupiter.api.BeforeEach
     void setUp() {
         // Force schema creation by accessing the database
@@ -79,6 +83,12 @@ class TestPurchaseFlowTest {
                     .build();
             userRepository.save(admin);
         }
+    }
+
+    @AfterEach
+    void tearDownCommittedPurchaseData() {
+        testPurchaseTestDataCleaner.resetPurchaseGraphAndBusinessFixtures(
+                customerRepository, userRepository, shopRepository);
     }
 
     @Test
