@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 import java.util.UUID;
 
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -64,7 +65,7 @@ class CustomerControllerTest {
                 .number("0001")
                 .build();
 
-        given(customerService.findAllForCurrentUser()).willReturn(List.of(customer));
+        given(customerService.findAllForCurrentUser(anyBoolean())).willReturn(List.of(customer));
 
         mockMvc.perform(get("/customers"))
                 .andExpect(status().isOk())

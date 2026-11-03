@@ -64,8 +64,16 @@ public interface CustomerRepository extends JpaRepository<Customer, UUID> {
         SELECT c
         FROM Customer c
         WHERE c.active = true
+        ORDER BY c.number
         """)
     List<Customer> findAllActive();
+
+    @Query("""
+        SELECT c
+        FROM Customer c
+        ORDER BY c.number
+        """)
+    List<Customer> findAllOrdered();
 
     @Query("""
         SELECT COUNT(c)
