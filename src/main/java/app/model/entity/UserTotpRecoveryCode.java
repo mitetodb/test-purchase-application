@@ -32,6 +32,12 @@ public class UserTotpRecoveryCode {
     @Column(name = "used_at")
     private LocalDateTime usedAt;
 
+    @Column(name = "invalidated_at")
+    private LocalDateTime invalidatedAt;
+
+    @Column(name = "invalidation_reason", length = 64)
+    private String invalidationReason;
+
     @Column(name = "created_on", nullable = false)
     private LocalDateTime createdOn;
 

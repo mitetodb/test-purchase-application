@@ -10,8 +10,11 @@ import java.util.UUID;
 
 public interface UserTotpRecoveryCodeRepository extends JpaRepository<UserTotpRecoveryCode, UUID> {
 
-    @Query("SELECT c FROM UserTotpRecoveryCode c WHERE c.user.id = :userId AND c.usedAt IS NULL")
-    List<UserTotpRecoveryCode> findUnusedByUserId(@Param("userId") UUID userId);
+    @Query("""
+            SELECT c FROM UserTotpRecoveryCode c
+            WHERE c.user.id = :userId AND c.usedAt IS NULL AND c.invalidatedAt IS NULL
+            """)
+    List<UserTotpRecoveryCode> findConsumableByUserId(@Param("userId") UUID userId);
 
-    void deleteByUser_Id(UUID userId);
+    List<UserTotpRecoveryCode> findByUser_Id(UUID userId);
 }

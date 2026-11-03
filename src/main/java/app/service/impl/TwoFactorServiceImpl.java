@@ -42,6 +42,7 @@ public class TwoFactorServiceImpl implements TwoFactorService {
     private static final Set<Role> ROLES_REQUIRING_2FA = EnumSet.of(Role.ADMIN, Role.ACCOUNT_MANAGER);
     private static final int RECOVERY_CODE_COUNT = 10;
     private static final int RECOVERY_CODE_BYTES = 5;
+    public static final String RECOVERY_INVALIDATION_REASON_REGENERATED = "REGENERATED";
 
     private final TotpProperties totpProperties;
     private final TotpSecretEncryptor encryptor;
@@ -154,7 +155,14 @@ public class TwoFactorServiceImpl implements TwoFactorService {
     @Override
     @Transactional
     public List<String> regenerateRecoveryCodes(User user) {
-        recoveryCodeRepository.deleteByUser_Id(user.getId());
+        LocalDateTime now = LocalDateTime.now();
+        List<UserTotpRecoveryCode> active = recoveryCodeRepository.findConsumableByUserId(user.getId());
+        for (UserTotpRecoveryCode existing : active) {
+            existing.setInvalidatedAt(now);
+            existing.setInvalidationReason(RECOVERY_INVALIDATION_REASON_REGENERATED);
+        }
+        recoveryCodeRepository.saveAll(active);
+
         List<String> plainCodes = new ArrayList<>(RECOVERY_CODE_COUNT);
         SecureRandom random = new SecureRandom();
         for (int i = 0; i < RECOVERY_CODE_COUNT; i++) {
@@ -175,8 +183,8 @@ public class TwoFactorServiceImpl implements TwoFactorService {
             return false;
         }
         String normalized = normalizeRecoveryCode(rawCode);
-        List<UserTotpRecoveryCode> unused = recoveryCodeRepository.findUnusedByUserId(user.getId());
-        for (UserTotpRecoveryCode stored : unused) {
+        List<UserTotpRecoveryCode> consumable = recoveryCodeRepository.findConsumableByUserId(user.getId());
+        for (UserTotpRecoveryCode stored : consumable) {
             if (passwordEncoder.matches(normalized, stored.getCodeHash())) {
                 stored.setUsedAt(LocalDateTime.now());
                 recoveryCodeRepository.save(stored);
