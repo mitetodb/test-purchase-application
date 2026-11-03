@@ -15,6 +15,7 @@ import app.model.enums.Country;
 import app.model.enums.Role;
 import app.repository.AuditLogRepository;
 import app.repository.CustomerRepository;
+import app.repository.InviteTokenRepository;
 import app.repository.ShopRepository;
 import app.repository.UserRepository;
 import app.service.CustomerService;
@@ -29,6 +30,7 @@ import app.service.ShopService;
 import app.service.TestPurchaseService;
 import app.service.AttachmentService;
 import app.model.enums.AttachmentCategory;
+import app.support.TestPurchaseTestDataCleaner;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,6 +73,9 @@ class AuditLogIntegrationTest {
     private AuditLogRepository auditLogRepository;
 
     @Autowired
+    private InviteTokenRepository inviteTokenRepository;
+
+    @Autowired
     private UserRepository userRepository;
 
     @Autowired
@@ -109,11 +114,19 @@ class AuditLogIntegrationTest {
     @Autowired
     private TransactionTemplate transactionTemplate;
 
+    @Autowired
+    private TestPurchaseTestDataCleaner testPurchaseTestDataCleaner;
+
     private User admin;
 
     @BeforeEach
     void setUp() {
-        transactionTemplate.executeWithoutResult(status -> auditLogRepository.deleteAll());
+        transactionTemplate.executeWithoutResult(status -> {
+            auditLogRepository.deleteAll();
+            inviteTokenRepository.deleteAll();
+        });
+        testPurchaseTestDataCleaner.resetPurchaseGraphAndBusinessFixtures(
+                customerRepository, userRepository, shopRepository);
         admin = transactionTemplate.execute(status -> {
             String suffix = UUID.randomUUID().toString().substring(0, 8);
             User u = User.builder()
