@@ -23,14 +23,10 @@ public class FileStorageService {
         }
     }
 
-    public String storeFile(MultipartFile file) {
-        String original = StringUtils.cleanPath(file.getOriginalFilename());
-        String ext = "";
-
-        int dot = original.lastIndexOf('.');
-        if (dot >= 0) {
-            ext = original.substring(dot);
-        }
+    public String storeFile(MultipartFile file, String extension) {
+        String original = StringUtils.cleanPath(
+                file.getOriginalFilename() != null ? file.getOriginalFilename() : "upload");
+        String ext = (extension != null && extension.startsWith(".")) ? extension : "";
 
         String filename = UUID.randomUUID().toString() + ext;
 

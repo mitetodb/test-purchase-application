@@ -3,6 +3,8 @@ package app.controller;
 import app.model.entity.Customer;
 import app.model.enums.Country;
 import app.service.CustomerService;
+import app.service.UploadErrorMessages;
+import app.service.UserService;
 import app.security.CustomUserDetailsService;
 import app.security.LoginAuthenticationFailureHandler;
 import app.security.LoginAuthenticationSuccessHandler;
@@ -54,6 +56,12 @@ class CustomerControllerTest {
 
     @MockBean
     private CustomUserDetailsService customUserDetailsService;
+
+    @MockBean
+    private UploadErrorMessages uploadErrorMessages;
+
+    @MockBean
+    private UserService userService;
 
     @MockBean
     private app.security.TwoFactorGateFilter twoFactorGateFilter;
