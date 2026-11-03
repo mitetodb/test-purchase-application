@@ -43,6 +43,9 @@ class CustomerServiceTest {
     @Mock
     private AccessControlService accessControlService;
 
+    @Mock
+    private EntityNumberAllocator entityNumberAllocator;
+
     @InjectMocks
     private CustomerServiceImpl customerService;
 
@@ -105,7 +108,7 @@ class CustomerServiceTest {
         dto.setCountry(Country.BULGARIA);
         dto.setBaseServiceFee(100.0);
 
-        when(customerRepository.findLastSequence()).thenReturn(0L);
+        when(entityNumberAllocator.nextCustomerNumber()).thenReturn("0001");
         when(customerRepository.save(any(Customer.class))).thenAnswer(invocation -> {
             Customer customer = invocation.getArgument(0);
             if (customer.getId() == null) {
