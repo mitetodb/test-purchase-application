@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html th:replace="~{layout :: layout(~{::title}, ~{::main})}"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title th:text="#{twoFactor.recovery.saveTitle}">Save your recovery codes</title>
+</head>
+<body>
+<main>
+    <h2 th:text="#{twoFactor.recovery.saveTitle}">Save your recovery codes</h2>
+    <p th:text="#{twoFactor.recovery.saveIntro}">Store these codes in a safe place. Each code can be used once if you lose access to your authenticator.</p>
+
+    <ul>
+        <li th:each="code : ${recoveryCodes}"><code th:text="${code}"></code></li>
+    </ul>
+
+    <a th:href="@{/home}" class="btn btn-primary" th:text="#{twoFactor.recovery.continue}">Continue to the app</a>
+</main>
+</body>
+</html>

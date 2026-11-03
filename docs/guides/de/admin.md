@@ -101,7 +101,16 @@ Deaktivierte Benutzer können sich nicht anmelden, aber ihre Daten bleiben erhal
 
 Zum Reaktivieren: Aktivieren Sie **Aktiv** und speichern Sie.
 
-**Hinweis:** Benutzer werden niemals dauerhaft gelöscht—nur deaktiviert. Dies erhält Audit-Trails und Datenintegrität.
+**Hinweis:** Benutzer und Kunden werden niemals dauerhaft gelöscht—nur deaktiviert. Dies erhält Audit-Trails und Datenintegrität.
+
+### Kunden deaktivieren
+
+1. Gehen Sie zu **Kunden**
+2. Klicken Sie neben dem Kunden auf **Deaktivieren** (im Dialog bestätigen)
+3. Deaktivierte Kunden werden standardmäßig nicht in der Liste angezeigt; aktivieren Sie **Deaktivierte Kunden anzeigen**, um sie wieder zu sehen
+4. Zum Reaktivieren klicken Sie in derselben Liste auf **Reaktivieren** (mit aktivem Filter)
+
+Bestehende Testkäufe bleiben im System; neue Testkäufe können für einen deaktivierten Kunden nicht erstellt werden.
 
 ## Kundenverwaltung
 

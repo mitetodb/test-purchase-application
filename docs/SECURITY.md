@@ -352,7 +352,7 @@ Expect exactly one of each app header, no `X-Frame-Options`, and `Server` withou
 
 **User Rights:**
 - Right to access: Admins can export user data
-- Right to erasure: Normal admin operations never delete users, only deactivate. A formal GDPR Art. 17 erasure request is an exception: it is handled manually by the owner (Dimitar), after his explicit decision, by anonymizing the personal data of the deactivated account (no hard delete of rows that other records reference).
+- Right to erasure: Normal admin operations never delete users or customers, only deactivate. A formal GDPR Art. 17 erasure request is an exception: it is handled manually by the owner (Dimitar), after his explicit decision, by anonymizing the personal data of the deactivated account (no hard delete of rows that other records reference).
 - Right to rectification: Users can edit own profiles
 - Right to portability: Manual export by admin
 
@@ -366,7 +366,7 @@ Expect exactly one of each app header, no `X-Frame-Options`, and `Server` withou
 
 **Current Policy:**
 - Soft deletes preserve data indefinitely
-- Hard deletes (admin only) remove data permanently
+- Hard deletes (admin only, selected entity types such as shops and test purchases) remove data permanently; users and customers are never hard-deleted
 - Database backups retained for 14 days
 - Application logs rotate automatically (Docker default)
 

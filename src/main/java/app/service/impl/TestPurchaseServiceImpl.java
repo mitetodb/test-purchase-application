@@ -11,6 +11,7 @@ import app.repository.ShopRepository;
 import app.repository.TestPurchaseRepository;
 import app.repository.UserRepository;
 import app.service.AccessControlService;
+import app.service.EntityNumberAllocator;
 import app.service.StatusHistoryService;
 import app.service.TestPurchaseService;
 import jakarta.persistence.EntityNotFoundException;
@@ -33,6 +34,7 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
     private final StatusHistoryService statusHistoryService;
     private final UserRepository userRepository;
     private final AccessControlService accessControlService;
+    private final EntityNumberAllocator entityNumberAllocator;
 
     @Override
     @Transactional
@@ -76,10 +78,7 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
 
         purchase.setProductPrice(itemsTotalPrice(purchase));
 
-        Long lastSeq = testPurchaseRepository.findLastSequence();
-        Long nextSeq = lastSeq + 1;
-        String number = "TP-" + String.format("%04d", nextSeq);
-        purchase.setNumber(number);
+        purchase.setNumber(entityNumberAllocator.nextTestPurchaseNumber());
 
         PriceCalculationResponseDTO responseDTO = calculatePriceInternal(
                 customer.getId(),

@@ -60,7 +60,8 @@ As an **Account Manager**, you:
 
 ❌ **Cannot do:**
 - Create users with Admin, Sales Manager, or Customer roles (Admin only)
-- Hard delete data (only Admin; you can soft delete)
+- Hard delete shops or test purchases (Admin only)
+- Deactivate customers (Admin only, from the Customers list)
 - Access system administration features
 - Change system settings
 
@@ -117,16 +118,11 @@ Your dashboard shows:
 2. Filter by **Account Manager** → Select your name
 3. These are your primary responsibility
 
-### Deactivating a Customer
+### Deactivating a customer
 
-When a customer is no longer active:
-1. Edit the customer
-2. Uncheck **Active**
-3. Click **Save**
+Customer deactivation is done by an **Admin** on the **Customers** list (**Deactivate** / **Reactivate**). Deactivated customers stay in the database; existing test purchases remain, but new purchases cannot be created for them.
 
-The customer remains in the database but is marked inactive.
-
-**Note:** You can soft delete (deactivate) customers, but only Admin can permanently delete them. Users are never deleted—only deactivated.
+**Note:** Customers are never permanently deleted—only deactivated. Users are never deleted—only deactivated.
 
 ## Test Purchase Management
 

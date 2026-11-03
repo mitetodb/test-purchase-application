@@ -11,6 +11,7 @@ import app.repository.CustomerRepository;
 import app.repository.UserRepository;
 import app.service.AccessControlService;
 import app.service.CustomerService;
+import app.service.EntityNumberAllocator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -33,6 +34,7 @@ public class CustomerServiceImpl implements CustomerService {
     private final UserRepository userRepository;
     private final PricingCustomerClient pricingCustomerClient;
     private final AccessControlService accessControlService;
+    private final EntityNumberAllocator entityNumberAllocator;
 
     private static final Set<Role> CAN_SYNC_BASE_FEE = Set.of(
             Role.ADMIN,
@@ -48,11 +50,18 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public List<Customer> findAllForCurrentUser() {
+        return findAllForCurrentUser(false);
+    }
+
+    @Override
+    public List<Customer> findAllForCurrentUser(boolean includeDeactivated) {
         User currentUser = accessControlService.getCurrentUser();
         Role role = currentUser.getRole();
 
         return switch (role) {
-            case ADMIN -> customerRepository.findAllActive();
+            case ADMIN -> includeDeactivated
+                    ? customerRepository.findAllOrdered()
+                    : customerRepository.findAllActive();
             case SALES_MANAGER -> customerRepository.findForSalesManager(currentUser.getId());
             case ACCOUNT_MANAGER -> customerRepository.findForAccountManager(currentUser.getId());
             default -> List.of();
@@ -101,11 +110,7 @@ public class CustomerServiceImpl implements CustomerService {
                 .active(true)
                 .build();
 
-        Long lastSeq = customerRepository.findLastSequence();
-        long nextSeq = lastSeq + 1;
-
-        String number = String.format("%04d", nextSeq);
-        customer.setNumber(number);
+        customer.setNumber(entityNumberAllocator.nextCustomerNumber());
 
         customer.setUpdatedByUser(SecurityUtils.getCurrentUsername());
 
@@ -159,17 +164,23 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     @Transactional
     @CacheEvict(value = "customers", allEntries = true)
-    public void delete(UUID id) {
+    public void deactivateCustomer(UUID id) {
         Customer customer = findByIdForCurrentUser(id);
+        customer.setActive(false);
+        customer.setUpdatedByUser(SecurityUtils.getCurrentUsername());
+        customerRepository.save(customer);
+    }
 
-        if (accessControlService.canHardDelete()) {
-            deleteBaseFeeInPricingApi(customer);
-            customerRepository.delete(customer);
-        } else {
-            customer.setActive(false);
-            customer.setUpdatedByUser(SecurityUtils.getCurrentUsername());
-            customerRepository.save(customer);
-        }
+    @Override
+    @Transactional
+    @CacheEvict(value = "customers", allEntries = true)
+    public void reactivateCustomer(UUID id) {
+        Customer customer = customerRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Customer not found"));
+        accessControlService.checkCanViewCustomer(customer);
+        customer.setActive(true);
+        customer.setUpdatedByUser(SecurityUtils.getCurrentUsername());
+        customerRepository.save(customer);
     }
 
     private void syncBaseFeeWithPricingApi(Customer customer) {
@@ -202,20 +213,5 @@ public class CustomerServiceImpl implements CustomerService {
         }
     }
 
-    private void deleteBaseFeeInPricingApi(Customer customer) {
-        User currentUser = accessControlService.getCurrentUser();
-
-        if (!CAN_SYNC_BASE_FEE.contains(currentUser.getRole())) {
-            return;
-        }
-
-        try {
-            pricingCustomerClient.deleteBaseFee(customer.getId());
-            log.info("Deleted baseServiceFee for customer [{}] in pricing API", customer.getId());
-        } catch (Exception ex) {
-            log.error("Failed to delete baseServiceFee for customer [{}] in pricing API: {}",
-                    customer.getId(), ex.getMessage(), ex);
-        }
-    }
 }
 

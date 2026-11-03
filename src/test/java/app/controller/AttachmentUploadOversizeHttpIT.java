@@ -11,6 +11,7 @@ import app.repository.CustomerRepository;
 import app.repository.ShopRepository;
 import app.repository.TestPurchaseRepository;
 import app.repository.UserRepository;
+import app.service.TwoFactorService;
 import app.support.TestPurchaseTestDataCleaner;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -77,6 +78,9 @@ class AttachmentUploadOversizeHttpIT {
     private TestPurchaseTestDataCleaner testPurchaseTestDataCleaner;
 
     @Autowired
+    private TwoFactorService twoFactorService;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
@@ -135,6 +139,12 @@ class AttachmentUploadOversizeHttpIT {
                     .postageFee(1.0)
                     .build());
             createdPurchaseIds.add(testPurchase.getId());
+
+            String secret = twoFactorService.generateSecret();
+            String enrollCode = twoFactorService.generateCodeForTimeStep(
+                    secret, twoFactorService.currentTimeStep());
+            User enrolledAdmin = userRepository.findById(admin.getId()).orElseThrow();
+            twoFactorService.completeEnrollmentAndIssueRecoveryCodes(enrolledAdmin, secret, enrollCode);
         });
     }
 
@@ -261,6 +271,32 @@ class AttachmentUploadOversizeHttpIT {
                         .build(),
                 HttpResponse.BodyHandlers.ofString());
         assertThat(loginResponse.statusCode()).isEqualTo(302);
+        String location = loginResponse.headers().firstValue("Location").orElse("");
+        if (location.contains("/2fa/verify")) {
+            completeTotpVerify(client, username);
+        } else {
+            assertThat(location).contains("/home");
+        }
+    }
+
+    private void completeTotpVerify(HttpClient client, String username) throws Exception {
+        User user = userRepository.findByUsername(username).orElseThrow();
+        long step = user.getTotpLastTimeStep() == null ? twoFactorService.currentTimeStep()
+                : user.getTotpLastTimeStep() + 1;
+        String code = twoFactorService.generateCodeForUserAtTimeStep(user, step);
+        HttpResponse<String> verifyPage = client.send(
+                HttpRequest.newBuilder(URI.create(baseUrl + "/2fa/verify")).GET().build(),
+                HttpResponse.BodyHandlers.ofString());
+        String csrf = parseCsrfToken(verifyPage.body());
+        HttpResponse<String> verifyResponse = client.send(
+                HttpRequest.newBuilder(URI.create(baseUrl + "/2fa/verify"))
+                        .header("Content-Type", "application/x-www-form-urlencoded")
+                        .POST(HttpRequest.BodyPublishers.ofString(
+                                "code=" + urlEncode(code) + "&_csrf=" + urlEncode(csrf)))
+                        .build(),
+                HttpResponse.BodyHandlers.ofString());
+        assertThat(verifyResponse.statusCode()).isEqualTo(302);
+        assertThat(verifyResponse.headers().firstValue("Location").orElse("")).contains("/home");
     }
 
     private static String parseFormAction(String html, String formId) {

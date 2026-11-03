@@ -81,6 +81,9 @@ class TestPurchaseControllerTest {
     @MockBean
     private UploadErrorMessages uploadErrorMessages;
 
+    @MockBean
+    private app.security.TwoFactorGateFilter twoFactorGateFilter;
+
     @Test
     void testViewPageReturns200() throws Exception {
         UUID testPurchaseId = UUID.randomUUID();

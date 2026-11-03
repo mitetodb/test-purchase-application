@@ -143,6 +143,11 @@
             <artifactId>tika-core</artifactId>
             <version>3.0.0</version>
         </dependency>
+        <dependency>
+            <groupId>dev.samstevens.totp</groupId>
+            <artifactId>totp</artifactId>
+            <version>1.7.1</version>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
@@ -172,6 +177,7 @@
                         <include>**/*Tests.java</include>
                         <include>**/*IT.java</include>
                     </includes>
+                    <runOrder>random</runOrder>
                 </configuration>
             </plugin>
             <plugin>
