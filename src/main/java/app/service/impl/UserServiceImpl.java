@@ -66,7 +66,9 @@ public class UserServiceImpl implements UserService {
                 .build();
 
         user.setUpdatedByUser(null);
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        inviteTokenService.recordTokenUsedBy(dto.getInviteToken(), savedUser);
+        return savedUser;
     }
 
     @Override

@@ -11,6 +11,9 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -26,6 +29,9 @@ public class InviteTokenService {
     private final UserRepository userRepository;
     private final AccessControlService accessControlService;
     private final SecureRandom secureRandom = new SecureRandom();
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     /**
      * Create a new invite token. Only ADMIN and ACCOUNT_MANAGER can create tokens.
@@ -94,7 +100,9 @@ public class InviteTokenService {
         LocalDateTime now = LocalDateTime.now();
         int rowsUpdated = inviteTokenRepository.markTokenAsUsed(tokenHash, now, now);
         
-        if (rowsUpdated == 0) {
+        if (rowsUpdated > 0) {
+            inviteToken.setUsedAt(now);
+        } else if (rowsUpdated == 0) {
             // Token was already used or expired
             inviteTokenRepository.flush();  // Ensure we see latest state
             InviteToken current = inviteTokenRepository.findByTokenHash(tokenHash)
@@ -109,6 +117,28 @@ public class InviteTokenService {
             // Shouldn't reach here, but fail safe
             throw new IllegalArgumentException("Invite token could not be consumed");
         }
+    }
+
+    /**
+     * After a user is created, link the consumed invite token to that user ({@code usedBy}) in the same transaction.
+     */
+    @Transactional
+    public void recordTokenUsedBy(String rawToken, User usedBy) {
+        if (usedBy == null || usedBy.getId() == null) {
+            throw new IllegalArgumentException("Registered user is required to record invite consumption");
+        }
+        entityManager.flush();
+        String tokenHash = hashToken(rawToken);
+        InviteToken token = inviteTokenRepository.findByTokenHash(tokenHash)
+                .orElseThrow(() -> new IllegalStateException("Invite token not found after consumption"));
+        if (token.getUsedAt() == null) {
+            throw new IllegalStateException("Invite token was not consumed before recording user");
+        }
+        if (token.getUsedBy() != null) {
+            throw new IllegalStateException("Invite token consumer already recorded");
+        }
+        token.setUsedBy(usedBy);
+        inviteTokenRepository.save(token);
     }
 
     /**
