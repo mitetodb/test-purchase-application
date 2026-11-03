@@ -7,13 +7,11 @@ import app.model.entity.TestPurchase;
 import app.model.entity.User;
 import app.model.enums.*;
 import app.repository.CustomerRepository;
-import app.repository.PasswordResetTokenRepository;
 import app.repository.ShopRepository;
 import app.repository.TestPurchaseRepository;
 import app.repository.UserRepository;
-import app.repository.UserTotpRecoveryCodeRepository;
-import app.support.TestDatabaseCleanup;
 import app.service.TestPurchaseService;
+import app.support.TestPurchaseTestDataCleaner;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,10 +50,7 @@ class NullCustomerSecurityTest {
     private UserRepository userRepository;
 
     @Autowired
-    private PasswordResetTokenRepository passwordResetTokenRepository;
-
-    @Autowired
-    private UserTotpRecoveryCodeRepository userTotpRecoveryCodeRepository;
+    private TestPurchaseTestDataCleaner testPurchaseTestDataCleaner;
 
     private User customerUserWithNullCustomer;
     private User salesManagerWithNullManaged;
@@ -63,11 +58,8 @@ class NullCustomerSecurityTest {
 
     @BeforeEach
     void setUp() {
-        testPurchaseRepository.deleteAll();
-        customerRepository.deleteAll();
-        TestDatabaseCleanup.deleteAllUsersAndDependents(
-                userRepository, passwordResetTokenRepository, userTotpRecoveryCodeRepository);
-        shopRepository.deleteAll();
+        testPurchaseTestDataCleaner.resetPurchaseGraphAndBusinessFixtures(
+                customerRepository, userRepository, shopRepository);
 
         // Create a customer user with NO customer link
         customerUserWithNullCustomer = new User();

@@ -7,12 +7,12 @@ import app.model.entity.User;
 import app.model.enums.Country;
 import app.model.enums.Role;
 import app.repository.InviteTokenRepository;
-import app.repository.PasswordResetTokenRepository;
 import app.repository.UserRepository;
-import app.repository.UserTotpRecoveryCodeRepository;
-import app.support.TestDatabaseCleanup;
 import app.service.InviteTokenService;
 import app.service.UserService;
+import app.support.TestPurchaseTestDataCleaner;
+import app.repository.CustomerRepository;
+import app.repository.ShopRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,10 +50,13 @@ class InviteTokenSecurityTest {
     private UserRepository userRepository;
 
     @Autowired
-    private PasswordResetTokenRepository passwordResetTokenRepository;
+    private CustomerRepository customerRepository;
 
     @Autowired
-    private UserTotpRecoveryCodeRepository userTotpRecoveryCodeRepository;
+    private ShopRepository shopRepository;
+
+    @Autowired
+    private TestPurchaseTestDataCleaner testPurchaseTestDataCleaner;
 
     @Autowired
     private jakarta.persistence.EntityManager entityManager;
@@ -64,9 +67,8 @@ class InviteTokenSecurityTest {
 
     @BeforeEach
     void setUp() {
-        inviteTokenRepository.deleteAll();
-        TestDatabaseCleanup.deleteAllUsersAndDependents(
-                userRepository, passwordResetTokenRepository, userTotpRecoveryCodeRepository);
+        testPurchaseTestDataCleaner.resetPurchaseGraphAndBusinessFixtures(
+                customerRepository, userRepository, shopRepository);
 
         // Create admin
         adminUser = new User();

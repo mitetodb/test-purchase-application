@@ -9,14 +9,11 @@ import app.model.entity.User;
 import app.model.enums.*;
 import app.repository.AttachmentRepository;
 import app.repository.CustomerRepository;
-import app.repository.PasswordResetTokenRepository;
 import app.repository.ShopRepository;
 import app.repository.TestPurchaseRepository;
-import app.repository.TestPurchaseStatusHistoryRepository;
 import app.repository.UserRepository;
-import app.repository.UserTotpRecoveryCodeRepository;
-import app.support.TestDatabaseCleanup;
 import app.service.AttachmentService;
+import app.support.TestPurchaseTestDataCleaner;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,13 +56,7 @@ class AttachmentSecurityTest {
     private UserRepository userRepository;
 
     @Autowired
-    private TestPurchaseStatusHistoryRepository testPurchaseStatusHistoryRepository;
-
-    @Autowired
-    private PasswordResetTokenRepository passwordResetTokenRepository;
-
-    @Autowired
-    private UserTotpRecoveryCodeRepository userTotpRecoveryCodeRepository;
+    private TestPurchaseTestDataCleaner testPurchaseTestDataCleaner;
 
     private User adminUser;
     private TestPurchase testPurchase;
@@ -74,12 +65,8 @@ class AttachmentSecurityTest {
 
     @BeforeEach
     void setUp() {
-        attachmentRepository.deleteAll();
-        testPurchaseStatusHistoryRepository.deleteAll();
-        testPurchaseRepository.deleteAll();
-        TestDatabaseCleanup.deleteAllUsersAndDependents(
-                userRepository, passwordResetTokenRepository, userTotpRecoveryCodeRepository);
-        customerRepository.deleteAll();
+        testPurchaseTestDataCleaner.resetPurchaseGraphAndBusinessFixtures(
+                customerRepository, userRepository, shopRepository);
 
         // Create admin user
         adminUser = new User();

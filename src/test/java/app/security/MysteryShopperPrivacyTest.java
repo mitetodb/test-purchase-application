@@ -8,13 +8,11 @@ import app.model.entity.TestPurchase;
 import app.model.entity.User;
 import app.model.enums.*;
 import app.repository.CustomerRepository;
-import app.repository.PasswordResetTokenRepository;
 import app.repository.ShopRepository;
 import app.repository.TestPurchaseRepository;
 import app.repository.UserRepository;
-import app.repository.UserTotpRecoveryCodeRepository;
-import app.support.TestDatabaseCleanup;
 import app.service.TestPurchaseService;
+import app.support.TestPurchaseTestDataCleaner;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,10 +52,7 @@ class MysteryShopperPrivacyTest {
     private UserRepository userRepository;
 
     @Autowired
-    private PasswordResetTokenRepository passwordResetTokenRepository;
-
-    @Autowired
-    private UserTotpRecoveryCodeRepository userTotpRecoveryCodeRepository;
+    private TestPurchaseTestDataCleaner testPurchaseTestDataCleaner;
 
     private User adminUser;
     private User salesManagerUser;
@@ -69,10 +64,8 @@ class MysteryShopperPrivacyTest {
 
     @BeforeEach
     void setUp() {
-        testPurchaseRepository.deleteAll();
-        TestDatabaseCleanup.deleteAllUsersAndDependents(
-                userRepository, passwordResetTokenRepository, userTotpRecoveryCodeRepository);
-        customerRepository.deleteAll();
+        testPurchaseTestDataCleaner.resetPurchaseGraphAndBusinessFixtures(
+                customerRepository, userRepository, shopRepository);
 
         // Create a customer
         customer = new Customer();
