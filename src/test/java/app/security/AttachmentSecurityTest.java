@@ -12,7 +12,10 @@ import app.repository.CustomerRepository;
 import app.repository.ShopRepository;
 import app.repository.TestPurchaseRepository;
 import app.repository.UserRepository;
+import app.repository.TestPurchaseStatusHistoryRepository;
 import app.service.AttachmentService;
+import app.support.TestPurchaseTestDataCleaner;
+import app.repository.ItemRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +57,15 @@ class AttachmentSecurityTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private TestPurchaseStatusHistoryRepository testPurchaseStatusHistoryRepository;
+
+    @Autowired
+    private ItemRepository itemRepository;
+
+    @Autowired
+    private TestPurchaseTestDataCleaner testPurchaseTestDataCleaner;
+
     private User adminUser;
     private TestPurchase testPurchase;
     private Attachment attachmentWithPurchase;
@@ -61,10 +73,8 @@ class AttachmentSecurityTest {
 
     @BeforeEach
     void setUp() {
-        attachmentRepository.deleteAll();
-        testPurchaseRepository.deleteAll();
-        userRepository.deleteAll();
-        customerRepository.deleteAll();
+        testPurchaseTestDataCleaner.resetPurchaseGraphAndBusinessFixtures(
+                customerRepository, userRepository, shopRepository);
 
         // Create admin user
         adminUser = new User();

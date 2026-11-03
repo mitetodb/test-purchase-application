@@ -6,11 +6,15 @@ import app.model.entity.Shop;
 import app.model.entity.TestPurchase;
 import app.model.entity.User;
 import app.model.enums.*;
+import app.repository.AttachmentRepository;
 import app.repository.CustomerRepository;
 import app.repository.ShopRepository;
 import app.repository.TestPurchaseRepository;
+import app.repository.TestPurchaseStatusHistoryRepository;
 import app.repository.UserRepository;
 import app.service.TestPurchaseService;
+import app.support.TestPurchaseTestDataCleaner;
+import app.repository.ItemRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,16 +52,26 @@ class NullCustomerSecurityTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private TestPurchaseStatusHistoryRepository testPurchaseStatusHistoryRepository;
+
+    @Autowired
+    private AttachmentRepository attachmentRepository;
+
+    @Autowired
+    private ItemRepository itemRepository;
+
+    @Autowired
+    private TestPurchaseTestDataCleaner testPurchaseTestDataCleaner;
+
     private User customerUserWithNullCustomer;
     private User salesManagerWithNullManaged;
     private TestPurchase orphanPurchase;
 
     @BeforeEach
     void setUp() {
-        testPurchaseRepository.deleteAll();
-        customerRepository.deleteAll();
-        userRepository.deleteAll();
-        shopRepository.deleteAll();
+        testPurchaseTestDataCleaner.resetPurchaseGraphAndBusinessFixtures(
+                customerRepository, userRepository, shopRepository);
 
         // Create a customer user with NO customer link
         customerUserWithNullCustomer = new User();

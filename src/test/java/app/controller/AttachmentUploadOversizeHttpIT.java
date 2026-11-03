@@ -7,10 +7,14 @@ import app.model.entity.Shop;
 import app.model.entity.TestPurchase;
 import app.model.entity.User;
 import app.model.enums.*;
+import app.repository.AttachmentRepository;
 import app.repository.CustomerRepository;
 import app.repository.ShopRepository;
 import app.repository.TestPurchaseRepository;
+import app.repository.TestPurchaseStatusHistoryRepository;
 import app.repository.UserRepository;
+import app.support.TestPurchaseDatabaseCleanup;
+import app.repository.ItemRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -71,6 +75,15 @@ class AttachmentUploadOversizeHttpIT {
 
     @Autowired
     private TestPurchaseRepository testPurchaseRepository;
+
+    @Autowired
+    private TestPurchaseStatusHistoryRepository testPurchaseStatusHistoryRepository;
+
+    @Autowired
+    private AttachmentRepository attachmentRepository;
+
+    @Autowired
+    private ItemRepository itemRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -137,7 +150,12 @@ class AttachmentUploadOversizeHttpIT {
     @AfterEach
     void tearDown() {
         transactionTemplate.executeWithoutResult(status -> {
-            createdPurchaseIds.forEach(testPurchaseRepository::deleteById);
+            TestPurchaseDatabaseCleanup.deleteTestPurchasesByIds(
+                    createdPurchaseIds,
+                    testPurchaseStatusHistoryRepository,
+                    attachmentRepository,
+                    itemRepository,
+                    testPurchaseRepository);
             createdPurchaseIds.clear();
             createdUserIds.forEach(userRepository::deleteById);
             createdUserIds.clear();

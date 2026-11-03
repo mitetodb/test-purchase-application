@@ -8,11 +8,15 @@ import app.model.entity.Shop;
 import app.model.entity.TestPurchase;
 import app.model.entity.User;
 import app.model.enums.*;
+import app.repository.AttachmentRepository;
 import app.repository.CustomerRepository;
 import app.repository.ShopRepository;
 import app.repository.TestPurchaseRepository;
+import app.repository.TestPurchaseStatusHistoryRepository;
 import app.repository.UserRepository;
 import app.service.TestPurchaseService;
+import app.support.TestPurchaseTestDataCleaner;
+import app.repository.ItemRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +57,18 @@ class AccountManagerScopeTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private TestPurchaseStatusHistoryRepository testPurchaseStatusHistoryRepository;
+
+    @Autowired
+    private AttachmentRepository attachmentRepository;
+
+    @Autowired
+    private ItemRepository itemRepository;
+
+    @Autowired
+    private TestPurchaseTestDataCleaner testPurchaseTestDataCleaner;
+
     @org.springframework.boot.test.mock.mockito.MockBean
     private app.client.PricingClient pricingClient;
 
@@ -66,9 +82,8 @@ class AccountManagerScopeTest {
 
     @BeforeEach
     void setUp() {
-        testPurchaseRepository.deleteAll();
-        userRepository.deleteAll();
-        customerRepository.deleteAll();
+        testPurchaseTestDataCleaner.resetPurchaseGraphAndBusinessFixtures(
+                customerRepository, userRepository, shopRepository);
 
         // Create two customers
         managedCustomer = new Customer();
@@ -310,7 +325,6 @@ class AccountManagerScopeTest {
 
     @Test
     @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
-    @org.springframework.test.annotation.DirtiesContext
     void accountManagerCanPreviewPriceForManagedCustomer() {
         // This test runs without @Transactional to verify no LazyInitializationException
         // when open-in-view=false and we access managedCustomers

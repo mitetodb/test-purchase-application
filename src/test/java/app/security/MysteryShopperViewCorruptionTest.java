@@ -7,11 +7,15 @@ import app.model.entity.Shop;
 import app.model.entity.TestPurchase;
 import app.model.entity.User;
 import app.model.enums.*;
+import app.repository.AttachmentRepository;
 import app.repository.CustomerRepository;
 import app.repository.ShopRepository;
 import app.repository.TestPurchaseRepository;
+import app.repository.TestPurchaseStatusHistoryRepository;
 import app.repository.UserRepository;
 import app.service.TestPurchaseService;
+import app.support.TestPurchaseTestDataCleaner;
+import app.repository.ItemRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +55,18 @@ class MysteryShopperViewCorruptionTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private TestPurchaseStatusHistoryRepository testPurchaseStatusHistoryRepository;
+
+    @Autowired
+    private AttachmentRepository attachmentRepository;
+
+    @Autowired
+    private ItemRepository itemRepository;
+
+    @Autowired
+    private TestPurchaseTestDataCleaner testPurchaseTestDataCleaner;
+
     private User salesManagerUser;
     private User customerUser;
     private User mysteryShopperUser;
@@ -59,9 +75,8 @@ class MysteryShopperViewCorruptionTest {
 
     @BeforeEach
     void setUp() {
-        testPurchaseRepository.deleteAll();
-        userRepository.deleteAll();
-        customerRepository.deleteAll();
+        testPurchaseTestDataCleaner.resetPurchaseGraphAndBusinessFixtures(
+                customerRepository, userRepository, shopRepository);
 
         // Create a customer
         customer = new Customer();
