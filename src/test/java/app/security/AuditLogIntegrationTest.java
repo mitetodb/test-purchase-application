@@ -40,6 +40,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import app.support.UploadFixtureBytes;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Propagation;
@@ -315,7 +316,7 @@ class AuditLogIntegrationTest {
             attachmentService.upload(
                     tp.getId(),
                     new org.springframework.mock.web.MockMultipartFile(
-                            "file", "demo.pdf", "application/pdf", new byte[]{1, 2, 3}),
+                            "file", "demo.pdf", "application/pdf", UploadFixtureBytes.TINY_PDF),
                     AttachmentCategory.INVOICE);
         });
 
