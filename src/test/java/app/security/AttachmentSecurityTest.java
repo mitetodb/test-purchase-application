@@ -12,10 +12,8 @@ import app.repository.CustomerRepository;
 import app.repository.ShopRepository;
 import app.repository.TestPurchaseRepository;
 import app.repository.UserRepository;
-import app.repository.TestPurchaseStatusHistoryRepository;
 import app.service.AttachmentService;
 import app.support.TestPurchaseTestDataCleaner;
-import app.repository.ItemRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,12 +54,6 @@ class AttachmentSecurityTest {
 
     @Autowired
     private UserRepository userRepository;
-
-    @Autowired
-    private TestPurchaseStatusHistoryRepository testPurchaseStatusHistoryRepository;
-
-    @Autowired
-    private ItemRepository itemRepository;
 
     @Autowired
     private TestPurchaseTestDataCleaner testPurchaseTestDataCleaner;

@@ -6,16 +6,13 @@ import app.model.entity.Shop;
 import app.model.entity.TestPurchase;
 import app.model.entity.User;
 import app.model.enums.*;
-import app.repository.AttachmentRepository;
 import app.repository.CustomerRepository;
 import app.repository.ShopRepository;
 import app.repository.TestPurchaseRepository;
-import app.repository.TestPurchaseStatusHistoryRepository;
 import app.repository.UserRepository;
 import app.service.TestPurchaseService;
 import app.support.TestActiveUsers;
 import app.support.TestPurchaseTestDataCleaner;
-import app.repository.ItemRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,15 +62,6 @@ class MysteryShopperAssignmentTest {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private TestPurchaseStatusHistoryRepository testPurchaseStatusHistoryRepository;
-
-    @Autowired
-    private AttachmentRepository attachmentRepository;
-
-    @Autowired
-    private ItemRepository itemRepository;
 
     @Autowired
     private TestPurchaseTestDataCleaner testPurchaseTestDataCleaner;
