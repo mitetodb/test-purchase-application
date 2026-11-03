@@ -7,6 +7,7 @@ import app.security.LoginAuthenticationSuccessHandler;
 import app.security.LoginAwareDaoAuthenticationProvider;
 import app.security.LoginRateLimitFilter;
 import app.security.NotFoundOrLoginAuthenticationEntryPoint;
+import app.security.TwoFactorGateFilter;
 import app.repository.UserRepository;
 import app.service.LoginSecurityService;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,6 @@ import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
@@ -32,7 +32,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @EnableMethodSecurity(prePostEnabled = true)
 @Configuration
-@EnableConfigurationProperties(LoginSecurityProperties.class)
+@EnableConfigurationProperties({LoginSecurityProperties.class, PasswordPolicyProperties.class, TotpProperties.class, TwoFactorSecurityProperties.class})
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -75,7 +75,8 @@ public class SecurityConfig {
             HttpSecurity http,
             LoginAwareDaoAuthenticationProvider loginAwareDaoAuthenticationProvider,
             SessionRegistry sessionRegistry,
-            @Nullable InactiveUserSessionFilter inactiveUserSessionFilter) throws Exception {
+            @Nullable InactiveUserSessionFilter inactiveUserSessionFilter,
+            TwoFactorGateFilter twoFactorGateFilter) throws Exception {
 
         http
                 .csrf(csrf -> csrf
@@ -120,6 +121,7 @@ public class SecurityConfig {
         if (inactiveUserSessionFilter != null) {
             http.addFilterAfter(inactiveUserSessionFilter, UsernamePasswordAuthenticationFilter.class);
         }
+        http.addFilterAfter(twoFactorGateFilter, UsernamePasswordAuthenticationFilter.class);
         return http
                 .formLogin(form -> form
                         .loginPage("/login")
@@ -144,11 +146,6 @@ public class SecurityConfig {
                                 SecurityHeadersPolicy.PERMISSIONS_POLICY))
                 )
                 .build();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
     }
 
     @Bean

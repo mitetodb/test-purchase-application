@@ -11,6 +11,7 @@ import app.repository.CustomerRepository;
 import app.repository.UserRepository;
 import app.service.AccessControlService;
 import app.service.CustomerService;
+import app.service.EntityNumberAllocator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -33,6 +34,7 @@ public class CustomerServiceImpl implements CustomerService {
     private final UserRepository userRepository;
     private final PricingCustomerClient pricingCustomerClient;
     private final AccessControlService accessControlService;
+    private final EntityNumberAllocator entityNumberAllocator;
 
     private static final Set<Role> CAN_SYNC_BASE_FEE = Set.of(
             Role.ADMIN,
@@ -108,11 +110,7 @@ public class CustomerServiceImpl implements CustomerService {
                 .active(true)
                 .build();
 
-        Long lastSeq = customerRepository.findLastSequence();
-        long nextSeq = lastSeq + 1;
-
-        String number = String.format("%04d", nextSeq);
-        customer.setNumber(number);
+        customer.setNumber(entityNumberAllocator.nextCustomerNumber());
 
         customer.setUpdatedByUser(SecurityUtils.getCurrentUsername());
 

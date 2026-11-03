@@ -21,6 +21,7 @@ import app.repository.TestPurchaseStatusHistoryRepository;
 import app.repository.UserRepository;
 import app.service.TestPurchaseService;
 import app.support.TestActiveUsers;
+import app.support.TestPurchaseTestDataCleaner;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -90,6 +91,9 @@ class TestPurchaseArchiveMvcIntegrationTest {
 
     @Autowired
     private TestPurchaseService testPurchaseService;
+
+    @Autowired
+    private TestPurchaseTestDataCleaner testPurchaseTestDataCleaner;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -171,10 +175,8 @@ class TestPurchaseArchiveMvcIntegrationTest {
     @AfterEach
     void tearDown() {
         TestActiveUsers.deleteStandardUsers(userRepository);
+        testPurchaseTestDataCleaner.deletePurchasesByIds(createdPurchaseIds);
         transactionTemplate.executeWithoutResult(status -> {
-            createdAttachmentIds.forEach(attachmentRepository::deleteById);
-            statusHistoryRepository.deleteAll();
-            createdPurchaseIds.forEach(testPurchaseRepository::deleteById);
             createdUserIds.forEach(userRepository::deleteById);
             createdCustomerIds.forEach(customerRepository::deleteById);
             createdShopIds.forEach(shopRepository::deleteById);

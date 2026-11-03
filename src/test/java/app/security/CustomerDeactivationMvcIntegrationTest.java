@@ -20,6 +20,7 @@ import app.repository.ShopRepository;
 import app.repository.TestPurchaseRepository;
 import app.repository.UserRepository;
 import app.support.TestActiveUsers;
+import app.support.TestPurchaseTestDataCleaner;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -83,6 +84,9 @@ class CustomerDeactivationMvcIntegrationTest {
     private TestPurchaseRepository testPurchaseRepository;
 
     @Autowired
+    private TestPurchaseTestDataCleaner testPurchaseTestDataCleaner;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
@@ -126,6 +130,7 @@ class CustomerDeactivationMvcIntegrationTest {
                     .number("SH" + suffix)
                     .name("Shop " + suffix)
                     .country(Country.GERMANY)
+                    .active(true)
                     .build());
             createdShopIds.add(shop.getId());
 
@@ -149,8 +154,8 @@ class CustomerDeactivationMvcIntegrationTest {
     @AfterEach
     void tearDown() {
         TestActiveUsers.deleteStandardUsers(userRepository);
+        testPurchaseTestDataCleaner.deletePurchasesByIds(createdPurchaseIds);
         transactionTemplate.executeWithoutResult(status -> {
-            createdPurchaseIds.forEach(testPurchaseRepository::deleteById);
             createdUserIds.forEach(userRepository::deleteById);
             createdCustomerIds.forEach(customerRepository::deleteById);
             createdShopIds.forEach(shopRepository::deleteById);

@@ -55,6 +55,9 @@ class CustomerControllerTest {
     @MockBean
     private CustomUserDetailsService customUserDetailsService;
 
+    @MockBean
+    private app.security.TwoFactorGateFilter twoFactorGateFilter;
+
     @Test
     @WithMockUser(roles = "ADMIN")
     void testListCustomers() throws Exception {

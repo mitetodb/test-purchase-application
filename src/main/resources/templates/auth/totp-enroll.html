@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html th:replace="~{layout :: layout(~{::title}, ~{::main})}"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title th:text="#{twoFactor.enroll.title}">Set up two-factor authentication</title>
+</head>
+<body>
+<main>
+    <h2 th:text="#{twoFactor.enroll.title}">Set up two-factor authentication</h2>
+    <p th:text="#{twoFactor.enroll.intro}">Scan the QR code with your authenticator app, then enter the 6-digit code to confirm.</p>
+
+    <div th:if="${errorMessageKey}" class="alert alert-danger" th:text="#{${errorMessageKey}}"></div>
+
+    <div class="row mb-4">
+        <div class="col-md-4 text-center">
+            <img th:src="${qrCodeDataUri}" alt="TOTP QR code" th:alt="#{twoFactor.enroll.qrAlt}" class="img-fluid border"/>
+        </div>
+        <div class="col-md-8">
+            <p><strong th:text="#{twoFactor.enroll.manual}">Manual entry secret:</strong></p>
+            <code th:text="${manualSecret}"></code>
+        </div>
+    </div>
+
+    <form th:action="@{/2fa/enroll}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <div class="mb-3">
+            <label class="form-label" th:text="#{twoFactor.verify.codeLabel}">Authentication code</label>
+            <input type="text" name="code" class="form-control" inputmode="numeric" autocomplete="one-time-code" required/>
+        </div>
+        <button class="btn btn-primary" type="submit" th:text="#{twoFactor.enroll.confirm}">Confirm and enable</button>
+    </form>
+</main>
+</body>
+</html>
