@@ -39,7 +39,7 @@ public class AttachmentService {
 
         accessControlService.checkCanViewTestPurchase(tp);
 
-        if (tp.getStatus().isArchived()) {
+        if (tp.getStatus() != null && tp.getStatus().isArchived()) {
             throw new IllegalArgumentException("Cannot upload attachments to an archived test purchase");
         }
 
