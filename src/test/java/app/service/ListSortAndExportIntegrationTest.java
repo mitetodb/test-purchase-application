@@ -10,6 +10,7 @@ import app.repository.CustomerRepository;
 import app.repository.ShopRepository;
 import app.repository.TestPurchaseRepository;
 import app.repository.UserRepository;
+import app.support.TestPurchaseTestDataCleaner;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +62,9 @@ class ListSortAndExportIntegrationTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private TestPurchaseTestDataCleaner testPurchaseTestDataCleaner;
+
     @org.springframework.boot.test.mock.mockito.MockBean
     private app.client.PricingClient pricingClient;
 
@@ -72,9 +76,8 @@ class ListSortAndExportIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        testPurchaseRepository.deleteAll();
-        userRepository.deleteAll();
-        customerRepository.deleteAll();
+        testPurchaseTestDataCleaner.resetPurchaseGraphAndBusinessFixtures(
+                customerRepository, userRepository, shopRepository);
 
         admin = saveUser("sort_export_admin", Role.ADMIN);
         accountManager = saveUser("sort_export_am", Role.ACCOUNT_MANAGER);

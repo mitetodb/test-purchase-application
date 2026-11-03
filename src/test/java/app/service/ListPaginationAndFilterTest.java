@@ -12,6 +12,7 @@ import app.repository.ShopRepository;
 import app.repository.TestPurchaseRepository;
 import app.repository.UserRepository;
 import app.support.ListPagingSupport;
+import app.support.TestPurchaseTestDataCleaner;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +61,9 @@ class ListPaginationAndFilterTest {
     private ListPagingSupport listPagingSupport;
 
     @Autowired
+    private TestPurchaseTestDataCleaner testPurchaseTestDataCleaner;
+
+    @Autowired
     private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     @org.springframework.boot.test.mock.mockito.MockBean
@@ -76,9 +80,8 @@ class ListPaginationAndFilterTest {
 
     @BeforeEach
     void setUp() {
-        testPurchaseRepository.deleteAll();
-        userRepository.deleteAll();
-        customerRepository.deleteAll();
+        testPurchaseTestDataCleaner.resetPurchaseGraphAndBusinessFixtures(
+                customerRepository, userRepository, shopRepository);
 
         admin = saveUser("pag_admin", Role.ADMIN);
         accountManager = saveUser("pag_accmgr", Role.ACCOUNT_MANAGER);

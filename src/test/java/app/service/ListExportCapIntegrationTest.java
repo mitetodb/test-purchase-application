@@ -29,9 +29,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Uses a dedicated Spring context (export row cap) so it does not share the default
- * {@code test} profile context; {@code application-test.properties} assigns each context
- * its own {@code jdbc:h2:mem:test-${random.uuid}} database.
+ * Export row cap uses a dedicated Spring context ({@code app.list-export.max-rows=2}).
  */
 @SpringBootTest(
         classes = TestPurchaseApplication.class,
