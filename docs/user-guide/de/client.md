@@ -10,8 +10,9 @@ Handbuch für die Rolle **Customer** — Unternehmen, die **Testkäufe** für di
 
 1. Zugangsdaten vom Administrator (keine öffentliche Kunden-Registrierung).
 2. Passwort mindestens **12 Zeichen**.
-3. **Keine 2FA** für Customer.
-4. **Profil:** `/profile` — E-Mail, Land, Sprache, Avatar.
+3. **Keine 2FA** für Customer (TOTP nur für **Admin** und **Account Manager**).
+4. Nach erfolgreichem Passwort → **`/home`**.
+5. **Profil:** `/profile` — E-Mail, Land, Sprache, Avatar.
 
 **Sprache:** Globus oder `?lang=de|en|bg`.
 

@@ -10,9 +10,9 @@ Guide for **Mystery Shoppers** (test buyers) who execute assigned test purchases
 
 1. An **Admin** or **Account Manager** sends you an **invite link** (`/register?token=…`).
 2. Complete registration (password at least **12 characters**). Your role is always **Mystery Shopper** — you cannot choose another role.
-3. Sign in at `/login`.
+3. Sign in at `/login` — after a successful password login you are redirected to **`/home`**.
 
-**No TOTP:** two-factor authentication is required only for Admin and Account Manager, not for mystery shoppers.
+**Two-factor authentication (TOTP)** is required only for **Admin** and **Account Manager**, not for Mystery Shopper (or Customer / Sales Manager).
 
 **Profile:** `/profile` — update email, country, language, avatar.
 
@@ -22,8 +22,7 @@ Guide for **Mystery Shoppers** (test buyers) who execute assigned test purchases
 
 ## What you see
 
-- **Test purchases** menu: only purchases **assigned to you**.
-- **Dashboard:** summary of your assignments.
+- **Test purchases** in the navigation: only purchases **assigned to you**.
 - You may open **shop** information as shown on purchase detail (you do not manage the shop list — `/shops` is not available to your role).
 
 You **cannot**:

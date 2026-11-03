@@ -10,8 +10,11 @@ Guide for **Account Managers** — manage assigned customers, shops, test purcha
 
 1. Username and password on `/login`.
 2. **Password:** minimum **12 characters** for new/changed passwords.
-3. **Two-factor authentication (required):** same flow as Admin — enroll at `/2fa/enroll`, verify at `/2fa/verify`, store recovery codes from `/2fa/recovery-codes`. Recovery codes are one-time; re-issued codes **invalidate** older unused codes (old rows kept in the database).
-4. If you lose your phone, use a **recovery code** on the verify page. Login lockout is cleared by an **Admin** via **Unlock** on the Users list.
+3. **Two-factor authentication (TOTP)** is required only for **Admin** and **Account Manager**. As an Account Manager you must set up 2FA on **first login**:
+   - After your password, redirect to **`/2fa/enroll`** — scan the QR code, confirm TOTP, then **save all recovery codes** on **`/2fa/recovery-codes`** (each code works once; re-issued sets **invalidate** older unused codes — rows stay in the database).
+   - On later logins: password → **`/2fa/verify`** (TOTP or recovery code).
+4. When login and 2FA succeed, you are redirected to **`/home`**.
+5. If you lose your phone, use a **recovery code** on `/2fa/verify`. Login lockout is cleared by an **Admin** via **Unlock** on the Users list.
 
 **Profile:** `/profile` — email, country, language, avatar (JPEG/PNG, magic-byte validated).
 

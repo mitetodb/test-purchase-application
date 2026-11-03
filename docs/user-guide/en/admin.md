@@ -10,11 +10,10 @@ This guide describes what an **Administrator** can do in the Test Purchase Appli
 
 1. Open the login page and enter your username and password.
 2. **Password policy:** new passwords must be at least **12 characters** (configurable via `app.security.password.min-length`).
-3. **Two-factor authentication (required for Admin):**
-   - First login after deployment: you are redirected to **`/2fa/enroll`** — scan the QR code with an authenticator app (TOTP, 6 digits, 30 s).
-   - Confirm with one code, then **save the 10 recovery codes** shown on **`/2fa/recovery-codes`** (each code works once).
-   - Later logins: password → **`/2fa/verify`** (TOTP or recovery code).
-4. After successful 2FA, you reach the dashboard (`/dashboard`).
+3. **Two-factor authentication (TOTP)** is required only for **Admin** and **Account Manager** (not for Sales Manager, Customer, or Mystery Shopper). As an Administrator you must complete 2FA after every successful password check:
+   - **First login, not enrolled yet:** redirect to **`/2fa/enroll`** — scan the QR code with an authenticator app (TOTP, 6 digits, 30 s), confirm with one code, then **save all 10 recovery codes** on **`/2fa/recovery-codes`** before you continue.
+   - **Already enrolled:** redirect to **`/2fa/verify`** — enter the current TOTP or a one-time recovery code.
+4. When login (and 2FA, if applicable) succeeds, the application redirects you to **`/home`** (not `/dashboard`).
 
 **Change password:** profile menu → **Profile** → update password (must meet minimum length).
 

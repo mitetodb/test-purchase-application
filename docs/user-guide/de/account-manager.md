@@ -10,8 +10,9 @@ Handbuch für **Account Manager** — betreute Kunden, Shops, Testkäufe und Ein
 
 1. Login unter `/login`.
 2. Passwort mindestens **12 Zeichen** bei Neuanlage/Änderung.
-3. **2FA (Pflicht):** `/2fa/enroll`, Codes auf `/2fa/recovery-codes` speichern. Neue Code-Sätze **invalidieren** unbenutzte alte Codes (Zeilen bleiben in der DB).
-4. Telefon verloren → **Wiederherstellungscode** auf `/2fa/verify`. **Unlock** nur durch Admin unter Users.
+3. **TOTP-2FA** ist nur für **Admin** und **Account Manager** Pflicht. Beim **ersten Login** als Account Manager nach dem Passwort → **`/2fa/enroll`**, Codes auf **`/2fa/recovery-codes`** speichern; danach **`/2fa/verify`**. Neue Code-Sätze **invalidieren** unbenutzte alte Codes (Zeilen bleiben in der DB).
+4. Nach erfolgreichem Login und 2FA → **`/home`**.
+5. Telefon verloren → Wiederherstellungscode auf `/2fa/verify`. **Unlock** nur durch Admin unter Users.
 
 **Profil:** `/profile`. **Sprache:** `?lang=de|en|bg`.
 

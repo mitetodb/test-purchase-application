@@ -10,7 +10,9 @@
 
 1. **Admin** или **Account Manager** ви изпраща покана (`/register?token=…`).
 2. Регистрация с парола **минимум 12 символа**. Ролята винаги е **Mystery Shopper**.
-3. Вход на `/login`. **Няма задължителна 2FA** за тази роля.
+3. Вход на `/login` — след успешна парола → **`/home`**.
+
+**TOTP 2FA** е задължителна **само** за **Admin** и **Account Manager**, не за Mystery Shopper (нито за Customer / Sales Manager).
 
 **Профил:** `/profile`. **Език:** `?lang=bg|en|de`.
 

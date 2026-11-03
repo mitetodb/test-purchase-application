@@ -10,7 +10,9 @@ Handbuch für **Mystery Shopper** — durchführung zugewiesener Testkäufe.
 
 1. **Admin** oder **Account Manager** sendet Einladungslink (`/register?token=…`).
 2. Registrierung mit Passwort (**min. 12 Zeichen**). Rolle immer **Mystery Shopper**.
-3. Login unter `/login`. **Keine Pflicht-2FA** für diese Rolle.
+3. Login unter `/login` — nach erfolgreichem Passwort → **`/home`**.
+
+**TOTP-2FA** ist nur für **Admin** und **Account Manager** Pflicht, nicht für Mystery Shopper (auch nicht für Customer / Sales Manager).
 
 **Profil:** `/profile`. **Sprache:** `?lang=de|en|bg`.
 

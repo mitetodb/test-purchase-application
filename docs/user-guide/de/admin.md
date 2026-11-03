@@ -10,11 +10,10 @@ Dieses Handbuch beschreibt die Möglichkeiten der Rolle **Administrator** in der
 
 1. Benutzername und Passwort auf der Login-Seite eingeben.
 2. **Passwortrichtlinie:** neue Passwörter mindestens **12 Zeichen** (`app.security.password.min-length`).
-3. **Zwei-Faktor-Authentifizierung (Pflicht für Admin):**
-   - Erster Login nach Deployment: Weiterleitung zu **`/2fa/enroll`** — QR-Code mit Authenticator-App scannen (TOTP, 6 Stellen, 30 s).
-   - Code bestätigen, dann die **10 Wiederherstellungscodes** auf **`/2fa/recovery-codes`** sichern (jeder Code einmal verwendbar).
-   - Spätere Logins: Passwort → **`/2fa/verify`** (TOTP oder Wiederherstellungscode).
-4. Nach erfolgreicher 2FA gelangen Sie zum Dashboard (`/dashboard`).
+3. **TOTP-2FA** ist nur für **Admin** und **Account Manager** Pflicht (nicht für Sales Manager, Customer oder Mystery Shopper). Als Administrator nach erfolgreichem Passwort:
+   - **Erster Login (noch nicht enrolled):** **`/2fa/enroll`** — QR-Code, Bestätigung, dann **alle Wiederherstellungscodes** auf **`/2fa/recovery-codes`** speichern.
+   - **Bereits enrolled:** **`/2fa/verify`** — TOTP oder Wiederherstellungscode.
+4. Nach erfolgreichem Login (und 2FA falls nötig) Weiterleitung zu **`/home`** (nicht `/dashboard`).
 
 **Passwort ändern:** Profilmenü → **Profile**. **Sprache:** Globus oder `?lang=de|en|bg`.
 

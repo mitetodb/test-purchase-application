@@ -10,8 +10,9 @@ Guide for **Customer** users — companies that request and track **test purchas
 
 1. Use the username and password provided by your administrator (customers are created by Admin, not via public registration).
 2. **Password policy:** at least **12 characters** when setting or changing password.
-3. **No TOTP** for the Customer role — password login only.
-4. **Profile:** `/profile` for email, country, language, and avatar (JPEG/PNG).
+3. **Two-factor authentication** is **not** required for Customer (only **Admin** and **Account Manager** must use TOTP).
+4. After a successful password login you are redirected to **`/home`**.
+5. **Profile:** `/profile` for email, country, language, and avatar (JPEG/PNG).
 
 **Language:** globe or `?lang=en|bg|de`.
 
@@ -23,7 +24,7 @@ You see **only test purchases for your company** (linked to your user account).
 
 You **can**:
 
-- Open **Test purchases** and the dashboard
+- Open **Test purchases** from the navigation
 - **Create** new test purchases for your company (active customer + active shop)
 - Add or edit **line items** on your purchases while they are editable
 - View **status** and **status history**
