@@ -6,11 +6,17 @@ import app.model.dto.*;
 import app.model.entity.*;
 import app.model.enums.Role;
 import app.model.enums.TestPurchaseStatus;
+import app.model.filter.TestPurchaseListFilter;
+import app.repository.spec.TestPurchaseSpecifications;
 import app.repository.CustomerRepository;
 import app.repository.ShopRepository;
 import app.repository.TestPurchaseRepository;
 import app.repository.UserRepository;
+import app.audit.AuditChangeSummary;
+import app.model.enums.AuditAction;
+import app.model.enums.AuditEntityType;
 import app.service.AccessControlService;
+import app.service.AuditLogService;
 import app.service.EntityNumberAllocator;
 import app.service.StatusHistoryService;
 import app.service.TestPurchaseService;
@@ -19,6 +25,9 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -34,6 +43,7 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
     private final StatusHistoryService statusHistoryService;
     private final UserRepository userRepository;
     private final AccessControlService accessControlService;
+    private final AuditLogService auditLogService;
     private final EntityNumberAllocator entityNumberAllocator;
 
     @Override
@@ -97,7 +107,15 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
 
         purchase.setUpdatedByUser(SecurityUtils.getCurrentUsername());
 
-        return testPurchaseRepository.save(purchase);
+        TestPurchase saved = testPurchaseRepository.save(purchase);
+        auditLogService.record(
+                AuditAction.TEST_PURCHASE_CREATE,
+                AuditEntityType.TEST_PURCHASE,
+                saved.getId(),
+                AuditChangeSummary.join(
+                        AuditChangeSummary.kv("number", saved.getNumber()),
+                        AuditChangeSummary.kv("status", saved.getStatus())));
+        return saved;
     }
 
     @Override
@@ -213,7 +231,15 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
 
         purchase.setUpdatedByUser(SecurityUtils.getCurrentUsername());
 
-        return testPurchaseRepository.save(purchase);
+        TestPurchase saved = testPurchaseRepository.save(purchase);
+        auditLogService.record(
+                AuditAction.TEST_PURCHASE_UPDATE,
+                AuditEntityType.TEST_PURCHASE,
+                saved.getId(),
+                AuditChangeSummary.join(
+                        AuditChangeSummary.kv("number", saved.getNumber()),
+                        AuditChangeSummary.kv("category", saved.getCategory())));
+        return saved;
     }
 
     private static List<Item> getItemList(List<ItemDTO> dto, TestPurchase purchase) {
@@ -322,6 +348,14 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
         String username = auth != null ? auth.getName() : "SYSTEM";
 
         statusHistoryService.recordStatusChange(tp, oldStatus, newStatus, username, comment);
+
+        auditLogService.record(
+                AuditAction.TEST_PURCHASE_STATUS_CHANGE,
+                AuditEntityType.TEST_PURCHASE,
+                tp.getId(),
+                AuditChangeSummary.join(
+                        AuditChangeSummary.fieldChange("status", oldStatus, newStatus),
+                        AuditChangeSummary.kv("commentPresent", comment != null && !comment.isBlank())));
     }
 
     @Override
@@ -359,6 +393,60 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
         return purchases.stream()
                 .map(p -> TestPurchaseViewDTO.from(p, hideMysteryShopperName))
                 .toList();
+    }
+
+    @Override
+    public Page<TestPurchaseViewDTO> findPageForCurrentUser(TestPurchaseListFilter filter, Pageable pageable) {
+        User currentUser = accessControlService.getCurrentUserWithManagedCustomers();
+        boolean hideMysteryShopperName = accessControlService.shouldHideMysteryShopperName();
+        var spec = listSpec(currentUser, filter);
+
+        return testPurchaseRepository.findAll(spec, pageable)
+                .map(p -> TestPurchaseViewDTO.from(p, hideMysteryShopperName));
+    }
+
+    @Override
+    public long countForList(TestPurchaseListFilter filter) {
+        User currentUser = accessControlService.getCurrentUserWithManagedCustomers();
+        return testPurchaseRepository.count(listSpec(currentUser, filter));
+    }
+
+    @Override
+    public List<TestPurchaseViewDTO> findAllForListExport(
+            TestPurchaseListFilter filter, Pageable sortPageable, int maxRows) {
+        User currentUser = accessControlService.getCurrentUserWithManagedCustomers();
+        boolean hideMysteryShopperName = accessControlService.shouldHideMysteryShopperName();
+        var spec = listSpec(currentUser, filter);
+        Pageable page = PageRequest.of(0, maxRows, sortPageable.getSort());
+        return testPurchaseRepository.findAll(spec, page).stream()
+                .map(p -> TestPurchaseViewDTO.from(p, hideMysteryShopperName))
+                .toList();
+    }
+
+    private org.springframework.data.jpa.domain.Specification<TestPurchase> listSpec(
+            User currentUser, TestPurchaseListFilter filter) {
+        TestPurchaseListFilter effectiveFilter = sanitizeFilter(filter, currentUser);
+        return TestPurchaseSpecifications.listQuery(currentUser, effectiveFilter);
+    }
+
+    private TestPurchaseListFilter sanitizeFilter(TestPurchaseListFilter filter, User currentUser) {
+        if (filter == null) {
+            return new TestPurchaseListFilter();
+        }
+        TestPurchaseListFilter copy = new TestPurchaseListFilter();
+        copy.setStatus(filter.getStatus());
+        copy.setCustomerId(filter.getCustomerId());
+        copy.setCreatedFrom(filter.getCreatedFrom());
+        copy.setCreatedTo(filter.getCreatedTo());
+
+        Role role = currentUser.getRole();
+        if (role == Role.ADMIN || role == Role.ACCOUNT_MANAGER) {
+            copy.setMysteryShopperId(filter.getMysteryShopperId());
+        }
+        if (role == Role.ADMIN) {
+            copy.setShowArchived(filter.isShowArchived());
+        }
+        return copy;
     }
 
     @Override

@@ -137,6 +137,17 @@ Kunden sind Organisationen oder Einzelpersonen, die Testkäufe anfordern.
 3. Weisen Sie einen Kundenbetreuer zu (optional)
 4. Klicken Sie auf **Erstellen**
 
+### Datei-Uploads
+
+**Anhänge** an Testkäufe (Inhalt wird per Magic Bytes geprüft, nicht nur Dateiendung):
+
+- **Erlaubt:** JPEG, PNG, PDF, DOCX, XLSX (max. 10 MB)
+- **Abgelehnt:** Legacy `.doc` / `.xls`, Makro-Dateien `.docm` / `.xlsm`, sowie Dateien mit täuschender Endung
+
+**Profilbild:** nur JPEG oder PNG (max. 10 MB).
+
+Bei Fehlern erscheint die Meldung auf derselben Formularseite in der gewählten Sprache (BG/EN/DE).
+
 *(Der Rest des Handbuchs folgt der Struktur der englischen Version)*
 
 ## Mehrsprachige Unterstützung

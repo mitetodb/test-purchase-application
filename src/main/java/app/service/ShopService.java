@@ -1,9 +1,12 @@
 package app.service;
 
+import app.audit.AuditChangeSummary;
 import app.config.SecurityUtils;
 import app.exception.ResourceNotFoundException;
 import app.model.dto.ShopDTO;
 import app.model.entity.Shop;
+import app.model.enums.AuditAction;
+import app.model.enums.AuditEntityType;
 import app.repository.ShopRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
@@ -19,6 +22,7 @@ import java.util.UUID;
 public class ShopService {
 
     private final ShopRepository shopRepository;
+    private final AuditLogService auditLogService;
     private final EntityNumberAllocator entityNumberAllocator;
 
     @Cacheable(value = "shops", key = "'all'")
@@ -55,12 +59,23 @@ public class ShopService {
 
         shop.setUpdatedByUser(SecurityUtils.getCurrentUsername());
 
-        return shopRepository.save(shop);
+        Shop saved = shopRepository.save(shop);
+        auditLogService.record(
+                AuditAction.SHOP_CREATE,
+                AuditEntityType.SHOP,
+                saved.getId(),
+                AuditChangeSummary.join(
+                        AuditChangeSummary.kv("number", saved.getNumber()),
+                        AuditChangeSummary.kv("name", saved.getName())));
+        return saved;
     }
 
     @CacheEvict(value = "shops", allEntries = true)
+    @Transactional
     public Shop update(UUID id, ShopDTO dto) {
         Shop shop = findById(id);
+
+        String previousName = shop.getName();
 
         shop.setName(dto.getName());
         shop.setCountry(dto.getCountry());
@@ -69,7 +84,13 @@ public class ShopService {
 
         shop.setUpdatedByUser(SecurityUtils.getCurrentUsername());
 
-        return shopRepository.save(shop);
+        Shop saved = shopRepository.save(shop);
+        auditLogService.record(
+                AuditAction.SHOP_UPDATE,
+                AuditEntityType.SHOP,
+                saved.getId(),
+                AuditChangeSummary.fieldChange("name", previousName, dto.getName()));
+        return saved;
     }
 
     @Transactional

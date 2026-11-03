@@ -88,6 +88,7 @@ public class SecurityConfig {
                                 "/access-denied", "/favicon.ico", "/error",
                                 "/actuator/health", "/actuator/health/**", "/actuator/info",
                                 "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
+                        .requestMatchers("/audit","/audit/**").hasRole("ADMIN")
                         .requestMatchers("/users","/users/**").hasRole("ADMIN")
                         .requestMatchers("/customers","/customers/**").hasAnyRole("ADMIN","ACCOUNT_MANAGER","SALES_MANAGER")
                         .requestMatchers("/shops","/shops/**").hasAnyRole("ADMIN","ACCOUNT_MANAGER")
@@ -96,7 +97,8 @@ public class SecurityConfig {
                         .requestMatchers("/testpurchases/**").authenticated()
                         .requestMatchers("/profile").authenticated()
                         .requestMatchers("/dashboard").authenticated()
-                        .requestMatchers("/attachments/upload").authenticated()
+                        .requestMatchers("/attachments/delete/**").hasRole("ADMIN")
+                        .requestMatchers("/attachments/upload/**").authenticated()
                         .requestMatchers("/attachments/**").authenticated()
                         .anyRequest().authenticated()
                 )

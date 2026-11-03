@@ -14,12 +14,21 @@ import app.repository.CustomerRepository;
 import app.repository.TestPurchaseRepository;
 import app.repository.UserRepository;
 import app.security.UserSessionInvalidationService;
+import app.audit.AuditChangeSummary;
+import app.model.enums.AuditAction;
+import app.model.enums.AuditEntityType;
+import app.service.AuditLogService;
 import app.service.InviteTokenService;
 import app.service.LoginSecurityService;
 import app.service.PasswordPolicyService;
 import app.service.UserService;
+import app.model.filter.UserListFilter;
+import app.repository.spec.UserSpecifications;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +46,7 @@ public class UserServiceImpl implements UserService {
     private final InviteTokenService inviteTokenService;
     private final LoginSecurityService loginSecurityService;
     private final UserSessionInvalidationService userSessionInvalidationService;
+    private final AuditLogService auditLogService;
     private final PasswordPolicyService passwordPolicyService;
 
     @Override
@@ -67,6 +77,13 @@ public class UserServiceImpl implements UserService {
         user.setUpdatedByUser(null);
         User savedUser = userRepository.save(user);
         inviteTokenService.recordTokenUsedBy(dto.getInviteToken(), savedUser);
+        auditLogService.record(
+                AuditAction.USER_CREATE,
+                AuditEntityType.USER,
+                savedUser.getId(),
+                AuditChangeSummary.join(
+                        AuditChangeSummary.kv("username", savedUser.getUsername()),
+                        AuditChangeSummary.kv("role", savedUser.getRole())));
         return savedUser;
     }
 
@@ -81,6 +98,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public User createUser(UserCreateDTO userCreateDTO) {
         if (usernameExists(userCreateDTO.getUsername())) {
             throw new IllegalArgumentException("Username already taken.");
@@ -99,7 +117,16 @@ public class UserServiceImpl implements UserService {
 
         user.setUpdatedByUser(SecurityUtils.getCurrentUsername());
 
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        auditLogService.record(
+                AuditAction.USER_CREATE,
+                AuditEntityType.USER,
+                saved.getId(),
+                AuditChangeSummary.join(
+                        AuditChangeSummary.kv("username", saved.getUsername()),
+                        AuditChangeSummary.kv("role", saved.getRole()),
+                        AuditChangeSummary.kv("active", saved.isActive())));
+        return saved;
     }
 
     @Override
@@ -218,6 +245,11 @@ public class UserServiceImpl implements UserService {
     public void updateUserFromDto(UUID id, UserEditDTO dto) {
         User user = findByIdWithManagedCustomers(id);
 
+        Role previousRole = user.getRole();
+        boolean previousActive = user.isActive();
+        String previousEmail = user.getEmail();
+        Country previousCountry = user.getCountry();
+
         user.setEmail(dto.getEmail());
         user.setCountry(dto.getCountry());
         user.setRole(dto.getRole());
@@ -233,6 +265,22 @@ public class UserServiceImpl implements UserService {
         }
 
         userRepository.save(user);
+
+        String summary = AuditChangeSummary.join(
+                AuditChangeSummary.fieldChange("email", previousEmail, dto.getEmail()),
+                AuditChangeSummary.fieldChange("country", previousCountry, dto.getCountry()),
+                AuditChangeSummary.fieldChange("active", previousActive, dto.isActive()));
+
+        if (previousRole != dto.getRole()) {
+            auditLogService.record(
+                    AuditAction.USER_ROLE_CHANGE,
+                    AuditEntityType.USER,
+                    user.getId(),
+                    AuditChangeSummary.fieldChange("role", previousRole, dto.getRole()));
+        }
+        if (summary != null && !summary.isBlank()) {
+            auditLogService.record(AuditAction.USER_UPDATE, AuditEntityType.USER, user.getId(), summary);
+        }
     }
 
     @Override
@@ -248,6 +296,24 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Page<User> findPageForAdmin(UserListFilter filter, Pageable pageable) {
+        var spec = UserSpecifications.listQuery(filter);
+        return userRepository.findAll(spec, pageable);
+    }
+
+    @Override
+    public long countForList(UserListFilter filter) {
+        return userRepository.count(UserSpecifications.listQuery(filter));
+    }
+
+    @Override
+    public List<User> findAllForListExport(UserListFilter filter, Pageable sortPageable, int maxRows) {
+        var spec = UserSpecifications.listQuery(filter);
+        Pageable page = PageRequest.of(0, maxRows, sortPageable.getSort());
+        return userRepository.findAll(spec, page).getContent();
+    }
+
+    @Override
     @Transactional
     public void deactivateUser(UUID id) {
         User user = userRepository.findById(id)
@@ -255,6 +321,11 @@ public class UserServiceImpl implements UserService {
         user.setActive(false);
         userRepository.save(user);
         userSessionInvalidationService.invalidateAllSessions(user.getUsername());
+        auditLogService.record(
+                AuditAction.USER_DEACTIVATE,
+                AuditEntityType.USER,
+                user.getId(),
+                AuditChangeSummary.kv("username", user.getUsername()));
     }
 
     @Override
@@ -264,6 +335,11 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
         user.setActive(true);
         userRepository.save(user);
+        auditLogService.record(
+                AuditAction.USER_REACTIVATE,
+                AuditEntityType.USER,
+                user.getId(),
+                AuditChangeSummary.kv("username", user.getUsername()));
     }
 
     @Override

@@ -7,15 +7,24 @@ import app.model.dto.CustomerDTO;
 import app.model.entity.Customer;
 import app.model.entity.User;
 import app.model.enums.Role;
+import app.model.filter.CustomerListFilter;
+import app.repository.spec.CustomerSpecifications;
 import app.repository.CustomerRepository;
 import app.repository.UserRepository;
 import app.service.AccessControlService;
+import app.audit.AuditChangeSummary;
+import app.model.enums.AuditAction;
+import app.model.enums.AuditEntityType;
+import app.service.AuditLogService;
 import app.service.CustomerService;
 import app.service.EntityNumberAllocator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +43,7 @@ public class CustomerServiceImpl implements CustomerService {
     private final UserRepository userRepository;
     private final PricingCustomerClient pricingCustomerClient;
     private final AccessControlService accessControlService;
+    private final AuditLogService auditLogService;
     private final EntityNumberAllocator entityNumberAllocator;
 
     private static final Set<Role> CAN_SYNC_BASE_FEE = Set.of(
@@ -66,6 +76,27 @@ public class CustomerServiceImpl implements CustomerService {
             case ACCOUNT_MANAGER -> customerRepository.findForAccountManager(currentUser.getId());
             default -> List.of();
         };
+    }
+
+    @Override
+    public Page<Customer> findPageForCurrentUser(CustomerListFilter filter, Pageable pageable) {
+        User currentUser = accessControlService.getCurrentUserWithManagedCustomers();
+        var spec = CustomerSpecifications.listQuery(currentUser, filter);
+        return customerRepository.findAll(spec, pageable);
+    }
+
+    @Override
+    public long countForList(CustomerListFilter filter) {
+        User currentUser = accessControlService.getCurrentUserWithManagedCustomers();
+        return customerRepository.count(CustomerSpecifications.listQuery(currentUser, filter));
+    }
+
+    @Override
+    public List<Customer> findAllForListExport(CustomerListFilter filter, Pageable sortPageable, int maxRows) {
+        User currentUser = accessControlService.getCurrentUserWithManagedCustomers();
+        var spec = CustomerSpecifications.listQuery(currentUser, filter);
+        Pageable page = PageRequest.of(0, maxRows, sortPageable.getSort());
+        return customerRepository.findAll(spec, page).getContent();
     }
 
     @Override
@@ -127,6 +158,15 @@ public class CustomerServiceImpl implements CustomerService {
 
         syncBaseFeeWithPricingApi(saved);
 
+        auditLogService.record(
+                AuditAction.CUSTOMER_CREATE,
+                AuditEntityType.CUSTOMER,
+                saved.getId(),
+                AuditChangeSummary.join(
+                        AuditChangeSummary.kv("number", saved.getNumber()),
+                        AuditChangeSummary.kv("name", saved.getName()),
+                        AuditChangeSummary.kv("baseServiceFee", saved.getBaseServiceFee())));
+
         return saved;
     }
 
@@ -136,6 +176,9 @@ public class CustomerServiceImpl implements CustomerService {
     public Customer update(UUID id, CustomerDTO dto) {
         Customer customer = findByIdForCurrentUser(id);
         accessControlService.checkCanEditCustomer(customer);
+
+        String previousName = customer.getName();
+        Double previousFee = customer.getBaseServiceFee();
 
         // Check pricing permission if baseServiceFee is being changed
         if (dto.getBaseServiceFee() != null && 
@@ -158,6 +201,14 @@ public class CustomerServiceImpl implements CustomerService {
 
         syncBaseFeeWithPricingApi(saved);
 
+        auditLogService.record(
+                AuditAction.CUSTOMER_UPDATE,
+                AuditEntityType.CUSTOMER,
+                saved.getId(),
+                AuditChangeSummary.join(
+                        AuditChangeSummary.fieldChange("name", previousName, dto.getName()),
+                        AuditChangeSummary.fieldChange("baseServiceFee", previousFee, dto.getBaseServiceFee())));
+
         return customerRepository.save(saved);
     }
 
@@ -169,6 +220,13 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setActive(false);
         customer.setUpdatedByUser(SecurityUtils.getCurrentUsername());
         customerRepository.save(customer);
+        auditLogService.record(
+                AuditAction.CUSTOMER_DEACTIVATE,
+                AuditEntityType.CUSTOMER,
+                customer.getId(),
+                AuditChangeSummary.join(
+                        AuditChangeSummary.kv("number", customer.getNumber()),
+                        AuditChangeSummary.kv("name", customer.getName())));
     }
 
     @Override
