@@ -10,7 +10,11 @@ import app.repository.CustomerRepository;
 import app.repository.ShopRepository;
 import app.repository.TestPurchaseRepository;
 import app.repository.UserRepository;
+import app.audit.AuditChangeSummary;
+import app.model.enums.AuditAction;
+import app.model.enums.AuditEntityType;
 import app.service.AccessControlService;
+import app.service.AuditLogService;
 import app.service.EntityNumberAllocator;
 import app.service.StatusHistoryService;
 import app.service.TestPurchaseService;
@@ -34,6 +38,7 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
     private final StatusHistoryService statusHistoryService;
     private final UserRepository userRepository;
     private final AccessControlService accessControlService;
+    private final AuditLogService auditLogService;
     private final EntityNumberAllocator entityNumberAllocator;
 
     @Override
@@ -93,7 +98,15 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
 
         purchase.setUpdatedByUser(SecurityUtils.getCurrentUsername());
 
-        return testPurchaseRepository.save(purchase);
+        TestPurchase saved = testPurchaseRepository.save(purchase);
+        auditLogService.record(
+                AuditAction.TEST_PURCHASE_CREATE,
+                AuditEntityType.TEST_PURCHASE,
+                saved.getId(),
+                AuditChangeSummary.join(
+                        AuditChangeSummary.kv("number", saved.getNumber()),
+                        AuditChangeSummary.kv("status", saved.getStatus())));
+        return saved;
     }
 
     @Override
@@ -204,7 +217,15 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
 
         purchase.setUpdatedByUser(SecurityUtils.getCurrentUsername());
 
-        return testPurchaseRepository.save(purchase);
+        TestPurchase saved = testPurchaseRepository.save(purchase);
+        auditLogService.record(
+                AuditAction.TEST_PURCHASE_UPDATE,
+                AuditEntityType.TEST_PURCHASE,
+                saved.getId(),
+                AuditChangeSummary.join(
+                        AuditChangeSummary.kv("number", saved.getNumber()),
+                        AuditChangeSummary.kv("category", saved.getCategory())));
+        return saved;
     }
 
     private static List<Item> getItemList(List<ItemDTO> dto, TestPurchase purchase) {
@@ -274,6 +295,14 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
         String username = auth != null ? auth.getName() : "SYSTEM";
 
         statusHistoryService.recordStatusChange(tp, oldStatus, newStatus, username, comment);
+
+        auditLogService.record(
+                AuditAction.TEST_PURCHASE_STATUS_CHANGE,
+                AuditEntityType.TEST_PURCHASE,
+                tp.getId(),
+                AuditChangeSummary.join(
+                        AuditChangeSummary.fieldChange("status", oldStatus, newStatus),
+                        AuditChangeSummary.kv("commentPresent", comment != null && !comment.isBlank())));
     }
 
     @Override

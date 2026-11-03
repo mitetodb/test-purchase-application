@@ -5,10 +5,14 @@ import app.model.entity.Attachment;
 import app.model.entity.TestPurchase;
 import app.model.enums.AttachmentFileType;
 import app.model.enums.AttachmentCategory;
+import app.audit.AuditChangeSummary;
+import app.model.enums.AuditAction;
+import app.model.enums.AuditEntityType;
 import app.repository.AttachmentRepository;
 import app.repository.TestPurchaseRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -23,7 +27,9 @@ public class AttachmentService {
     private final FileStorageService storageService;
     private final AccessControlService accessControlService;
     private final UploadContentValidator uploadContentValidator;
+    private final AuditLogService auditLogService;
 
+    @Transactional
     public Attachment upload(UUID testPurchaseId,
                              MultipartFile file,
                              AttachmentCategory category) {
@@ -48,7 +54,17 @@ public class AttachmentService {
 
         att.setUpdatedByUser(SecurityUtils.getCurrentUsername());
 
-        return attachmentRepository.save(att);
+        Attachment saved = attachmentRepository.save(att);
+        auditLogService.record(
+                AuditAction.FILE_UPLOAD,
+                AuditEntityType.ATTACHMENT,
+                saved.getId(),
+                AuditChangeSummary.join(
+                        AuditChangeSummary.kv("fileName", saved.getName()),
+                        AuditChangeSummary.kv("fileSize", saved.getFileSize()),
+                        AuditChangeSummary.kv("category", saved.getCategory()),
+                        AuditChangeSummary.kv("testPurchaseId", testPurchaseId)));
+        return saved;
     }
 
     public List<Attachment> getByTestPurchase(UUID tpId) {
