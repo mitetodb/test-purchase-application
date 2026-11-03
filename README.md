@@ -33,13 +33,14 @@ Server-side role-based access control enforced in controllers, services, and rep
 | View customers | ✅ | Only managed | Only owned | ❌ | ❌ |
 | Create customer | ✅ | ✅ (auto-managed) | ✅ (auto-owned) | ❌ | ❌ |
 | Edit customer | ✅ | ✅ (managed only) | ✅ (owned only) | ❌ | ❌ |
-| Delete customer | ✅ Hard delete | ⚠️ Soft delete (deactivate) | ⚠️ Soft delete (deactivate) | ❌ | ❌ |
+| Deactivate customer | ✅ (list) | ❌ (Admin UI) | ❌ | ❌ | ❌ |
+| Reactivate customer | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Set pricing | ✅ | ✅ | ✅ | ❌ | ❌ |
 | **Shops** |
 | View/manage shops | ✅ | ✅ | ❌ | ❌ | ❌ |
 | **Users** |
 | Manage users | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Delete users | ⚠️ Soft delete (deactivate) | ❌ | ❌ | ❌ | ❌ |
+| Delete users | ❌ Deactivate only | ❌ | ❌ | ❌ | ❌ |
 | Create invite tokens | ✅ | ✅ | ❌ | ❌ | ❌ |
 | **Registration** |
 | Public sign-up | ❌ Invite-only | ❌ Invite-only | ❌ Invite-only | ❌ Invite-only | ✅ Invite token required |

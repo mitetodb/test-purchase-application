@@ -366,7 +366,7 @@ Expect exactly one of each app header, no `X-Frame-Options`, and `Server` withou
 
 **Current Policy:**
 - Soft deletes preserve data indefinitely
-- Hard deletes (admin only) remove data permanently
+- Hard deletes (admin only, selected entity types such as shops and test purchases) remove data permanently; users and customers are never hard-deleted
 - Database backups retained for 14 days
 - Application logs rotate automatically (Docker default)
 
