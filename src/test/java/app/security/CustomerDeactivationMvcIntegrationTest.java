@@ -130,6 +130,7 @@ class CustomerDeactivationMvcIntegrationTest {
                     .number("SH" + suffix)
                     .name("Shop " + suffix)
                     .country(Country.GERMANY)
+                    .active(true)
                     .build());
             createdShopIds.add(shop.getId());
 

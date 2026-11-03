@@ -8,6 +8,10 @@ import app.model.entity.TestPurchase;
 import app.model.entity.User;
 import app.model.enums.Country;
 import app.model.enums.Role;
+import app.model.filter.UserListFilter;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Map;
@@ -51,6 +55,12 @@ public interface UserService {
     User findByIdWithManagedCustomers(UUID id);
 
     List<User> findAllMysteryShoppers();
+
+    Page<User> findPageForAdmin(UserListFilter filter, Pageable pageable);
+
+    long countForList(UserListFilter filter);
+
+    java.util.List<User> findAllForListExport(UserListFilter filter, Pageable sortPageable, int maxRows);
 
     void deactivateUser(UUID id);
 

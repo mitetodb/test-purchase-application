@@ -112,6 +112,8 @@ Zum Reaktivieren: Aktivieren Sie **Aktiv** und speichern Sie.
 
 Bestehende Testkäufe bleiben im System; neue Testkäufe können für einen deaktivierten Kunden nicht erstellt werden.
 
+**Shops:** Nur Admin **Deaktivieren** / **Reaktivieren** in **Shops** (Filter **Deaktivierte Shops anzeigen**). **Testkäufe:** Admin **Archivieren** / **Entarchivieren** (Filter **Archivierte Testkäufe anzeigen**); Anhänge bleiben erhalten. Kein Hard-Delete in der Anwendung; GDPR Art. 17 — manuelle Anonymisierung durch den Owner.
+
 ## Kundenverwaltung
 
 Kunden sind Organisationen oder Einzelpersonen, die Testkäufe anfordern.

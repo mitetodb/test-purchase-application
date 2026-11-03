@@ -7,6 +7,8 @@ import app.model.dto.CustomerDTO;
 import app.model.entity.Customer;
 import app.model.entity.User;
 import app.model.enums.Role;
+import app.model.filter.CustomerListFilter;
+import app.repository.spec.CustomerSpecifications;
 import app.repository.CustomerRepository;
 import app.repository.UserRepository;
 import app.service.AccessControlService;
@@ -20,6 +22,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,6 +76,27 @@ public class CustomerServiceImpl implements CustomerService {
             case ACCOUNT_MANAGER -> customerRepository.findForAccountManager(currentUser.getId());
             default -> List.of();
         };
+    }
+
+    @Override
+    public Page<Customer> findPageForCurrentUser(CustomerListFilter filter, Pageable pageable) {
+        User currentUser = accessControlService.getCurrentUserWithManagedCustomers();
+        var spec = CustomerSpecifications.listQuery(currentUser, filter);
+        return customerRepository.findAll(spec, pageable);
+    }
+
+    @Override
+    public long countForList(CustomerListFilter filter) {
+        User currentUser = accessControlService.getCurrentUserWithManagedCustomers();
+        return customerRepository.count(CustomerSpecifications.listQuery(currentUser, filter));
+    }
+
+    @Override
+    public List<Customer> findAllForListExport(CustomerListFilter filter, Pageable sortPageable, int maxRows) {
+        User currentUser = accessControlService.getCurrentUserWithManagedCustomers();
+        var spec = CustomerSpecifications.listQuery(currentUser, filter);
+        Pageable page = PageRequest.of(0, maxRows, sortPageable.getSort());
+        return customerRepository.findAll(spec, page).getContent();
     }
 
     @Override

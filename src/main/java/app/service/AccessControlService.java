@@ -111,17 +111,6 @@ public class AccessControlService {
         }
     }
 
-    public boolean canHardDelete() {
-        User currentUser = getCurrentUser();
-        return currentUser.getRole() == Role.ADMIN;
-    }
-
-    public void checkCanHardDelete() {
-        if (!canHardDelete()) {
-            throw new AccessDeniedException("Only admins can hard-delete");
-        }
-    }
-
     public boolean canViewCustomer(Customer customer) {
         User currentUser = getCurrentUserWithManagedCustomers();
         Role role = currentUser.getRole();

@@ -24,7 +24,8 @@ Server-side role-based access control enforced in controllers, services, and rep
 | View all test purchases | ✅ | Only managed customers' | Only owned clients' | Only own company's | Only assigned to them |
 | Create test purchase | ✅ | ✅ (for managed customers) | ❌ | ✅ (own company only) | ❌ |
 | Edit test purchase | ✅ | ✅ (managed customers) | ❌ | ❌ | ❌ |
-| Delete test purchase | ✅ Hard delete | ⚠️ Soft delete (deactivate) | ⚠️ Soft delete (deactivate) | ⚠️ Soft delete (deactivate) | ⚠️ Soft delete (deactivate) |
+| Archive test purchase | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Deactivate shop | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Change status | ✅ | ✅ | ❌ | ❌ | ✅ (own assignments) |
 | Assign mystery shopper | ✅ | ✅ | ❌ | ❌ | ❌ |
 | See mystery shopper name | ✅ | ✅ | ❌ | ❌ | ✅ |
@@ -38,6 +39,7 @@ Server-side role-based access control enforced in controllers, services, and rep
 | Set pricing | ✅ | ✅ | ✅ | ❌ | ❌ |
 | **Shops** |
 | View/manage shops | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Deactivate / reactivate shop | ✅ | ❌ | ❌ | ❌ | ❌ |
 | **Users** |
 | Manage users | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Delete users | ❌ Deactivate only | ❌ | ❌ | ❌ | ❌ |
@@ -48,7 +50,7 @@ Server-side role-based access control enforced in controllers, services, and rep
 **Key Security Features:**
 - **Invite-Only Registration**: `/register` requires a valid invite token (7-day expiry, single-use, SHA-256 hashed). Only ADMIN and ACCOUNT_MANAGER can create invite tokens. All public registrations assign MYSTERY_SHOPPER role server-side.
 - **IDOR Protection**: Each role can only access their authorized resources (tested with comprehensive IDOR tests)
-- **Soft Delete**: Non-admin delete operations deactivate records via `active` flags; inactive records are filtered from queries. Users and customers are never hard-deleted.
+- **No hard delete in UI:** Users, customers, and shops are deactivated; test purchases are archived; attachments are retained. GDPR Art. 17 erasure is manual anonymization by the owner.
 - **Mystery Shopper Privacy**: `SALES_MANAGER` and `CUSTOMER` roles never see mystery shopper names in views, lists, dashboard, or API responses
 - **Ownership Links**: 
   - `User.customer` links CUSTOMER role users to their company

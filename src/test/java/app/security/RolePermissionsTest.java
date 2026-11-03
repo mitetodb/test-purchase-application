@@ -289,24 +289,24 @@ class RolePermissionsTest {
     }
 
     @Test
-    void nonAdminCannotHardDeleteTestPurchase() {
-        authenticateAs(accountManagerUser);
+    void adminArchiveTestPurchaseKeepsRowAndRecordsHistory() {
+        authenticateAs(adminUser);
 
-        testPurchaseService.delete(testPurchase1.getId());
+        testPurchaseService.archive(testPurchase1.getId());
 
         TestPurchase tp = testPurchaseRepository.findById(testPurchase1.getId()).orElse(null);
         assertNotNull(tp, "Test purchase should still exist in database");
-        assertFalse(tp.isActive(), "Test purchase should be soft-deleted (inactive)");
+        assertTrue(tp.getStatus().isArchived(), "Test purchase should be archived");
     }
 
     @Test
-    void adminCanHardDeleteTestPurchase() {
+    void archivedTestPurchaseIsReadOnly() {
         authenticateAs(adminUser);
+        testPurchaseService.archive(testPurchase1.getId());
 
-        testPurchaseService.delete(testPurchase1.getId());
-
-        TestPurchase tp = testPurchaseRepository.findById(testPurchase1.getId()).orElse(null);
-        assertNull(tp, "Admin should hard-delete test purchase from database");
+        authenticateAs(adminUser);
+        assertThrows(AccessDeniedException.class, () ->
+                testPurchaseService.edit(testPurchase1.getId(), new app.model.dto.TestPurchaseEditDTO()));
     }
 
     @Test

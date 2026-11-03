@@ -52,7 +52,9 @@ class DemoPurchaseSeederTest {
         var all = purchases.findAll();
         assertThat(all.size() - before).isEqualTo(24);
         var statuses = all.stream().map(p -> p.getStatus()).collect(Collectors.toSet());
-        assertThat(statuses).containsAll(Arrays.asList(TestPurchaseStatus.values()));
+        assertThat(statuses).containsAll(Arrays.stream(TestPurchaseStatus.values())
+                .filter(s -> !s.isArchived())
+                .toList());
         all.forEach(p -> {
             var h = history.findByTestPurchaseIdOrderByChangedAtDesc(p.getId());
             if (p.getStatus() == TestPurchaseStatus.INITIALISED) assertThat(h).isEmpty();

@@ -97,7 +97,6 @@ public class SecurityConfig {
                         .requestMatchers("/testpurchases/**").authenticated()
                         .requestMatchers("/profile").authenticated()
                         .requestMatchers("/dashboard").authenticated()
-                        .requestMatchers("/attachments/delete/**").hasRole("ADMIN")
                         .requestMatchers("/attachments/upload/**").authenticated()
                         .requestMatchers("/attachments/**").authenticated()
                         .anyRequest().authenticated()

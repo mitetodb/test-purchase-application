@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -47,6 +48,12 @@ public class StatusHistoryService {
 
     public List<TestPurchaseStatusHistory> getHistory(UUID tpId) {
         return historyRepo.findByTestPurchaseIdOrderByChangedAtDesc(tpId);
+    }
+
+    public Optional<TestPurchaseStatus> getStatusBeforeArchive(UUID tpId) {
+        return historyRepo.findFirstByTestPurchaseIdAndNewStatusOrderByChangedAtDesc(
+                        tpId, TestPurchaseStatus.ARCHIVED)
+                .map(TestPurchaseStatusHistory::getOldStatus);
     }
 }
 

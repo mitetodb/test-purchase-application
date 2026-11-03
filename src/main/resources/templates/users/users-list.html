@@ -15,34 +15,74 @@
         <h2 th:text="#{ui.users.f9aa}">Users</h2>
         <a th:href="@{/users/add}" class="btn btn-primary" th:text="#{ui.add_user.c220}">Add User</a>
     </div>
-    <div id="export-buttons-users" class="mb-3"></div>
+
+    <form class="card card-body mb-3" method="get" th:action="@{/users}">
+        <input type="hidden" name="size" th:value="${userPage.size}"/>
+        <div class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small mb-0" for="filter-username" th:text="#{ui.username.f603}">Username</label>
+                <input type="text" id="filter-username" name="username" class="form-control form-control-sm"
+                       th:value="${filter.username}" th:placeholder="#{ui.search_username.3ca7}"/>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small mb-0" for="filter-role" th:text="#{ui.role.bbba}">Role</label>
+                <select id="filter-role" name="role" class="form-select form-select-sm">
+                    <option value="" th:text="#{list.filter.all}">All</option>
+                    <option th:each="r : ${roles}" th:value="${r.name}" th:text="${r.displayName}"
+                            th:selected="${filter.role == r}"></option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small mb-0" for="filter-active" th:text="#{ui.active.4d3d}">Active</label>
+                <select id="filter-active" name="active" class="form-select form-select-sm">
+                    <option value="" th:text="#{list.filter.all}">All</option>
+                    <option value="true" th:text="#{ui.yes}" th:selected="${filter.active != null and filter.active}">Yes</option>
+                    <option value="false" th:text="#{ui.no}" th:selected="${filter.active != null and !filter.active}">No</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small mb-0" for="filter-country" th:text="#{ui.country.5971}">Country</label>
+                <select id="filter-country" name="country" class="form-select form-select-sm">
+                    <option value="" th:text="#{list.filter.all}">All</option>
+                    <option th:each="co : ${countries}" th:value="${co.name}" th:text="${co.displayName}"
+                            th:selected="${filter.country == co}"></option>
+                </select>
+            </div>
+            <div class="col-md-auto d-flex gap-2">
+                <button type="submit" class="btn btn-sm btn-primary" th:text="#{list.filter.apply}">Apply</button>
+                <a th:href="@{/users}" class="btn btn-sm btn-outline-secondary" th:text="#{list.filter.reset}">Reset</a>
+            </div>
+        </div>
+    </form>
+
+    <div th:if="${exportLimitExceeded}" class="alert alert-warning" role="alert"
+         th:text="${exportLimitMessage}"></div>
+
+    <div th:replace="~{fragments/server-list-pagination :: serverPagination(${userPage}, '/users')}"></div>
+
+    <div class="mb-3 d-flex flex-wrap gap-2">
+        <a class="btn btn-success btn-sm"
+           th:href="@{/users/export.csv(username=${filter.username}, role=${filter.role}, active=${filter.active}, country=${filter.country}, sort=${listSort})}"
+           th:text="#{list.export.csv}">Export CSV</a>
+        <a class="btn btn-secondary btn-sm"
+           th:href="@{/users/export.xlsx(username=${filter.username}, role=${filter.role}, active=${filter.active}, country=${filter.country}, sort=${listSort})}"
+           th:text="#{list.export.excel}">Export Excel</a>
+    </div>
 
     <table id="usersTable" class="table table-hover">
         <thead>
         <tr>
-            <th class="sortable">#</th>
-            <th class="sortable" th:text="#{ui.username.f603}">Username</th>
-            <th class="sortable" th:text="#{ui.email.ce8a}">Email</th>
-            <th class="sortable" th:text="#{ui.country.5971}">Country</th>
-            <th class="sortable" th:text="#{ui.role.bbba}">Role</th>
-            <th class="sortable" th:text="#{ui.active.4d3d}">Active</th>
-            <th class="sortable" th:text="#{login.lockout.status}">Lockout</th>
-            <th class="sortable" th:text="#{ui.created_on.1b60}">Created On</th>
-            <th sec:authorize="hasRole('ADMIN')" class="sortable" th:text="#{ui.updated_by.eb4d}">Updated By</th>
+            <th>#</th>
+            <th th:text="#{ui.username.f603}">Username</th>
+            <th th:text="#{ui.email.ce8a}">Email</th>
+            <th th:text="#{ui.country.5971}">Country</th>
+            <th th:text="#{ui.role.bbba}">Role</th>
+            <th th:text="#{ui.active.4d3d}">Active</th>
+            <th th:text="#{login.lockout.status}">Lockout</th>
+            <th th:text="#{ui.created_on.1b60}">Created On</th>
+            <th sec:authorize="hasRole('ADMIN')" th:text="#{ui.updated_by.eb4d}">Updated By</th>
 
             <th th:text="#{ui.actions.06df}">Actions</th>
-        </tr>
-        <tr>
-            <th><input class="form-control form-control-sm column-filter" placeholder="Search ID" th:placeholder="#{ui.search_id.14b6}"></th>
-            <th><input class="form-control form-control-sm column-filter" placeholder="Search username" th:placeholder="#{ui.search_username.3ca7}"></th>
-            <th><input class="form-control form-control-sm column-filter" placeholder="Search email" th:placeholder="#{ui.search_email.2459}"></th>
-            <th><input class="form-control form-control-sm column-filter" placeholder="Search country" th:placeholder="#{ui.search_country.288d}"></th>
-            <th><input class="form-control form-control-sm column-filter" placeholder="Search role" th:placeholder="#{ui.search_role.e262}"></th>
-            <th><input class="form-control form-control-sm column-filter" placeholder="Search active" th:placeholder="#{ui.search_active.bbf9}"></th>
-            <th></th>
-            <th><input class="form-control form-control-sm column-filter" placeholder="Search created" th:placeholder="#{ui.search_created.0337}"></th>
-            <th sec:authorize="hasRole('ADMIN')"><input class="form-control form-control-sm column-filter" placeholder="Search updated" th:placeholder="#{ui.search_updated.c38c}"></th>
-            <th></th>
         </tr>
         </thead>
 
@@ -112,15 +152,13 @@
                 </form>
             </td>
         </tr>
+        <tr th:if="${#lists.isEmpty(users)}">
+            <td colspan="10" class="text-muted text-center" th:text="#{list.empty}">No records found.</td>
+        </tr>
         </tbody>
     </table>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            initDataTable("usersTable");
-            attachExportButtons("export-buttons-users", "usersTable");
-        });
-    </script>
+    <div th:replace="~{fragments/server-list-pagination :: serverPagination(${userPage}, '/users')}"></div>
 
 </main>
 </body>

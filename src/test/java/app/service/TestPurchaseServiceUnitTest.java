@@ -32,6 +32,9 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -120,20 +123,27 @@ class TestPurchaseServiceUnitTest {
     }
 
     @Test
-    void testDelete() {
+    void testArchive() {
         UUID purchaseId = UUID.randomUUID();
         app.model.entity.TestPurchase purchase = new app.model.entity.TestPurchase();
         purchase.setId(purchaseId);
-        
-        app.model.entity.User mockUser = new app.model.entity.User();
-        mockUser.setRole(app.model.enums.Role.ADMIN);
-        when(accessControlService.getCurrentUser()).thenReturn(mockUser);
+        purchase.setStatus(TestPurchaseStatus.INITIALISED);
+
         when(testPurchaseRepository.findById(purchaseId)).thenReturn(Optional.of(purchase));
-        doNothing().when(testPurchaseRepository).deleteById(purchaseId);
+        when(testPurchaseRepository.save(any(TestPurchase.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        doNothing().when(accessControlService).checkCanViewTestPurchase(any());
+        doNothing().when(statusHistoryService).recordStatusChange(any(), any(), any(), anyString(), nullable(String.class));
 
-        testPurchaseService.delete(purchaseId);
+        testPurchaseService.archive(purchaseId);
 
-        verify(testPurchaseRepository).deleteById(purchaseId);
+        assertThat(purchase.getStatus()).isEqualTo(TestPurchaseStatus.ARCHIVED);
+        verify(testPurchaseRepository).save(purchase);
+        verify(statusHistoryService).recordStatusChange(
+                eq(purchase),
+                eq(TestPurchaseStatus.INITIALISED),
+                eq(TestPurchaseStatus.ARCHIVED),
+                anyString(),
+                nullable(String.class));
     }
 
     @Test

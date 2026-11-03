@@ -1,20 +1,31 @@
 package app.controller;
 
+import app.config.AppListExportProperties;
 import app.model.dto.TestPurchaseCreateDTO;
 import app.model.dto.TestPurchaseEditDTO;
 import app.model.dto.TestPurchaseViewDTO;
 import app.model.entity.TestPurchase;
 import app.model.enums.TestPurchaseStatus;
+import app.model.filter.TestPurchaseListFilter;
 import app.service.*;
+import app.support.ListExportResponseFactory;
+import app.support.ListExportRows;
+import app.support.ListFilterRedirectBuilder;
+import app.support.ListPagingSupport;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,12 +40,78 @@ public class TestPurchaseController {
     private final AttachmentService attachmentService;
     private final StatusHistoryService statusHistoryService;
     private final UserService userService;
+    private final ListPagingSupport listPagingSupport;
+    private final AppListExportProperties exportProperties;
+    private final ListExportResponseFactory exportResponses;
 
     @GetMapping
-    public String list(Model model) {
-        List<TestPurchaseViewDTO> purchases = testPurchaseService.findAllForCurrentUser();
-        model.addAttribute("purchases", purchases);
+    public String list(
+            @ModelAttribute("filter") TestPurchaseListFilter filter,
+            @PageableDefault(size = 20, sort = "createdOn") Pageable pageable,
+            Model model) {
+        Pageable safePageable = listPagingSupport.forTestPurchases(pageable);
+        Page<TestPurchaseViewDTO> purchasePage =
+                testPurchaseService.findPageForCurrentUser(filter, safePageable);
+        model.addAttribute("purchasePage", purchasePage);
+        model.addAttribute("purchases", purchasePage.getContent());
+        model.addAttribute("showArchived", filter.isShowArchived());
+        model.addAttribute("filterCustomers", customerService.findAllForCurrentUser());
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getAuthorities().stream().anyMatch(a ->
+                "ROLE_ADMIN".equals(a.getAuthority()) || "ROLE_ACCOUNT_MANAGER".equals(a.getAuthority()))) {
+            model.addAttribute("mysteryShoppers", userService.findAllMysteryShoppers());
+            model.addAttribute("canFilterMysteryShopper", true);
+        }
+        model.addAttribute("statuses", TestPurchaseStatus.values());
+        model.addAttribute("listSort",
+                app.support.ListSortAllowlist.toRequestSortParameter(
+                        safePageable.getSort(), app.support.ListSortAllowlist.ListKind.TEST_PURCHASE));
         return "testpurchases/testpurchases-list";
+    }
+
+    @GetMapping("/export.csv")
+    public Object exportCsv(
+            @ModelAttribute("filter") TestPurchaseListFilter filter,
+            @PageableDefault(size = 20, sort = "createdOn") Pageable pageable,
+            RedirectAttributes redirectAttributes) throws IOException {
+        return exportSpreadsheet(filter, pageable, redirectAttributes, false);
+    }
+
+    @GetMapping("/export.xlsx")
+    public Object exportExcel(
+            @ModelAttribute("filter") TestPurchaseListFilter filter,
+            @PageableDefault(size = 20, sort = "createdOn") Pageable pageable,
+            RedirectAttributes redirectAttributes) throws IOException {
+        return exportSpreadsheet(filter, pageable, redirectAttributes, true);
+    }
+
+    private Object exportSpreadsheet(
+            TestPurchaseListFilter filter,
+            Pageable pageable,
+            RedirectAttributes redirectAttributes,
+            boolean excel) throws IOException {
+        Pageable sort = listPagingSupport.sortOnlyForTestPurchases(pageable);
+        long count = testPurchaseService.countForList(filter);
+        String redirectPath = ListFilterRedirectBuilder.testPurchases(filter);
+        if (count > exportProperties.getMaxRows()) {
+            return exportResponses.redirectWhenLimited(count, redirectPath, redirectAttributes);
+        }
+        boolean includeUpdatedBy = isAdmin();
+        var purchases = testPurchaseService.findAllForListExport(filter, sort, exportProperties.getMaxRows());
+        var header = ListExportRows.testPurchasesHeader(includeUpdatedBy);
+        var dataRows = purchases.stream()
+                .map(p -> ListExportRows.testPurchaseRow(p, includeUpdatedBy))
+                .toList();
+        if (excel) {
+            return exportResponses.excelResponse("test-purchases.xlsx", "Test Purchases", header, dataRows);
+        }
+        return exportResponses.csvResponse("test-purchases.csv", header, dataRows);
+    }
+
+    private boolean isAdmin() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth != null && auth.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
     }
 
     @GetMapping("/add")
@@ -132,11 +209,18 @@ public class TestPurchaseController {
         return "redirect:/testpurchases";
     }
 
-    @PostMapping("/delete/{id}")
+    @PostMapping("/archive/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public String delete(@PathVariable UUID id) {
-        testPurchaseService.delete(id);
+    public String archive(@PathVariable UUID id) {
+        testPurchaseService.archive(id);
         return "redirect:/testpurchases";
+    }
+
+    @PostMapping("/unarchive/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String unarchive(@PathVariable UUID id) {
+        testPurchaseService.unarchive(id);
+        return "redirect:/testpurchases/view/" + id;
     }
 
     @GetMapping("/view/{id}")
@@ -145,7 +229,9 @@ public class TestPurchaseController {
         model.addAttribute("purchase", purchase);
         model.addAttribute("attachments", attachmentService.getByTestPurchase(id));
         model.addAttribute("history", statusHistoryService.getHistory(id));
-        model.addAttribute("statuses", TestPurchaseStatus.values());
+        model.addAttribute("statuses", java.util.Arrays.stream(TestPurchaseStatus.values())
+                .filter(s -> !s.isArchived())
+                .toList());
         var auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getAuthorities().stream().anyMatch(a ->
                 "ROLE_ADMIN".equals(a.getAuthority()) || "ROLE_ACCOUNT_MANAGER".equals(a.getAuthority()))) {

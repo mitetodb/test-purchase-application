@@ -8,7 +8,12 @@ public enum TestPurchaseStatus {
     PRODUCT_FORWARDED_TO_CLIENT("Product Forwarded To Client"),
     PRODUCT_SHIPPED_BACK_TO_SELLER("Product Shipped Back to Seller"),
     CLOSED("Closed"),
-    CANCELLED("Cancelled"),;
+    CANCELLED("Cancelled"),
+    ARCHIVED("Archived"),;
+
+    public boolean isArchived() {
+        return this == ARCHIVED;
+    }
 
     private String displayName;
 

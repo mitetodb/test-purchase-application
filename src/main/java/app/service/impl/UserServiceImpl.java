@@ -22,8 +22,13 @@ import app.service.InviteTokenService;
 import app.service.LoginSecurityService;
 import app.service.PasswordPolicyService;
 import app.service.UserService;
+import app.model.filter.UserListFilter;
+import app.repository.spec.UserSpecifications;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -288,6 +293,24 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> findAllMysteryShoppers() {
         return userRepository.findByRoleAndActive(Role.MYSTERY_SHOPPER, true);
+    }
+
+    @Override
+    public Page<User> findPageForAdmin(UserListFilter filter, Pageable pageable) {
+        var spec = UserSpecifications.listQuery(filter);
+        return userRepository.findAll(spec, pageable);
+    }
+
+    @Override
+    public long countForList(UserListFilter filter) {
+        return userRepository.count(UserSpecifications.listQuery(filter));
+    }
+
+    @Override
+    public List<User> findAllForListExport(UserListFilter filter, Pageable sortPageable, int maxRows) {
+        var spec = UserSpecifications.listQuery(filter);
+        Pageable page = PageRequest.of(0, maxRows, sortPageable.getSort());
+        return userRepository.findAll(spec, page).getContent();
     }
 
     @Override

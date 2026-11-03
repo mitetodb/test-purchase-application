@@ -67,4 +67,8 @@ public class TestPurchaseViewDTO {
     public double getTotalPrice() {
         return productPrice + serviceFee + postageFee;
     }
+
+    public boolean isArchived() {
+        return status != null && status.isArchived();
+    }
 }

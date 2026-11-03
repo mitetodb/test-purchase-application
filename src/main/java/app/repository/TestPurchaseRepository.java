@@ -2,13 +2,14 @@ package app.repository;
 
 import app.model.entity.TestPurchase;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface TestPurchaseRepository extends JpaRepository<TestPurchase, UUID> {
+public interface TestPurchaseRepository extends JpaRepository<TestPurchase, UUID>, JpaSpecificationExecutor<TestPurchase> {
 
     @Query("""
         SELECT DISTINCT p FROM TestPurchase p
@@ -27,7 +28,7 @@ public interface TestPurchaseRepository extends JpaRepository<TestPurchase, UUID
         SELECT p
         FROM TestPurchase p
         WHERE p.mysteryShopper.id = :mysteryShopperId
-          AND p.active = true
+          AND p.status <> app.model.enums.TestPurchaseStatus.ARCHIVED
         """)
     List<TestPurchase> findByMysteryShopper_Id(UUID mysteryShopperId);
 
@@ -41,7 +42,7 @@ public interface TestPurchaseRepository extends JpaRepository<TestPurchase, UUID
             WHERE u.id = :accountManagerId
               AND c.active = true
         )
-        AND p.active = true
+        AND p.status <> app.model.enums.TestPurchaseStatus.ARCHIVED
         """)
     List<TestPurchase> findForAccountManager(UUID accountManagerId);
 
@@ -50,7 +51,7 @@ public interface TestPurchaseRepository extends JpaRepository<TestPurchase, UUID
         FROM TestPurchase p
         WHERE p.customer.salesManager.id = :salesManagerId
           AND p.customer.active = true
-          AND p.active = true
+          AND p.status <> app.model.enums.TestPurchaseStatus.ARCHIVED
         """)
     List<TestPurchase> findForSalesManager(UUID salesManagerId);
 
@@ -58,22 +59,28 @@ public interface TestPurchaseRepository extends JpaRepository<TestPurchase, UUID
         SELECT p
         FROM TestPurchase p
         WHERE p.customer.id = :customerId
-          AND p.active = true
+          AND p.status <> app.model.enums.TestPurchaseStatus.ARCHIVED
         """)
     List<TestPurchase> findByCustomer_Id(UUID customerId);
 
     @Query("""
         SELECT p
         FROM TestPurchase p
-        WHERE p.active = true
+        WHERE p.status <> app.model.enums.TestPurchaseStatus.ARCHIVED
         """)
-    List<TestPurchase> findAllActive();
+    List<TestPurchase> findAllNonArchived();
+
+    @Query("""
+        SELECT p
+        FROM TestPurchase p
+        """)
+    List<TestPurchase> findAllIncludingArchived();
 
     @Query("""
         SELECT COUNT(p)
         FROM TestPurchase p
         WHERE p.mysteryShopper.id = :mysteryShopperId
-          AND p.active = true
+          AND p.status <> app.model.enums.TestPurchaseStatus.ARCHIVED
         """)
     long countByMysteryShopper_Id(UUID mysteryShopperId);
 
@@ -87,7 +94,7 @@ public interface TestPurchaseRepository extends JpaRepository<TestPurchase, UUID
             WHERE u.id = :accountManagerId
               AND c.active = true
         )
-        AND p.active = true
+        AND p.status <> app.model.enums.TestPurchaseStatus.ARCHIVED
         """)
     long countForAccountManager(UUID accountManagerId);
 
@@ -96,7 +103,7 @@ public interface TestPurchaseRepository extends JpaRepository<TestPurchase, UUID
         FROM TestPurchase p
         WHERE p.customer.salesManager.id = :salesManagerId
           AND p.customer.active = true
-          AND p.active = true
+          AND p.status <> app.model.enums.TestPurchaseStatus.ARCHIVED
         """)
     long countForSalesManager(UUID salesManagerId);
 
@@ -104,8 +111,20 @@ public interface TestPurchaseRepository extends JpaRepository<TestPurchase, UUID
         SELECT COUNT(p)
         FROM TestPurchase p
         WHERE p.customer.id = :customerId
-          AND p.active = true
+          AND p.status <> app.model.enums.TestPurchaseStatus.ARCHIVED
         """)
     long countByCustomer_Id(UUID customerId);
 
+    @Query("""
+        SELECT COUNT(p)
+        FROM TestPurchase p
+        WHERE p.status <> app.model.enums.TestPurchaseStatus.ARCHIVED
+        """)
+    long countNonArchived();
+
+    /** @deprecated use {@link #findAllNonArchived()} */
+    @Deprecated
+    default List<TestPurchase> findAllActive() {
+        return findAllNonArchived();
+    }
 }

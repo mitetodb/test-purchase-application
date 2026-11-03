@@ -365,14 +365,14 @@ Expect exactly one of each app header, no `X-Frame-Options`, and `Server` withou
 ### Data Retention
 
 **Current Policy:**
-- Soft deletes preserve data indefinitely
-- Hard deletes (admin only, selected entity types such as shops and test purchases) remove data permanently; users and customers are never hard-deleted
+- Deactivated users/customers/shops and archived test purchases are retained indefinitely for audit and reporting
+- No in-application hard delete for users, customers, shops, test purchases, or attachments
 - Database backups retained for 14 days
 - Application logs rotate automatically (Docker default)
 
 **Recommendations:**
 - Define formal data retention policy
-- Implement automated cleanup of old soft-deleted records
+- Consider archival export before long-term storage
 - Consider longer backup retention for compliance
 
 ## Security Roadmap

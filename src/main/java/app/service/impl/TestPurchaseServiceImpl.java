@@ -6,6 +6,8 @@ import app.model.dto.*;
 import app.model.entity.*;
 import app.model.enums.Role;
 import app.model.enums.TestPurchaseStatus;
+import app.model.filter.TestPurchaseListFilter;
+import app.repository.spec.TestPurchaseSpecifications;
 import app.repository.CustomerRepository;
 import app.repository.ShopRepository;
 import app.repository.TestPurchaseRepository;
@@ -23,6 +25,9 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -68,6 +73,10 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
 
         Shop shop = shopRepository.findById(dto.getShopId())
                 .orElseThrow(() -> new IllegalArgumentException("Shop not found"));
+
+        if (!shop.isActive()) {
+            throw new IllegalArgumentException("Shop is inactive");
+        }
 
         TestPurchase purchase = new TestPurchase();
         purchase.setCustomer(customer);
@@ -180,6 +189,7 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
                 .orElseThrow(() -> new IllegalArgumentException("Purchase not found"));
 
         accessControlService.checkCanEditTestPurchase(purchase);
+        ensureNotArchived(purchase);
 
         Customer customer = customerRepository.findById(dto.getCustomerId())
                 .orElseThrow(() -> new IllegalArgumentException("Customer not found"));
@@ -200,6 +210,10 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
 
         Shop shop = shopRepository.findById(dto.getShopId())
                 .orElseThrow(() -> new IllegalArgumentException("Shop not found"));
+
+        if (!shop.isActive()) {
+            throw new IllegalArgumentException("Shop is inactive");
+        }
 
         purchase.setCustomer(customer);
         purchase.setShop(shop);
@@ -251,18 +265,52 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
     }
 
     @Override
-    public void delete(UUID id) {
-        User currentUser = accessControlService.getCurrentUser();
+    @Transactional
+    public void archive(UUID id) {
         TestPurchase purchase = testPurchaseRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Purchase not found"));
 
-        if (currentUser.getRole() == Role.ADMIN) {
-            testPurchaseRepository.deleteById(id);
-        } else {
-            purchase.setActive(false);
-            purchase.setUpdatedByUser(SecurityUtils.getCurrentUsername());
-            testPurchaseRepository.save(purchase);
+        accessControlService.checkCanViewTestPurchase(purchase);
+
+        if (purchase.getStatus().isArchived()) {
+            return;
         }
+
+        TestPurchaseStatus oldStatus = purchase.getStatus();
+        purchase.setStatus(TestPurchaseStatus.ARCHIVED);
+        purchase.setActive(true);
+        purchase.setUpdatedByUser(SecurityUtils.getCurrentUsername());
+        testPurchaseRepository.save(purchase);
+
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth != null ? auth.getName() : "SYSTEM";
+        statusHistoryService.recordStatusChange(purchase, oldStatus, TestPurchaseStatus.ARCHIVED, username, null);
+    }
+
+    @Override
+    @Transactional
+    public void unarchive(UUID id) {
+        TestPurchase purchase = testPurchaseRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Purchase not found"));
+
+        accessControlService.checkCanViewTestPurchase(purchase);
+
+        if (!purchase.getStatus().isArchived()) {
+            throw new IllegalStateException("Test purchase is not archived");
+        }
+
+        TestPurchaseStatus restoreStatus = statusHistoryService.getStatusBeforeArchive(id)
+                .orElse(TestPurchaseStatus.INITIALISED);
+
+        TestPurchaseStatus oldStatus = purchase.getStatus();
+        purchase.setStatus(restoreStatus);
+        purchase.setUpdatedByUser(SecurityUtils.getCurrentUsername());
+        testPurchaseRepository.save(purchase);
+
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth != null ? auth.getName() : "SYSTEM";
+        statusHistoryService.recordStatusChange(
+                purchase, oldStatus, restoreStatus, username, "Unarchived");
     }
 
     @Override
@@ -273,7 +321,7 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
 
     @Override
     public List<TestPurchase> findAll() {
-        return testPurchaseRepository.findAllActive();
+        return testPurchaseRepository.findAllNonArchived();
     }
 
     @Override
@@ -285,8 +333,13 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
                 .orElseThrow(() -> new RuntimeException("Purchase not found"));
 
         accessControlService.checkCanViewTestPurchase(tp);
+        ensureNotArchived(tp);
 
         TestPurchaseStatus oldStatus = tp.getStatus();
+
+        if (newStatus.isArchived()) {
+            throw new IllegalArgumentException("Use archive to set archived status");
+        }
 
         tp.setStatus(newStatus);
         testPurchaseRepository.save(tp);
@@ -307,12 +360,19 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
 
     @Override
     public List<TestPurchaseViewDTO> findAllForCurrentUser() {
+        return findAllForCurrentUser(false);
+    }
+
+    @Override
+    public List<TestPurchaseViewDTO> findAllForCurrentUser(boolean includeArchived) {
         User currentUser = accessControlService.getCurrentUser();
         Role role = currentUser.getRole();
         boolean hideMysteryShopperName = accessControlService.shouldHideMysteryShopperName();
 
         List<TestPurchase> purchases = switch (role) {
-            case ADMIN -> testPurchaseRepository.findAllActive();
+            case ADMIN -> includeArchived
+                    ? testPurchaseRepository.findAllIncludingArchived()
+                    : testPurchaseRepository.findAllNonArchived();
 
             case SALES_MANAGER -> testPurchaseRepository.findForSalesManager(currentUser.getId());
 
@@ -336,14 +396,64 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
     }
 
     @Override
+    public Page<TestPurchaseViewDTO> findPageForCurrentUser(TestPurchaseListFilter filter, Pageable pageable) {
+        User currentUser = accessControlService.getCurrentUserWithManagedCustomers();
+        boolean hideMysteryShopperName = accessControlService.shouldHideMysteryShopperName();
+        var spec = listSpec(currentUser, filter);
+
+        return testPurchaseRepository.findAll(spec, pageable)
+                .map(p -> TestPurchaseViewDTO.from(p, hideMysteryShopperName));
+    }
+
+    @Override
+    public long countForList(TestPurchaseListFilter filter) {
+        User currentUser = accessControlService.getCurrentUserWithManagedCustomers();
+        return testPurchaseRepository.count(listSpec(currentUser, filter));
+    }
+
+    @Override
+    public List<TestPurchaseViewDTO> findAllForListExport(
+            TestPurchaseListFilter filter, Pageable sortPageable, int maxRows) {
+        User currentUser = accessControlService.getCurrentUserWithManagedCustomers();
+        boolean hideMysteryShopperName = accessControlService.shouldHideMysteryShopperName();
+        var spec = listSpec(currentUser, filter);
+        Pageable page = PageRequest.of(0, maxRows, sortPageable.getSort());
+        return testPurchaseRepository.findAll(spec, page).stream()
+                .map(p -> TestPurchaseViewDTO.from(p, hideMysteryShopperName))
+                .toList();
+    }
+
+    private org.springframework.data.jpa.domain.Specification<TestPurchase> listSpec(
+            User currentUser, TestPurchaseListFilter filter) {
+        TestPurchaseListFilter effectiveFilter = sanitizeFilter(filter, currentUser);
+        return TestPurchaseSpecifications.listQuery(currentUser, effectiveFilter);
+    }
+
+    private TestPurchaseListFilter sanitizeFilter(TestPurchaseListFilter filter, User currentUser) {
+        if (filter == null) {
+            return new TestPurchaseListFilter();
+        }
+        TestPurchaseListFilter copy = new TestPurchaseListFilter();
+        copy.setStatus(filter.getStatus());
+        copy.setCustomerId(filter.getCustomerId());
+        copy.setCreatedFrom(filter.getCreatedFrom());
+        copy.setCreatedTo(filter.getCreatedTo());
+
+        Role role = currentUser.getRole();
+        if (role == Role.ADMIN || role == Role.ACCOUNT_MANAGER) {
+            copy.setMysteryShopperId(filter.getMysteryShopperId());
+        }
+        if (role == Role.ADMIN) {
+            copy.setShowArchived(filter.isShowArchived());
+        }
+        return copy;
+    }
+
+    @Override
     @Transactional
     public TestPurchaseViewDTO findByIdForCurrentUser(UUID id) {
         TestPurchase purchase = testPurchaseRepository.findByIdWithRelations(id)
                 .orElseThrow(() -> new EntityNotFoundException("TestPurchase not found"));
-
-        if (!purchase.isActive()) {
-            throw new EntityNotFoundException("TestPurchase not found");
-        }
 
         accessControlService.checkCanViewTestPurchase(purchase);
 
@@ -358,9 +468,7 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
         TestPurchase purchase = testPurchaseRepository.findByIdWithRelations(id)
                 .orElseThrow(() -> new EntityNotFoundException("TestPurchase not found"));
 
-        if (!purchase.isActive()) {
-            throw new EntityNotFoundException("TestPurchase not found");
-        }
+        ensureNotArchived(purchase);
 
         accessControlService.checkCanEditTestPurchase(purchase);
 
@@ -372,6 +480,8 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
     public void assignMysteryShopperToTestPurchase(UUID testPurchaseId, UUID mysteryShopperId) {
         TestPurchase purchase = testPurchaseRepository.findById(testPurchaseId)
                 .orElseThrow(() -> new EntityNotFoundException("TestPurchase not found"));
+
+        ensureNotArchived(purchase);
 
         accessControlService.checkCanAssignMysteryShopperToTestPurchase();
         
@@ -395,6 +505,12 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
         purchase.setMysteryShopper(mysteryShopper);
         purchase.setUpdatedByUser(SecurityUtils.getCurrentUsername());
         testPurchaseRepository.save(purchase);
+    }
+
+    private static void ensureNotArchived(TestPurchase purchase) {
+        if (purchase.getStatus().isArchived()) {
+            throw new AccessDeniedException("Archived test purchases are read-only");
+        }
     }
 
 }

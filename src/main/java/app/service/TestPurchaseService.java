@@ -6,6 +6,10 @@ import app.model.dto.TestPurchaseEditDTO;
 import app.model.dto.TestPurchaseViewDTO;
 import app.model.entity.TestPurchase;
 import app.model.enums.TestPurchaseStatus;
+import app.model.filter.TestPurchaseListFilter;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.UUID;
@@ -16,7 +20,9 @@ public interface TestPurchaseService {
 
     TestPurchase edit(UUID id, TestPurchaseEditDTO dto);
 
-    void delete(UUID id);
+    void archive(UUID id);
+
+    void unarchive(UUID id);
 
     TestPurchase findById(UUID id);
 
@@ -25,6 +31,15 @@ public interface TestPurchaseService {
     void changeStatus(UUID id, TestPurchaseStatus newStatus, String comment);
 
     List<TestPurchaseViewDTO> findAllForCurrentUser();
+
+    List<TestPurchaseViewDTO> findAllForCurrentUser(boolean includeArchived);
+
+    Page<TestPurchaseViewDTO> findPageForCurrentUser(TestPurchaseListFilter filter, Pageable pageable);
+
+    long countForList(TestPurchaseListFilter filter);
+
+    java.util.List<TestPurchaseViewDTO> findAllForListExport(
+            TestPurchaseListFilter filter, Pageable sortPageable, int maxRows);
 
     TestPurchaseViewDTO findByIdForCurrentUser(UUID id);
 

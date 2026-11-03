@@ -40,6 +40,10 @@ public class Shop {
 
     private String updatedByUser;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean active = true;
+
     @PrePersist
     public void onCreate() {
         this.createdOn = LocalDateTime.now();

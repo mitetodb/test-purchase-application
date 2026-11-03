@@ -27,13 +27,21 @@ public class ShopService {
 
     @Cacheable(value = "shops", key = "'all'")
     public List<Shop> findAll() {
-        return shopRepository.findAll();
+        return shopRepository.findAllActive();
+    }
+
+    public List<Shop> findAllForList(boolean includeDeactivated) {
+        return includeDeactivated ? shopRepository.findAllOrdered() : shopRepository.findAllActive();
     }
 
     @Cacheable(value = "shops", key = "#id")
     public Shop findById(UUID id) {
-        return shopRepository.findById(id)
+        Shop shop = shopRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Shop not found with id: " + id));
+        if (!shop.isActive()) {
+            throw new ResourceNotFoundException("Shop not found with id: " + id);
+        }
+        return shop;
     }
 
     @Transactional
@@ -44,6 +52,7 @@ public class ShopService {
                 .country(dto.getCountry())
                 .notes(dto.getNotes())
                 .description(dto.getDescription())
+                .active(true)
                 .build();
 
         shop.setNumber(entityNumberAllocator.nextShopNumber());
@@ -84,8 +93,22 @@ public class ShopService {
         return saved;
     }
 
+    @Transactional
     @CacheEvict(value = "shops", allEntries = true)
-    public void delete(UUID id) {
-        shopRepository.deleteById(id);
+    public void deactivateShop(UUID id) {
+        Shop shop = findById(id);
+        shop.setActive(false);
+        shop.setUpdatedByUser(SecurityUtils.getCurrentUsername());
+        shopRepository.save(shop);
+    }
+
+    @Transactional
+    @CacheEvict(value = "shops", allEntries = true)
+    public void reactivateShop(UUID id) {
+        Shop shop = shopRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Shop not found with id: " + id));
+        shop.setActive(true);
+        shop.setUpdatedByUser(SecurityUtils.getCurrentUsername());
+        shopRepository.save(shop);
     }
 }

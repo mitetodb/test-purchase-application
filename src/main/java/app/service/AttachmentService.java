@@ -3,11 +3,11 @@ package app.service;
 import app.config.SecurityUtils;
 import app.model.entity.Attachment;
 import app.model.entity.TestPurchase;
-import app.model.enums.AttachmentFileType;
 import app.model.enums.AttachmentCategory;
 import app.audit.AuditChangeSummary;
 import app.model.enums.AuditAction;
 import app.model.enums.AuditEntityType;
+import app.model.enums.TestPurchaseStatus;
 import app.repository.AttachmentRepository;
 import app.repository.TestPurchaseRepository;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +39,12 @@ public class AttachmentService {
 
         accessControlService.checkCanViewTestPurchase(tp);
 
+        if (tp.getStatus() != null && tp.getStatus().isArchived()) {
+            throw new IllegalArgumentException("Cannot upload attachments to an archived test purchase");
+        }
+
         UploadContentValidator.ValidatedUpload validated = uploadContentValidator.validateForAttachment(file);
+
 
         String storedPath = storageService.storeFile(file, validated.extension());
 
@@ -87,13 +92,6 @@ public class AttachmentService {
         accessControlService.checkCanViewTestPurchase(att.getTestPurchase());
         
         return att;
-    }
-
-    public void delete(UUID id) {
-        Attachment att = findById(id);
-        accessControlService.checkCanHardDelete();
-        storageService.delete(att.getFilePath());
-        attachmentRepository.deleteById(id);
     }
 
 }

@@ -49,18 +49,19 @@ class ShopServiceTest {
                 .name("Test Shop")
                 .country(Country.BULGARIA)
                 .number("0001")
+                .active(true)
                 .build();
     }
 
     @Test
     void testFindAll() {
-        when(shopRepository.findAll()).thenReturn(List.of(shop));
+        when(shopRepository.findAllActive()).thenReturn(List.of(shop));
 
         List<Shop> result = shopService.findAll();
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0)).isEqualTo(shop);
-        verify(shopRepository).findAll();
+        verify(shopRepository).findAllActive();
     }
 
     @Test
@@ -122,10 +123,18 @@ class ShopServiceTest {
     }
 
     @Test
-    void testDelete() {
-        shopService.delete(shopId);
+    void testDeactivateShop() {
+        when(shopRepository.findById(shopId)).thenReturn(Optional.of(shop));
+        when(shopRepository.save(any(Shop.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        verify(shopRepository).deleteById(shopId);
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUsername).thenReturn("admin");
+
+            shopService.deactivateShop(shopId);
+
+            assertThat(shop.isActive()).isFalse();
+            verify(shopRepository).save(shop);
+        }
     }
 }
 

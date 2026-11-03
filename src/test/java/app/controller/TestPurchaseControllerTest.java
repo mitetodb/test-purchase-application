@@ -14,6 +14,7 @@ import app.security.LoginAuthenticationFailureHandler;
 import app.security.LoginAuthenticationSuccessHandler;
 import app.security.LoginRateLimitFilter;
 import app.service.LoginSecurityService;
+import app.support.ListPagingSupport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -62,6 +63,15 @@ class TestPurchaseControllerTest {
 
     @MockBean
     private app.service.UserService userService;
+
+    @MockBean
+    private ListPagingSupport listPagingSupport;
+
+    @MockBean
+    private app.config.AppListExportProperties exportProperties;
+
+    @MockBean
+    private app.support.ListExportResponseFactory exportResponses;
 
     @MockBean
     private LoginSecurityService loginSecurityService;

@@ -47,12 +47,4 @@ public class FileStorageService {
     public Path loadAsPath(String filePath) {
         return Paths.get(filePath).toAbsolutePath();
     }
-
-    public boolean delete(String filePath) {
-        try {
-            return Files.deleteIfExists(Paths.get(filePath));
-        } catch (IOException e) {
-            return false;
-        }
-    }
 }
