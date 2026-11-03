@@ -37,6 +37,8 @@ class AttachmentServiceUploadValidationTest {
     private AccessControlService accessControlService;
     @Mock
     private UploadContentValidator uploadContentValidator;
+    @Mock
+    private AuditLogService auditLogService;
 
     @InjectMocks
     private AttachmentService attachmentService;
