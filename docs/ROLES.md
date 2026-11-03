@@ -35,8 +35,8 @@ Server-side role-based access control is enforced in controllers, services, and 
 | View customers | ✅ All | ✅ Managed only | ✅ Owned only | ❌ | ❌ |
 | Create customer | ✅ | ✅ (auto-managed) | ✅ (auto-owned) | ❌ | ❌ |
 | Edit customer | ✅ | ✅ **Managed only** | ✅ **Owned only** | ❌ | ❌ |
-| Delete customer | ❌ Deactivate only | ⚠️ Deactivate (soft) | ⚠️ Deactivate (soft) | ❌ | ❌ |
-| Deactivate customer | ✅ | ⚠️ Soft (service) | ⚠️ Soft (service) | ❌ | ❌ |
+| Delete customer | ❌ Deactivate only (Admin UI) | ❌ | ❌ | ❌ | ❌ |
+| Deactivate customer | ✅ | ❌ (Admin UI) | ❌ | ❌ | ❌ |
 | Reactivate customer | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Set pricing | ✅ | ✅ | ✅ | ❌ | ❌ |
 
@@ -58,7 +58,7 @@ Server-side role-based access control is enforced in controllers, services, and 
 
 | Permission | Admin | Account Manager | Sales Manager | Customer | Mystery Shopper |
 |-----------|:-----:|:---------------:|:-------------:|:--------:|:---------------:|
-| View all shops | ✅ | ✅ | ✅ | ✅ | ✅ |
+| View all shops | ✅ | ✅ | ❌ (no `/shops` access) | ❌ | ❌ |
 | Create shop | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Edit any shop | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Deactivate shop | ✅ | ❌ (Admin UI) | ❌ | ❌ | ❌ |
@@ -80,7 +80,7 @@ Server-side role-based access control is enforced in controllers, services, and 
 |-----------|:-----:|:---------------:|:-------------:|:--------:|:---------------:|
 | View attachments (any) | ✅ | ✅ Managed | ✅ Owned | ❌ | ❌ |
 | View attachments (own/assigned) | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Upload attachment | ✅ | ✅ | ❌ | ✅ | ✅ |
+| Upload attachment | ✅ | ✅ | ❌ | ❌ | ✅ |
 | Delete attachment (any) | ❌ Retained | ❌ | ❌ | ❌ | ❌ |
 | Delete attachment (own) | ❌ Retained | ❌ | ❌ | ❌ | ❌ |
 
@@ -107,6 +107,8 @@ Server-side role-based access control is enforced in controllers, services, and 
 | View system health | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Manage system settings | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Access audit logs | ✅ | ❌ | ❌ | ❌ | ❌ |
+
+Audit entries are written for deactivation, status changes, pricing updates, login unlock, and other sensitive actions (see `AuditAction` enum).
 
 ## Key Security Features
 
@@ -161,11 +163,7 @@ The system tracks ownership relationships:
 
 ### Mystery Shopper Can Change Status
 
-**Mystery Shoppers can change status on their own assignments**, typically:
-- ASSIGNED → IN_PROGRESS (when starting work)
-- IN_PROGRESS → COMPLETED (when finishing work)
-
-This allows them to update progress without Account Manager intervention.
+**Mystery Shoppers can change status on purchases they are allowed to view** (typically their assignments), for example moving from INITIALISED or IN_PROGRESS through product-order/receive steps toward CLOSED or CANCELLED as instructed by the account manager.
 
 ### Account Manager Scope
 
@@ -204,19 +202,16 @@ The application **does not expose hard delete** for users, customers, shops, tes
 - **Attachments:** Always kept with the test purchase (download only; no delete action).
 - **GDPR Art. 17:** Formal erasure is handled manually by the owner via anonymization—not via in-app delete buttons.
 
-### Status Workflow Permissions
+### Status workflow permissions
 
-Status changes follow a workflow, and permissions vary:
+Status values are defined in `TestPurchaseStatus` (e.g. INITIALISED, IN_PROGRESS, PRODUCT_ORDERED, PRODUCT_RECEIVED, PRODUCT_FORWARDED_TO_CLIENT, PRODUCT_SHIPPED_BACK_TO_SELLER, CLOSED, CANCELLED, ARCHIVED).
 
-| Status Transition | Admin | Account Manager | Sales Manager | Customer | Mystery Shopper |
-|------------------|:-----:|:---------------:|:-------------:|:--------:|:---------------:|
-| Create (DRAFT) | ✅ | ✅ | ❌ | ✅ | ❌ |
-| DRAFT → SUBMITTED | ✅ | ✅ | ❌ | ✅ | ❌ |
-| SUBMITTED → ASSIGNED | ✅ | ✅ | ❌ | ❌ | ❌ |
-| ASSIGNED → IN_PROGRESS | ✅ | ✅ | ❌ | ❌ | ✅ |
-| IN_PROGRESS → COMPLETED | ✅ | ✅ | ❌ | ❌ | ✅ |
-| COMPLETED → REVIEWED | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Any → CANCELLED | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Action | Admin | Account Manager | Sales Manager | Customer | Mystery Shopper |
+|--------|:-----:|:---------------:|:-------------:|:--------:|:---------------:|
+| Change status (non-archived) | ✅ | ✅ | ❌ | ❌ | ✅ (assigned purchases) |
+| Archive / unarchive | ✅ | ❌ | ❌ | ❌ | ❌ |
+
+**ARCHIVED** is set only via Admin archive/unarchive; archived purchases are read-only.
 
 ## Role Hierarchy
 
@@ -286,8 +281,4 @@ Repositories filter results based on the current user's role and relationships:
 
 ## Future Enhancements
 
-See [MASTERPLAN.md](MASTERPLAN.md) for planned improvements:
-
-- [#19 Role-based access control enforced on the server](https://github.com/mitetodb/test-purchase-application/issues/19) - More granular permissions
-- [#13 Full audit log for clients, prices and users](https://github.com/mitetodb/test-purchase-application/issues/13) - Track all permission-based actions
-- [#8 Password policy (min 12) and TOTP 2FA for Admin and Account Manager](https://github.com/mitetodb/test-purchase-application/issues/8) - Additional authentication for sensitive roles
+See [MASTERPLAN.md](MASTERPLAN.md) for remaining roadmap items. Implemented since the original RBAC issue: TOTP 2FA, login lockout/rate limits, audit log, pagination/export, upload magic-byte validation, entity numbers, deactivation/archive-only data lifecycle.

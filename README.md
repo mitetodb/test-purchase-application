@@ -7,10 +7,18 @@ status workflow and history, attachments, and price calculation via a separate p
 
 ## Features
 - Roles: Admin, Account Manager, Sales Manager, Customer, Mystery Shopper (Spring Security, server-side RBAC)
-- Test purchases: create/edit, items, status changes with history and optional email notification
-- Customers & shops management, user management, profile with avatar upload
+- Test purchases: create/edit, items, status changes with history and optional email notification; **archive** (no hard delete)
+- Customers, shops, and users: **deactivate/reactivate only** (no hard delete in UI)
+- TOTP **2FA** for Admin and Account Manager; one-time **recovery codes** (invalidated on re-issue, rows retained)
+- Login **rate limiting** and account **lockout**; Admin **Unlock** on user list
+- **Audit log** (Admin): filter by action, entity, actor, date
+- Sequential **entity numbers** (users, customers, shops, test purchases)
+- List **pagination**, **filters**, and **CSV/Excel export** ( capped by `app.list-export.max-rows`)
+- **Invite-only** registration for mystery shoppers (`/register?token=…`)
+- **Password policy:** minimum length 12 (`app.security.password.min-length`)
+- Upload **magic-byte** validation (attachments and avatars), size limits via multipart settings
 - Price calculation (service fee, postage) via the pricing microservice (Feign + `X-API-Key`)
-- Attachments (PDF/images), password reset by email (optional SMTP)
+- Attachments retained with purchases (**no delete** endpoint — returns 404)
 - UI in **Bulgarian, English, German** (`?lang=bg|en|de`, navbar switcher, cookie)
 - Flyway migrations, actuator health, OpenAPI (springdoc), MySQL backups
 
@@ -121,7 +129,24 @@ Set a DNS A record for `testkauf.getinweb.de` pointing at the server before you 
 `SPRING_PROFILES_ACTIVE=prod`, `APP_BASE_URL` (used in password-reset links), `PRICING_API_KEY` (sent as `X-API-Key`; it must match the pricing service),
 `ADMIN_PASSWORD` (the initial admin is created only when the users table is empty; min 12 characters required), `MAIL_ENABLED` (default `false`, so mail is a logged no-op; SMTP for ALL-INKL: `MAIL_HOST=w00d37b3.kasserver.com`, `MAIL_PORT=587` + `MAIL_STARTTLS=true` (used on Hetzner, which blocks outbound 465), or `465` + `MAIL_SSL=true` elsewhere, `MAIL_USERNAME`/`MAIL_PASSWORD` from env, `MAIL_FROM=testkauf@getinweb.de`), `DEMO_DATA_ENABLED`, `SWAGGER_ENABLED`.
 
-**Database migrations.** Flyway runs `src/main/resources/db/migration`. `V1__baseline.sql` is the schema at the time Flyway was introduced.
+**Database migrations.** Flyway runs scripts in `src/main/resources/db/migration/` in order:
+
+| Version | File |
+|---------|------|
+| V1 | `V1__baseline.sql` |
+| V2 | `V2__add_rbac_schema.sql` |
+| V3 | `V3__add_invite_tokens.sql` |
+| V4 | `V4__add_login_lockout.sql` |
+| V5 | `V5__login_rate_limit_key_hash.sql` |
+| V6 | `V6__user_deactivation_only.sql` |
+| V7 | `V7__add_totp_two_factor.sql` |
+| V7_1 | `V7_1__totp_recovery_code_invalidation.sql` |
+| V8 | `V8__entity_number_sequences.sql` |
+| V9 | `V9__audit_log.sql` |
+| V10 | `V10__customer_deactivation_only.sql` |
+| V11 | `V11__shop_deactivation_and_test_purchase_archive.sql` |
+
+`V1__baseline.sql` is the schema at the time Flyway was introduced.
 Existing databases are baselined at v1 automatically (`baseline-on-migrate`), and Hibernate runs with `ddl-auto=validate` in prod.
 If an old database created by `ddl-auto=update` fails validation, start it once with `JPA_DDL_AUTO=none`, then add a corrective `V2__*.sql`.
 
@@ -148,17 +173,20 @@ Comprehensive documentation is available in the [`docs/`](docs/) directory.
 - **[Architecture](docs/ARCHITECTURE.md)** - System architecture with Mermaid diagrams, components, and data flows
 - **[Roles & Permissions](docs/ROLES.md)** - Complete permission matrix for all five roles
 - **[Deployment Guide](docs/DEPLOYMENT.md)** - Production deployment on Hetzner with Docker Compose
+- **[Admin & operations](docs/ADMIN-OPS.md)** - baccardi host, pre-deploy backup, rollback, 2FA break-glass (env key names only)
+- **[Backup plan](docs/BACKUP.md)** - MySQL, uploads, off-site copy, restore runbook
 - **[Security](docs/SECURITY.md)** - Security practices, current implementation, and planned improvements
 - **[Contributing](docs/CONTRIBUTING.md)** - Development workflow, code style, testing, and database migrations
 
 ### User Guides
 
-User guides are available in **three languages** (Bulgarian, English, German):
+User guides live under **`docs/user-guide/{en,bg,de}/`** (Admin, Account Manager, test buyer, client):
 
 | Role | English | Bulgarian | German |
 |------|---------|-----------|--------|
-| **Admin** | [EN](docs/guides/en/admin.md) | [BG](docs/guides/bg/admin.md) | [DE](docs/guides/de/admin.md) |
-| **Account Manager** | [EN](docs/guides/en/account-manager.md) | [BG](docs/guides/bg/account-manager.md) | [DE](docs/guides/de/account-manager.md) |
-| **Sales Manager** | [EN](docs/guides/en/sales-manager.md) | [BG](docs/guides/bg/sales-manager.md) | [DE](docs/guides/de/sales-manager.md) |
-| **Customer** | [EN](docs/guides/en/customer.md) | [BG](docs/guides/bg/customer.md) | [DE](docs/guides/de/customer.md) |
-| **Mystery Shopper** | [EN](docs/guides/en/mystery-shopper.md) | [BG](docs/guides/bg/mystery-shopper.md) | [DE](docs/guides/de/mystery-shopper.md) |
+| **Admin** | [EN](docs/user-guide/en/admin.md) | [BG](docs/user-guide/bg/admin.md) | [DE](docs/user-guide/de/admin.md) |
+| **Account Manager** | [EN](docs/user-guide/en/account-manager.md) | [BG](docs/user-guide/bg/account-manager.md) | [DE](docs/user-guide/de/account-manager.md) |
+| **Test buyer (Mystery Shopper)** | [EN](docs/user-guide/en/test-buyer.md) | [BG](docs/user-guide/bg/test-buyer.md) | [DE](docs/user-guide/de/test-buyer.md) |
+| **Client (Customer)** | [EN](docs/user-guide/en/client.md) | [BG](docs/user-guide/bg/client.md) | [DE](docs/user-guide/de/client.md) |
+
+Legacy copies under `docs/guides/` redirect here. **Sales Manager** permissions are documented in [ROLES.md](docs/ROLES.md) only.

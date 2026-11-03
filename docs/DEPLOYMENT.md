@@ -2,6 +2,17 @@
 
 This document provides instructions for deploying the Test Purchase Application to a production Hetzner server.
 
+## Production host (baccardi)
+
+The live stack runs on shared Hetzner server **baccardi** under **`/opt/testkauf/`**:
+
+- Deploy **only** this compose project (`deploy/docker-compose.prod.yml`). Do **not** modify nginx vhosts or Docker stacks for **book.getinweb.de** (salon) or **quoka**.
+- Host nginx already owns **80/443** — add/update **testkauf.getinweb.de** using `deploy/nginx/testkauf.getinweb.de.conf` only.
+- **Never expose MySQL** (or `pricing-svc`) ports on the host.
+- **Before every deploy:** run MySQL backup (`deploy/backup-mysql.sh` or full plan in [BACKUP.md](BACKUP.md)); rollback steps in [ADMIN-OPS.md](ADMIN-OPS.md).
+
+See also: **[Admin & operations](ADMIN-OPS.md)** (rollback, env key names, 2FA recovery).
+
 ## Prerequisites
 
 - Hetzner Cloud or dedicated server (minimum 2 GB RAM, 20 GB disk)

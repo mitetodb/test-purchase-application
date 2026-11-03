@@ -14,9 +14,20 @@ This document outlines security practices, considerations, and planned improveme
 
 **Default Admin Account**
 - Created on first startup (when users table is empty)
-- Password set via `ADMIN_PASSWORD` environment variable
+- Password set via `ADMIN_PASSWORD` environment variable (minimum 12 characters)
 - Username: `admin`
-- **Important:** Change password immediately after first login
+- **Important:** Change password after first login; complete TOTP enrollment on first sign-in
+
+**Two-factor authentication (TOTP)**
+- Required after login for **ADMIN** and **ACCOUNT_MANAGER**
+- Secrets encrypted at rest with `APP_TOTP_ENCRYPTION_KEY`
+- Ten one-time recovery codes per enrollment; regenerating codes **invalidates** previous unused codes (`invalidated_at` / reason stored — rows not deleted)
+- Endpoints: `/2fa/enroll`, `/2fa/verify`, `/2fa/recovery`, `/2fa/recovery-codes`
+
+**Login protection**
+- Rate limiting on login and pending-2FA endpoints (`LoginRateLimitFilter`)
+- Account lockout after repeated failed password attempts; Admin **Unlock** on `/users`
+- Generic error messages on failed login (no user enumeration)
 
 ### Authorization
 
@@ -89,14 +100,12 @@ Expect exactly one of each app header, no `X-Frame-Options`, and `Server` withou
 - Regular automated backups (gzip compressed, mode 600)
 
 **File Uploads**
-- Avatars: User profile pictures
-- Attachments: PDF and images for test purchases
-- Storage: Local filesystem (`/opt/testkauf/uploads/`)
-- **Current Limitations:**
-  - No file type validation beyond extension check
-  - No file size limits enforced
-  - No antivirus scanning
-  - See [#9 Upload validation by magic bytes with an allowlist](https://github.com/mitetodb/test-purchase-application/issues/9)
+- Avatars: JPEG/PNG only (`app.upload.avatar.allowed-types`)
+- Attachments: JPEG, PNG, PDF, DOCX, XLSX by default (`app.upload.attachment.allowed-types`)
+- Validation via **magic bytes** (Apache Tika), ZIP/OOXML inspection, blocked legacy `.doc`/`.xls`/macro types
+- Max size: `spring.servlet.multipart.max-file-size` (default **10MB**)
+- Storage: Docker volume `uploads` in production (avatars under `uploads/avatars/`)
+- **No delete API** — attachment delete route returns **404**; files stay with the test purchase
 
 ### Session Management
 
@@ -116,14 +125,15 @@ Expect exactly one of each app header, no `X-Frame-Options`, and `Server` withou
 ### Logging and Monitoring
 
 **Current Capabilities**
-- Spring Boot Actuator health endpoints (admin only)
+- Spring Boot Actuator health endpoints (`/actuator/health` public)
 - Application logs via Docker logs
+- **Audit log** (Admin UI `/audit`) for sensitive changes — see `AuditLogService`
+- Failed login lockout and rate-limit counters in database
 - Password reset token usage logged
-- **Limitations:**
-  - No comprehensive audit logging
-  - No failed login tracking
-  - No alerting on security events
-  - See [#13 Full audit log for clients, prices and users](https://github.com/mitetodb/test-purchase-application/issues/13)
+
+**Remaining gaps**
+- No centralized SIEM/alerting integration
+- No antivirus scanning on uploads
 
 ### Email Security
 
@@ -139,54 +149,29 @@ Expect exactly one of each app header, no `X-Frame-Options`, and `Server` withou
 - Tokens stored hashed in database
 - Reset links sent via email only
 
+**Password policy**
+- Minimum length **12** enforced on registration and password change (`PasswordPolicyService`)
+- Passwords hashed with BCrypt
+
+**Registration**
+- `/register` requires valid invite token; role assigned server-side as **MYSTERY_SHOPPER** only
+
 ## Known Security Limitations
 
 ### High Priority (See MASTERPLAN.md)
 
-1. **[#19 Role-based access control enforced on the server](https://github.com/mitetodb/test-purchase-application/issues/19)**
-   - Some endpoints may not have proper authorization checks
-   - Need comprehensive security audit
-   - Add integration tests for all role combinations
+1. **[#19 Role-based access control enforced on the server](https://github.com/mitetodb/test-purchase-application/issues/19)** — continue expanding integration tests for edge cases.
 
-2. **[#20 Public /register allows role=ADMIN](https://github.com/mitetodb/test-purchase-application/issues/20)**
-   - Potential privilege escalation during user registration
-   - Role should be assigned by admin, not during self-registration
+2. **[#10 Backups of uploaded files plus an off-server copy](https://github.com/mitetodb/test-purchase-application/issues/10)** — operational plan in [BACKUP.md](BACKUP.md); server install is manual.
 
-3. **[#7 Login rate limiting and account lockout](https://github.com/mitetodb/test-purchase-application/issues/7)**
-   - No protection against brute force login attempts
-   - No account lockout after failed attempts
-   - No rate limiting on authentication endpoints
+### Implemented (formerly open issues)
 
-4. **[#8 Password policy (min 12) and TOTP 2FA for Admin and Account Manager](https://github.com/mitetodb/test-purchase-application/issues/8)**
-   - No password complexity requirements
-   - No password expiration
-   - No two-factor authentication (TOTP)
-   - Admins and Account Managers should require 2FA
-
-5. **[#9 Upload validation by magic bytes with an allowlist](https://github.com/mitetodb/test-purchase-application/issues/9)**
-   - No MIME type validation (beyond file extension)
-   - No file size limits
-   - No antivirus scanning
-   - No image dimension limits
-   - Risk of malicious file uploads
-
-6. **[#10 Backups of uploaded files plus an off-server copy](https://github.com/mitetodb/test-purchase-application/issues/10)**
-   - Database backups don't include uploaded files
-   - No disaster recovery for user uploads
-   - Files stored on local filesystem only
-
-### Medium Priority
-
-7. **[#13 Full audit log for clients, prices and users](https://github.com/mitetodb/test-purchase-application/issues/13)**
-   - No comprehensive audit trail
-   - Cannot track who changed what and when
-   - Needed for compliance and incident investigation
-
-8. **[#14 CSP and security header cleanup](https://github.com/mitetodb/test-purchase-application/issues/14)** — implemented: CSP, HSTS, and related headers from Spring Security; nginx does not duplicate them on the testkauf vhost
-
-9. **[#15 Pagination and filters](https://github.com/mitetodb/test-purchase-application/issues/15)**
-   - Large result sets may impact performance
-   - Need efficient pagination and filtering
+- **[#7 Login rate limiting and account lockout](https://github.com/mitetodb/test-purchase-application/issues/7)** — implemented
+- **[#8 Password policy (min 12) and TOTP 2FA for Admin and Account Manager](https://github.com/mitetodb/test-purchase-application/issues/8)** — implemented
+- **[#9 Upload validation by magic bytes with an allowlist](https://github.com/mitetodb/test-purchase-application/issues/9)** — implemented
+- **[#13 Full audit log for clients, prices and users](https://github.com/mitetodb/test-purchase-application/issues/13)** — implemented (Admin audit UI)
+- **[#15 Pagination and filters](https://github.com/mitetodb/test-purchase-application/issues/15)** — implemented on major lists
+- **[#20 Public /register allows role=ADMIN](https://github.com/mitetodb/test-purchase-application/issues/20)** — invite-only registration; MYSTERY_SHOPPER only
 
 ## Security Best Practices
 
@@ -279,8 +264,7 @@ Expect exactly one of each app header, no `X-Frame-Options`, and `Server` withou
 
 1. **Strong Passwords**
    - Use unique passwords (not reused)
-   - Minimum 12 characters (no technical limit currently)
-   - Mix uppercase, lowercase, numbers, symbols
+   - Minimum **12 characters** (enforced on change/register)
    - Use a password manager
 
 2. **Account Security**
@@ -360,7 +344,7 @@ Expect exactly one of each app header, no `X-Frame-Options`, and `Server` withou
 - Encryption in transit (HTTPS)
 - Encryption at rest (MySQL data files)
 - Access control (role-based)
-- Audit logging (planned: [#13 Full audit log for clients, prices and users](https://github.com/mitetodb/test-purchase-application/issues/13))
+- Audit logging — Admin `/audit` UI and `audit_log` table ([#13](https://github.com/mitetodb/test-purchase-application/issues/13))
 
 ### Data Retention
 
@@ -381,18 +365,18 @@ See [MASTERPLAN.md](MASTERPLAN.md) for the complete security improvement roadmap
 
 ### Immediate (High Priority)
 
-1. Implement rate limiting and account lockout - [#7 Login rate limiting and account lockout](https://github.com/mitetodb/test-purchase-application/issues/7)
-2. Add password complexity requirements and TOTP 2FA - [#8 Password policy (min 12) and TOTP 2FA for Admin and Account Manager](https://github.com/mitetodb/test-purchase-application/issues/8)
-3. Implement comprehensive upload validation - [#9 Upload validation by magic bytes with an allowlist](https://github.com/mitetodb/test-purchase-application/issues/9)
-4. Set up automated upload backups - [#10 Backups of uploaded files plus an off-server copy](https://github.com/mitetodb/test-purchase-application/issues/10)
-5. Complete RBAC security audit - [#19 Role-based access control enforced on the server](https://github.com/mitetodb/test-purchase-application/issues/19)
-6. Fix registration role assignment - [#20 Public /register allows role=ADMIN](https://github.com/mitetodb/test-purchase-application/issues/20)
+1. Complete RBAC test coverage — [#19](https://github.com/mitetodb/test-purchase-application/issues/19)
+2. Implement upload + DB off-site backup automation on server — [#10](https://github.com/mitetodb/test-purchase-application/issues/10) / [BACKUP.md](BACKUP.md)
 
-### Soon (Medium Priority)
+### Done
 
-7. Add comprehensive audit logging - [#13 Full audit log for clients, prices and users](https://github.com/mitetodb/test-purchase-application/issues/13)
-8. Improve security headers - [#14 CSP and security header cleanup](https://github.com/mitetodb/test-purchase-application/issues/14) (done)
-9. Add pagination and filters - [#15 Pagination and filters](https://github.com/mitetodb/test-purchase-application/issues/15)
+- Rate limiting and lockout ([#7](https://github.com/mitetodb/test-purchase-application/issues/7))
+- Password min length + TOTP 2FA ([#8](https://github.com/mitetodb/test-purchase-application/issues/8))
+- Upload magic-byte validation ([#9](https://github.com/mitetodb/test-purchase-application/issues/9))
+- Audit log UI ([#13](https://github.com/mitetodb/test-purchase-application/issues/13))
+- CSP / security headers ([#14](https://github.com/mitetodb/test-purchase-application/issues/14))
+- Pagination, filters, export ([#15](https://github.com/mitetodb/test-purchase-application/issues/15))
+- Invite-only registration ([#20](https://github.com/mitetodb/test-purchase-application/issues/20))
 
 ### Future
 
