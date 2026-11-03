@@ -5,10 +5,14 @@ import app.model.entity.Attachment;
 import app.model.entity.TestPurchase;
 import app.model.enums.AttachmentFileType;
 import app.model.enums.AttachmentCategory;
+import app.audit.AuditChangeSummary;
+import app.model.enums.AuditAction;
+import app.model.enums.AuditEntityType;
 import app.repository.AttachmentRepository;
 import app.repository.TestPurchaseRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -22,7 +26,10 @@ public class AttachmentService {
     private final TestPurchaseRepository testPurchaseRepository;
     private final FileStorageService storageService;
     private final AccessControlService accessControlService;
+    private final UploadContentValidator uploadContentValidator;
+    private final AuditLogService auditLogService;
 
+    @Transactional
     public Attachment upload(UUID testPurchaseId,
                              MultipartFile file,
                              AttachmentCategory category) {
@@ -32,27 +39,32 @@ public class AttachmentService {
 
         accessControlService.checkCanViewTestPurchase(tp);
 
-        if (file.isEmpty()) {
-            throw new IllegalArgumentException("File is empty");
-        }
+        UploadContentValidator.ValidatedUpload validated = uploadContentValidator.validateForAttachment(file);
 
-        String filename = file.getOriginalFilename().toLowerCase();
-        AttachmentFileType fileType = determineFileType(filename);
-
-        String storedPath = storageService.storeFile(file);
+        String storedPath = storageService.storeFile(file, validated.extension());
 
         Attachment att = Attachment.builder()
                 .testPurchase(tp)
                 .name(file.getOriginalFilename())
                 .category(category == null ? AttachmentCategory.CURRENT_OFFER_PDF : category)
-                .fileType(fileType)
+                .fileType(validated.fileType())
                 .fileSize(file.getSize())
                 .filePath(storedPath)
                 .build();
 
         att.setUpdatedByUser(SecurityUtils.getCurrentUsername());
 
-        return attachmentRepository.save(att);
+        Attachment saved = attachmentRepository.save(att);
+        auditLogService.record(
+                AuditAction.FILE_UPLOAD,
+                AuditEntityType.ATTACHMENT,
+                saved.getId(),
+                AuditChangeSummary.join(
+                        AuditChangeSummary.kv("fileName", saved.getName()),
+                        AuditChangeSummary.kv("fileSize", saved.getFileSize()),
+                        AuditChangeSummary.kv("category", saved.getCategory()),
+                        AuditChangeSummary.kv("testPurchaseId", testPurchaseId)));
+        return saved;
     }
 
     public List<Attachment> getByTestPurchase(UUID tpId) {
@@ -84,12 +96,4 @@ public class AttachmentService {
         attachmentRepository.deleteById(id);
     }
 
-    private AttachmentFileType determineFileType(String filename) {
-        if (filename.endsWith(".pdf")) return AttachmentFileType.PDF;
-        if (filename.endsWith(".png")) return AttachmentFileType.PNG;
-        if (filename.endsWith(".jpg") || filename.endsWith(".jpeg")) return AttachmentFileType.JPG;
-        if (filename.endsWith(".doc") || filename.endsWith(".docx")) return AttachmentFileType.DOC;
-        if (filename.endsWith(".xls") || filename.endsWith(".xlsx")) return AttachmentFileType.XLS;
-        return AttachmentFileType.OTHER;
-    }
 }

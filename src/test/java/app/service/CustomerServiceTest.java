@@ -26,7 +26,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class CustomerServiceTest {
@@ -42,6 +41,9 @@ class CustomerServiceTest {
 
     @Mock
     private AccessControlService accessControlService;
+
+    @Mock
+    private AuditLogService auditLogService;
 
     @Mock
     private EntityNumberAllocator entityNumberAllocator;
@@ -145,6 +147,11 @@ class CustomerServiceTest {
 
             verify(customerRepository).save(customer);
             assertThat(customer.isActive()).isFalse();
+            verify(auditLogService).record(
+                    eq(app.model.enums.AuditAction.CUSTOMER_DEACTIVATE),
+                    eq(app.model.enums.AuditEntityType.CUSTOMER),
+                    eq(customerId),
+                    any());
         }
     }
 }

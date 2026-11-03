@@ -1,6 +1,8 @@
 package app.service;
 
-import app.config.SecurityUtils;
+import app.audit.AuditChangeSummary;
+import app.model.enums.AuditAction;
+import app.model.enums.AuditEntityType;
 import app.model.entity.InviteToken;
 import app.model.entity.User;
 import app.model.enums.Role;
@@ -28,6 +30,7 @@ public class InviteTokenService {
     private final InviteTokenRepository inviteTokenRepository;
     private final UserRepository userRepository;
     private final AccessControlService accessControlService;
+    private final AuditLogService auditLogService;
     private final SecureRandom secureRandom = new SecureRandom();
 
     @PersistenceContext
@@ -61,6 +64,12 @@ public class InviteTokenService {
                 .build();
 
         inviteTokenRepository.save(inviteToken);
+
+        auditLogService.record(
+                AuditAction.INVITE_CREATE,
+                AuditEntityType.INVITE,
+                inviteToken.getId(),
+                AuditChangeSummary.kv("expiresAt", inviteToken.getExpiresAt()));
 
         return rawToken;
     }
@@ -102,6 +111,11 @@ public class InviteTokenService {
         
         if (rowsUpdated > 0) {
             inviteToken.setUsedAt(now);
+            auditLogService.record(
+                    AuditAction.INVITE_CONSUME,
+                    AuditEntityType.INVITE,
+                    inviteToken.getId(),
+                    AuditChangeSummary.kv("consumed", true));
         } else if (rowsUpdated == 0) {
             // Token was already used or expired
             inviteTokenRepository.flush();  // Ensure we see latest state

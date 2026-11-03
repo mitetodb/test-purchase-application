@@ -7,6 +7,11 @@ import app.repository.LoginRateLimitRepository;
 import app.repository.LoginRateLimitUpsert;
 import app.repository.UserRepository;
 import app.security.LoginRateLimitKeys;
+import app.audit.AuditChangeSummary;
+import app.audit.AuditContext;
+import app.model.enums.AuditAction;
+import app.model.enums.AuditEntityType;
+import app.service.AuditLogService;
 import app.service.LoginSecurityService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +35,7 @@ public class LoginSecurityServiceImpl implements LoginSecurityService {
     private final LoginRateLimitRepository rateLimitRepository;
     private final LoginRateLimitUpsert loginRateLimitUpsert;
     private final UserRepository userRepository;
+    private final AuditLogService auditLogService;
 
     @Override
     @Transactional(readOnly = true)
@@ -50,24 +56,42 @@ public class LoginSecurityServiceImpl implements LoginSecurityService {
     public void handleFailedLogin(String clientIp, String username) {
         recordLoginAttempt(clientIp, username);
 
-        if (username == null || username.isBlank()) {
-            return;
+        UUID subjectUserId = null;
+
+        if (username != null && !username.isBlank()) {
+            Optional<User> optionalUser = userRepository.findByUsername(username);
+            if (optionalUser.isPresent()) {
+                User user = optionalUser.get();
+                subjectUserId = user.getId();
+                if (isCurrentlyLocked(user)) {
+                    auditLogService.recordAuthEvent(
+                            AuditAction.LOGIN_FAILURE, subjectUserId, username, clientIp);
+                    return;
+                }
+                int attempts = user.getFailedLoginAttempts() + 1;
+                user.setFailedLoginAttempts(attempts);
+                if (attempts >= properties.maxFailedAttempts()) {
+                    LocalDateTime lockedUntil = LocalDateTime.now()
+                            .plusMinutes(properties.lockoutDurationMinutes());
+                    user.setLockedUntil(lockedUntil);
+                    log.info("Account locked: username={}, lockedUntil={}", user.getUsername(), lockedUntil);
+                    userRepository.save(user);
+                    auditLogService.record(
+                            AuditAction.ACCOUNT_LOCKOUT,
+                            AuditEntityType.USER,
+                            user.getId(),
+                            AuditChangeSummary.join(
+                                    AuditChangeSummary.kv("username", username),
+                                    AuditChangeSummary.kv("failedAttempts", attempts)),
+                            null,
+                            clientIp);
+                } else {
+                    userRepository.save(user);
+                }
+            }
         }
 
-        userRepository.findByUsername(username).ifPresent(user -> {
-            if (isCurrentlyLocked(user)) {
-                return;
-            }
-            int attempts = user.getFailedLoginAttempts() + 1;
-            user.setFailedLoginAttempts(attempts);
-            if (attempts >= properties.maxFailedAttempts()) {
-                LocalDateTime lockedUntil = LocalDateTime.now()
-                        .plusMinutes(properties.lockoutDurationMinutes());
-                user.setLockedUntil(lockedUntil);
-                log.info("Account locked: username={}, lockedUntil={}", user.getUsername(), lockedUntil);
-            }
-            userRepository.save(user);
-        });
+        auditLogService.recordAuthEvent(AuditAction.LOGIN_FAILURE, subjectUserId, username, clientIp);
     }
 
     @Override
@@ -82,6 +106,11 @@ public class LoginSecurityServiceImpl implements LoginSecurityService {
                 user.setLockedUntil(null);
                 userRepository.save(user);
             }
+            auditLogService.recordAuthEvent(
+                    AuditAction.LOGIN_SUCCESS,
+                    user.getId(),
+                    user.getUsername(),
+                    AuditContext.getClientIp());
         });
     }
 
@@ -94,6 +123,13 @@ public class LoginSecurityServiceImpl implements LoginSecurityService {
         user.setLockedUntil(null);
         userRepository.save(user);
         log.info("Account unlocked: username={}, admin={}", user.getUsername(), adminUsername);
+        auditLogService.record(
+                AuditAction.ACCOUNT_UNLOCK,
+                AuditEntityType.USER,
+                userId,
+                AuditChangeSummary.join(
+                        AuditChangeSummary.kv("username", user.getUsername()),
+                        AuditChangeSummary.kv("admin", adminUsername)));
     }
 
     @Override

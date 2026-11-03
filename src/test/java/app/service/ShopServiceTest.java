@@ -30,6 +30,9 @@ class ShopServiceTest {
     private ShopRepository shopRepository;
 
     @Mock
+    private AuditLogService auditLogService;
+
+    @Mock
     private EntityNumberAllocator entityNumberAllocator;
 
     @InjectMocks

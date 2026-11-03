@@ -8,6 +8,7 @@ import app.service.CustomerService;
 import app.service.ShopService;
 import app.service.StatusHistoryService;
 import app.service.TestPurchaseService;
+import app.service.UploadErrorMessages;
 import app.security.CustomUserDetailsService;
 import app.security.LoginAuthenticationFailureHandler;
 import app.security.LoginAuthenticationSuccessHandler;
@@ -86,6 +87,9 @@ class TestPurchaseControllerTest {
 
     @MockBean
     private CustomUserDetailsService customUserDetailsService;
+
+    @MockBean
+    private UploadErrorMessages uploadErrorMessages;
 
     @MockBean
     private app.security.TwoFactorGateFilter twoFactorGateFilter;

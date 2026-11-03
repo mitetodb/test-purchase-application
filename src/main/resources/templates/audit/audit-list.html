@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en"
+      th:replace="~{layout :: layout(~{::title}, ~{::main})}"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title th:text="#{audit.title}">Audit log</title>
+</head>
+
+<body>
+<main>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 th:text="#{audit.title}">Audit log</h2>
+    </div>
+
+    <form class="row g-2 mb-4" method="get" th:action="@{/audit}">
+        <div class="col-md-2">
+            <label class="form-label" th:text="#{audit.filter.action}">Action</label>
+            <select name="action" class="form-select form-select-sm">
+                <option value="" th:text="#{audit.filter.all}">All</option>
+                <option th:each="a : ${allActions}" th:value="${a.name()}" th:text="#{'audit.action.' + ${a.name()}}"
+                        th:selected="${filterAction != null and filterAction.name() == a.name()}"></option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label" th:text="#{audit.filter.entityType}">Entity</label>
+            <select name="entityType" class="form-select form-select-sm">
+                <option value="" th:text="#{audit.filter.all}">All</option>
+                <option th:each="t : ${allEntityTypes}" th:value="${t.name()}" th:text="#{'audit.entity.' + ${t.name()}}"
+                        th:selected="${filterEntityType != null and filterEntityType.name() == t.name()}"></option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label" th:text="#{audit.filter.actor}">Actor</label>
+            <select name="actorUserId" class="form-select form-select-sm">
+                <option value="" th:text="#{audit.filter.all}">All</option>
+                <option th:each="u : ${allUsers}" th:value="${u.id}" th:text="${u.username}"
+                        th:selected="${filterActorUserId != null and filterActorUserId.equals(u.id)}"></option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label" th:text="#{audit.filter.fromDate}">From</label>
+            <input type="date" name="fromDate" class="form-control form-control-sm"
+                   th:value="${filterFromDate != null ? #temporals.format(filterFromDate, 'yyyy-MM-dd') : ''}"/>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label" th:text="#{audit.filter.toDate}">To</label>
+            <input type="date" name="toDate" class="form-control form-control-sm"
+                   th:value="${filterToDate != null ? #temporals.format(filterToDate, 'yyyy-MM-dd') : ''}"/>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary btn-sm me-2" th:text="#{audit.filter.apply}">Apply</button>
+            <a th:href="@{/audit}" class="btn btn-outline-secondary btn-sm" th:text="#{audit.filter.reset}">Reset</a>
+        </div>
+    </form>
+
+    <p class="text-muted small" th:text="#{audit.appendOnlyNotice}">Entries are append-only and cannot be changed.</p>
+
+    <table class="table table-sm table-hover">
+        <thead>
+        <tr>
+            <th th:text="#{audit.col.time}">Time</th>
+            <th th:text="#{audit.col.action}">Action</th>
+            <th th:text="#{audit.col.entity}">Entity</th>
+            <th th:text="#{audit.col.entityId}">Entity ID</th>
+            <th th:text="#{audit.col.actor}">Actor</th>
+            <th th:text="#{audit.col.clientIp}">Client IP</th>
+            <th th:text="#{audit.col.summary}">Summary</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="row : ${auditRows}">
+            <td th:text="${#temporals.format(row.occurredAt, 'yyyy-MM-dd HH:mm:ss')}"></td>
+            <td th:text="#{'audit.action.' + ${row.action.name()}}"></td>
+            <td th:text="#{'audit.entity.' + ${row.entityType.name()}}"></td>
+            <td th:text="${row.entityId} ?: '—'"></td>
+            <td th:text="${row.actorUsername != null ? row.actorUsername : '—'}"></td>
+            <td th:text="${row.clientIp != null ? row.clientIp : '—'}"></td>
+            <td th:text="${row.changeSummary}"></td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(auditRows)}">
+            <td colspan="7" class="text-muted" th:text="#{audit.empty}">No audit entries match the filters.</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <nav th:if="${totalPages > 1}" aria-label="Audit pagination">
+        <ul class="pagination pagination-sm">
+            <li class="page-item" th:classappend="${page == 0} ? 'disabled'">
+                <a class="page-link" th:href="@{/audit(page=${page - 1}, action=${filterAction}, entityType=${filterEntityType}, actorUserId=${filterActorUserId}, fromDate=${filterFromDate}, toDate=${filterToDate})}"
+                   th:text="#{audit.pagination.prev}">Previous</a>
+            </li>
+            <li class="page-item disabled">
+                <span class="page-link" th:text="|${page + 1} / ${totalPages}|">1 / 1</span>
+            </li>
+            <li class="page-item" th:classappend="${page + 1 >= totalPages} ? 'disabled'">
+                <a class="page-link" th:href="@{/audit(page=${page + 1}, action=${filterAction}, entityType=${filterEntityType}, actorUserId=${filterActorUserId}, fromDate=${filterFromDate}, toDate=${filterToDate})}"
+                   th:text="#{audit.pagination.next}">Next</a>
+            </li>
+        </ul>
+    </nav>
+</main>
+</body>
+</html>
