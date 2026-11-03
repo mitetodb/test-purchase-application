@@ -215,8 +215,12 @@ All database schema changes must be done through Flyway migrations:
    - `V4__add_user_last_login.sql`
 
 2. **Version numbering**
-   - Increment from the last version
-   - Use integers: V1, V2, V3, ...
+   - Increment from the last version in `src/main/resources/db/migration/`
+   - Use `V<n>__description.sql`; dotted versions are allowed (e.g. `V7_1__…` after `V7__…`)
+   - Current head (must match repo exactly):
+
+     `V1__baseline.sql`, `V2__add_rbac_schema.sql`, `V3__add_invite_tokens.sql`, `V4__add_login_lockout.sql`, `V5__login_rate_limit_key_hash.sql`, `V6__user_deactivation_only.sql`, `V7__add_totp_two_factor.sql`, `V7_1__totp_recovery_code_invalidation.sql`, `V8__entity_number_sequences.sql`, `V9__audit_log.sql`, `V10__customer_deactivation_only.sql`, `V11__shop_deactivation_and_test_purchase_archive.sql`
+
    - Never modify existing migration files
 
 3. **Migration content**

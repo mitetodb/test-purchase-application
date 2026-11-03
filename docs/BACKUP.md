@@ -74,11 +74,20 @@ Reference scripts: `deploy/backup/backup-env-encrypted.example.sh` (operator mus
 
 Suggested layout (root-only):
 
+Create the **`env/`** subdirectory before first encrypted `.env` backup (restic/borg examples assume it exists):
+
+```bash
+BACKUP_ROOT=/root/testkauf-backups
+install -d -m 700 "${BACKUP_ROOT}"/{mysql,uploads,env,daily,weekly,monthly,logs}
+```
+
+Layout:
+
 ```text
 /root/testkauf-backups/
 ├── mysql/              # *.sql.gz (daily lineage)
 ├── uploads/            # uploads-*.tar.gz
-├── env/                # deploy.env.gpg (optional, encrypted)
+├── env/                # deploy.env.gpg (optional, encrypted) — create with install -d above
 ├── daily/              # symlinks or hardlinks to latest daily sets
 ├── weekly/
 ├── monthly/
@@ -148,7 +157,7 @@ restic init   # once
 After local backup:
 
 ```bash
-restic backup /root/testkauf-backups/mysql /root/testkauf-backups/uploads \
+restic backup /root/testkauf-backups/mysql /root/testkauf-backups/uploads /root/testkauf-backups/env \
   --tag testkauf,nightly
 
 restic forget --keep-daily 14 --keep-weekly 8 --keep-monthly 6 --prune
@@ -226,7 +235,7 @@ Log success lines with ISO timestamps; any failure must trigger alerting (sectio
      -v testkauf_uploads:/data \
      -v /root/testkauf-backups/uploads:/backup:ro \
      alpine:3.20 \
-     sh -c 'rm -rf /data/* && tar -xzf /backup/uploads-YYYYMMDD-HHMMSS.tar.gz -C /data'
+     sh -c 'find /data -mindepth 1 -maxdepth 1 -exec rm -rf {} + && tar -xzf /backup/uploads-YYYYMMDD-HHMMSS.tar.gz -C /data'
    ```
 
 5. **Start services:**
@@ -243,11 +252,12 @@ Do **not** touch production volumes. Use an isolated compose project:
 
 ```bash
 DEMO_SQL=/path/to/demo/test_purchase_db.sql.gz \
+DEMO_PRICEDB_SQL=/path/to/demo/pricedb.sql.gz \
 DEMO_UPLOADS_TAR=/path/to/demo/uploads.tar.gz \
 /opt/testkauf/test-purchase-application/deploy/backup/restore-test.example.sh
 ```
 
-Details in `deploy/backup/restore-test.example.sh`: starts temporary MySQL + empty `uploads`, restores **copies** of backup files, runs `mysql` client queries and `tar -tzf` listing, then `docker compose down -v`.
+Details in `deploy/backup/restore-test.example.sh`: starts temporary MySQL + empty `uploads`, restores **copies** of backup files for **`test_purchase_db` and `pricedb`**, runs sanity queries and `tar -tzf` listing, then `docker compose down -v`.
 
 **Cadence:** at least **once after initial backup setup**, then **quarterly**, and after any restore script change. Record date and operator in your runbook log (spreadsheet or ticket).
 

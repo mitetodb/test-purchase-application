@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Throwaway restore test — uses an isolated compose project; does NOT touch production volumes.
-# Usage: DEMO_SQL=/path/to/test_purchase_db.sql.gz DEMO_UPLOADS_TAR=/path/to/uploads.tar.gz ./restore-test.example.sh
+# Usage: DEMO_SQL=/path/to/test_purchase_db.sql.gz \
+#        DEMO_PRICEDB_SQL=/path/to/pricedb.sql.gz \
+#        DEMO_UPLOADS_TAR=/path/to/uploads.tar.gz ./restore-test.example.sh
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 WORKDIR="${WORKDIR:-/tmp/testkauf-restore-test-$$}"
@@ -43,11 +45,22 @@ docker compose -f "$COMPOSE" -p "$PROJECT" up -d db uploads-helper
 docker compose -f "$COMPOSE" -p "$PROJECT" exec -T db \
   sh -c 'until mysqladmin ping -h 127.0.0.1 -uroot -p"$MYSQL_ROOT_PASSWORD" --silent; do sleep 2; done'
 
+docker compose -f "$COMPOSE" -p "$PROJECT" exec -T db \
+  sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -e "CREATE DATABASE IF NOT EXISTS pricedb;"'
+
 if [[ -n "${DEMO_SQL:-}" && -f "$DEMO_SQL" ]]; then
   gunzip -c "$DEMO_SQL" | docker compose -f "$COMPOSE" -p "$PROJECT" exec -T db \
     sh -c 'exec mysql -uroot -p"$MYSQL_ROOT_PASSWORD" test_purchase_db'
   docker compose -f "$COMPOSE" -p "$PROJECT" exec -T db \
     sh -c 'exec mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -Nse "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=\"test_purchase_db\";"' \
+    | grep -qv '^0$'
+fi
+
+if [[ -n "${DEMO_PRICEDB_SQL:-}" && -f "$DEMO_PRICEDB_SQL" ]]; then
+  gunzip -c "$DEMO_PRICEDB_SQL" | docker compose -f "$COMPOSE" -p "$PROJECT" exec -T db \
+    sh -c 'exec mysql -uroot -p"$MYSQL_ROOT_PASSWORD" pricedb'
+  docker compose -f "$COMPOSE" -p "$PROJECT" exec -T db \
+    sh -c 'exec mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -Nse "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=\"pricedb\";"' \
     | grep -qv '^0$'
 fi
 
