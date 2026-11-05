@@ -23,6 +23,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -134,6 +135,11 @@ class UserServiceTest {
         verify(inviteTokenService).validateAndConsumeToken("valid-token");
         verify(inviteTokenService).recordTokenUsedBy("valid-token", result);
         verify(userRepository).save(any(User.class));
+        verify(auditLogService).record(
+                eq(app.model.enums.AuditAction.PASSWORD_CHANGE),
+                eq(app.model.enums.AuditEntityType.AUTH),
+                eq(userId),
+                org.mockito.ArgumentMatchers.contains("INVITE_REGISTRATION"));
     }
 
     @Test
@@ -214,6 +220,11 @@ class UserServiceTest {
         userService.changePassword(user, "newPassword12");
 
         verify(userRepository).save(any(User.class));
+        verify(auditLogService).record(
+                eq(app.model.enums.AuditAction.PASSWORD_CHANGE),
+                eq(app.model.enums.AuditEntityType.AUTH),
+                eq(userId),
+                org.mockito.ArgumentMatchers.contains("USER"));
     }
 
     @Test
