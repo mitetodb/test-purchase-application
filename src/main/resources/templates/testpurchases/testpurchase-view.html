@@ -190,7 +190,12 @@
         <button class="btn btn-outline-success" type="submit" th:text="#{ui.unarchive_test_purchase.t7d8}">Unarchive</button>
     </form>
 
-    <a th:href="@{/testpurchases}" class="btn btn-secondary mt-3" th:text="#{ui.back.0557}">Back</a>
+    <div class="mt-3 d-flex flex-wrap gap-2">
+        <a th:href="@{/testpurchases/view/{id}/report.pdf(id=${purchase.id})}"
+           class="btn btn-outline-primary"
+           th:text="#{testpurchase.export.pdf}">Download PDF report</a>
+        <a th:href="@{/testpurchases}" class="btn btn-secondary" th:text="#{ui.back.0557}">Back</a>
+    </div>
 </main>
 </body>
 </html>
