@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" th:replace="~{layout :: layout(~{::title}, ~{::main})}"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title th:text="#{ui.score_trends.f2c8}">Score trends</title>
+</head>
+<body>
+<main>
+    <h2 th:text="#{ui.score_trends.f2c8}">Score trends</h2>
+    <p class="text-muted" th:text="#{ui.score_trends_help.b9e4}">Average evaluation scores from completed questionnaires in your scope.</p>
+
+    <h4 class="mt-4" th:text="#{ui.trends_by_month.6d11}">By month</h4>
+    <table class="table table-striped" th:if="${!#lists.isEmpty(trendsByMonth)}">
+        <thead>
+        <tr>
+            <th th:text="#{ui.period.aa02}">Period</th>
+            <th th:text="#{ui.average_score.7c31}">Average score</th>
+            <th th:text="#{ui.evaluations.5e88}">Evaluations</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="row : ${trendsByMonth}">
+            <td th:text="${row.year + '-' + (row.month < 10 ? '0' + row.month : row.month)}"></td>
+            <td th:text="${row.averageScore + '%'}"></td>
+            <td th:text="${row.responseCount}"></td>
+        </tr>
+        </tbody>
+    </table>
+    <p th:if="${#lists.isEmpty(trendsByMonth)}" class="text-muted" th:text="#{ui.no_trend_data.1f90}">No questionnaire data yet.</p>
+
+    <h4 class="mt-4" th:text="#{ui.trends_by_shop.8a03}">By shop</h4>
+    <table class="table table-striped" th:if="${!#lists.isEmpty(trendsByShop)}">
+        <thead>
+        <tr>
+            <th th:text="#{ui.shop.b91c}">Shop</th>
+            <th th:text="#{ui.average_score.7c31}">Average score</th>
+            <th th:text="#{ui.evaluations.5e88}">Evaluations</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="row : ${trendsByShop}">
+            <td th:text="${row.shopName}"></td>
+            <td th:text="${row.averageScore + '%'}"></td>
+            <td th:text="${row.responseCount}"></td>
+        </tr>
+        </tbody>
+    </table>
+    <p th:if="${#lists.isEmpty(trendsByShop)}" class="text-muted" th:text="#{ui.no_trend_data.1f90}">No questionnaire data yet.</p>
+
+    <a th:href="@{/dashboard}" class="btn btn-secondary mt-3" th:text="#{ui.back.0557}">Back</a>
+</main>
+</body>
+</html>

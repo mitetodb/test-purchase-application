@@ -194,6 +194,50 @@
         </li>
     </ul>
 
+    <h3 class="mt-4" th:text="#{ui.questionnaire_results.q8e1}">Evaluation score</h3>
+
+    <div class="card mb-4" th:if="${hasQuestionnaire}">
+        <div class="card-body">
+            <p>
+                <strong th:text="#{ui.overall_score.9a2d}">Overall score</strong>:
+                <span th:text="${questionnaireResult.overallScore + '%'}"></span>
+            </p>
+            <p th:if="${questionnaireResult.submittedAt}">
+                <span th:text="#{ui.submitted_on.4b7c}">Submitted on</span>:
+                <span th:text="${#temporals.format(questionnaireResult.submittedAt, 'dd MMM yyyy HH:mm')}"></span>
+            </p>
+            <p th:if="${!questionnaireResult.hideEvaluatorIdentity and questionnaireResult.evaluatorDisplayName}">
+                <span th:text="#{ui.evaluator.2e91}">Evaluator</span>:
+                <span th:text="${questionnaireResult.evaluatorDisplayName}"></span>
+            </p>
+            <p th:if="${questionnaireResult.hideEvaluatorIdentity}" class="text-muted small"
+               th:text="#{ui.evaluator_hidden.6f02}">Evaluator identity is hidden for your role.</p>
+
+            <table class="table table-sm mt-3">
+                <thead>
+                <tr>
+                    <th th:text="#{ui.question.8d11}">Question</th>
+                    <th th:text="#{ui.score.3c22}">Score</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="q : ${questionnaireResult.questions}">
+                    <td th:text="${q.prompt}"></td>
+                    <td th:text="${q.givenScore + ' / ' + q.maxScore}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="mb-3" th:if="${!purchase.archived and canFillQuestionnaire}">
+        <a th:href="@{'/testpurchases/' + ${purchase.id} + '/questionnaire'}"
+           class="btn btn-outline-primary"
+           th:text="${hasQuestionnaire} ? #{ui.edit_questionnaire.a1b2} : #{ui.fill_questionnaire.c3d4}">
+            Fill questionnaire
+        </a>
+    </div>
+
     <h3 class="mt-4" th:text="#{ui.status_history.b421}">Status History</h3>
 
     <div class="timeline">
