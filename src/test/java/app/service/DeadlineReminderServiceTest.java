@@ -13,7 +13,6 @@ import app.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -73,6 +72,21 @@ class DeadlineReminderServiceTest {
                 .customer(customer)
                 .deadlineAt(LocalDate.of(2026, 6, 10))
                 .build();
+    }
+
+    @Test
+    void deadlineReminderPropertiesDisabledByDefault() {
+        assertThat(new DeadlineReminderProperties().isEnabled()).isFalse();
+    }
+
+    @Test
+    void processDueRemindersNoOpWhenRemindersDisabled() {
+        properties.setEnabled(false);
+
+        int sent = deadlineReminderService.processDueReminders(LocalDate.of(2026, 6, 9));
+
+        assertThat(sent).isZero();
+        verify(testPurchaseRepository, never()).findActiveWithDeadline();
     }
 
     @Test

@@ -14,7 +14,7 @@ import java.util.List;
 @Setter
 public class DeadlineReminderProperties {
 
-    private boolean enabled = true;
+    private boolean enabled = false;
 
     /**
      * Days before the deadline when a reminder is sent (0 = on the deadline date).
