@@ -58,8 +58,17 @@ public class InvoiceController {
             @RequestParam(required = false) Integer month,
             Model model) {
         var currentUser = accessControlService.getCurrentUserWithManagedCustomers();
-        if (currentUser.getRole() == Role.CUSTOMER && currentUser.getCustomer() != null) {
-            customerId = currentUser.getCustomer().getId();
+        if (currentUser.getRole() == Role.CUSTOMER) {
+            if (currentUser.getCustomer() == null) {
+                customerId = null;
+            } else {
+                UUID ownCustomerId = currentUser.getCustomer().getId();
+                if (customerId != null && !ownCustomerId.equals(customerId)) {
+                    throw new org.springframework.security.access.AccessDeniedException(
+                            "You are not allowed to view statements for this customer");
+                }
+                customerId = ownCustomerId;
+            }
         }
         model.addAttribute("customers", customerService.findAllForCurrentUser());
         model.addAttribute("selectedCustomerId", customerId);

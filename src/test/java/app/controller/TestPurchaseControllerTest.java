@@ -3,12 +3,13 @@ package app.controller;
 import app.model.dto.TestPurchaseViewDTO;
 import app.model.entity.TestPurchase;
 import app.model.enums.TestPurchaseStatus;
-import app.service.TestPurchaseService;
+import app.service.AccessControlService;
 import app.service.AttachmentService;
 import app.service.CustomerService;
+import app.service.QuestionnaireService;
 import app.service.ShopService;
 import app.service.StatusHistoryService;
-import app.service.AccessControlService;
+import app.service.TestPurchaseService;
 import app.service.VisitAppointmentService;
 import app.service.UploadErrorMessages;
 import app.security.CustomUserDetailsService;
@@ -64,6 +65,12 @@ class TestPurchaseControllerTest {
     private StatusHistoryService statusHistoryService;
 
     @MockBean
+    private QuestionnaireService questionnaireService;
+
+    @MockBean
+    private AccessControlService accessControlService;
+
+    @MockBean
     private app.service.UserService userService;
 
     @MockBean
@@ -77,9 +84,6 @@ class TestPurchaseControllerTest {
 
     @MockBean
     private VisitAppointmentService visitAppointmentService;
-
-    @MockBean
-    private AccessControlService accessControlService;
 
     @MockBean
     private app.service.TestPurchaseReportService testPurchaseReportService;
@@ -117,8 +121,11 @@ class TestPurchaseControllerTest {
                 .willReturn(dto);
         TestPurchase entity = new TestPurchase();
         entity.setId(testPurchaseId);
-        given(testPurchaseService.findById(any(UUID.class))).willReturn(entity);
+        entity.setStatus(TestPurchaseStatus.INITIALISED);
+        given(testPurchaseService.findEntityByIdForCurrentUser(any(UUID.class))).willReturn(entity);
         given(accessControlService.canManageVisitAppointment(any(TestPurchase.class))).willReturn(false);
+        given(accessControlService.canFillQuestionnaire(any(TestPurchase.class))).willReturn(false);
+        given(questionnaireService.hasResponse(any(UUID.class))).willReturn(false);
         given(attachmentService.getByTestPurchase(any(UUID.class)))
                 .willReturn(List.of());
         given(statusHistoryService.getHistory(any(UUID.class)))

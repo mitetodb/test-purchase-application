@@ -184,6 +184,41 @@ public class AccessControlService {
         return role == Role.SALES_MANAGER || role == Role.CUSTOMER;
     }
 
+    public boolean canFillQuestionnaire(TestPurchase testPurchase) {
+        if (testPurchase.getStatus() == app.model.enums.TestPurchaseStatus.ARCHIVED) {
+            return false;
+        }
+        User currentUser = getCurrentUserWithManagedCustomers();
+        Role role = currentUser.getRole();
+        return switch (role) {
+            case ADMIN -> true;
+            case ACCOUNT_MANAGER -> canAccountManagerViewTestPurchase(testPurchase, currentUser);
+            case MYSTERY_SHOPPER -> canMysteryShopperViewTestPurchase(testPurchase, currentUser);
+            default -> false;
+        };
+    }
+
+    public void checkCanFillQuestionnaire(TestPurchase testPurchase) {
+        if (!canFillQuestionnaire(testPurchase)) {
+            throw new AccessDeniedException("You are not allowed to submit a questionnaire for this test purchase");
+        }
+    }
+
+    public boolean canViewScoreTrends() {
+        User currentUser = getCurrentUser();
+        Role role = currentUser.getRole();
+        return role == Role.ADMIN
+                || role == Role.ACCOUNT_MANAGER
+                || role == Role.SALES_MANAGER
+                || role == Role.CUSTOMER;
+    }
+
+    public void checkCanViewScoreTrends() {
+        if (!canViewScoreTrends()) {
+            throw new AccessDeniedException("You are not allowed to view score trends");
+        }
+    }
+
     private boolean canSalesManagerViewTestPurchase(TestPurchase testPurchase, User salesManager) {
         if (testPurchase.getCustomer() == null) {
             return false;
