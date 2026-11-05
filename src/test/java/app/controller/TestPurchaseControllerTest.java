@@ -3,11 +3,14 @@ package app.controller;
 import app.model.dto.TestPurchaseViewDTO;
 import app.model.entity.TestPurchase;
 import app.model.enums.TestPurchaseStatus;
+import app.service.AccessControlService;
 import app.service.AttachmentService;
 import app.service.CustomerService;
+import app.service.QuestionnaireService;
 import app.service.ShopService;
 import app.service.StatusHistoryService;
 import app.service.TestPurchaseService;
+import app.service.VisitAppointmentService;
 import app.service.UploadErrorMessages;
 import app.security.CustomUserDetailsService;
 import app.security.LoginAuthenticationFailureHandler;
@@ -62,6 +65,12 @@ class TestPurchaseControllerTest {
     private StatusHistoryService statusHistoryService;
 
     @MockBean
+    private QuestionnaireService questionnaireService;
+
+    @MockBean
+    private AccessControlService accessControlService;
+
+    @MockBean
     private app.service.UserService userService;
 
     @MockBean
@@ -72,6 +81,9 @@ class TestPurchaseControllerTest {
 
     @MockBean
     private app.support.ListExportResponseFactory exportResponses;
+
+    @MockBean
+    private VisitAppointmentService visitAppointmentService;
 
     @MockBean
     private app.service.TestPurchaseReportService testPurchaseReportService;
@@ -107,6 +119,13 @@ class TestPurchaseControllerTest {
 
         given(testPurchaseService.findByIdForCurrentUser(any(UUID.class)))
                 .willReturn(dto);
+        TestPurchase entity = new TestPurchase();
+        entity.setId(testPurchaseId);
+        entity.setStatus(TestPurchaseStatus.INITIALISED);
+        given(testPurchaseService.findEntityByIdForCurrentUser(any(UUID.class))).willReturn(entity);
+        given(accessControlService.canManageVisitAppointment(any(TestPurchase.class))).willReturn(false);
+        given(accessControlService.canFillQuestionnaire(any(TestPurchase.class))).willReturn(false);
+        given(questionnaireService.hasResponse(any(UUID.class))).willReturn(false);
         given(attachmentService.getByTestPurchase(any(UUID.class)))
                 .willReturn(List.of());
         given(statusHistoryService.getHistory(any(UUID.class)))

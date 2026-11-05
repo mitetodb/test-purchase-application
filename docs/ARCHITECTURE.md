@@ -143,7 +143,19 @@ User (Browser)
   ← Returns HTML page
 ```
 
-### 2. File Upload (Avatar/Attachment)
+### 2. Shop visit appointments (issue #24)
+
+Visit scheduling lives in the **main Spring Boot app** (no separate booking service). One optional visit slot per test purchase is stored on `test_purchases` (`visit_appointment_*` columns, Flyway **V13**).
+
+| Role | Capability |
+|------|------------|
+| Admin / Account Manager | Schedule and confirm visits for purchases they can edit |
+| Mystery Shopper | Propose or confirm visits on assigned purchases only |
+| Customer | View scheduled time on own-company purchases (shopper identity still hidden per existing rules) |
+
+Endpoints: `POST /testpurchases/{id}/visit-appointment`, `POST /testpurchases/{id}/visit-appointment/confirm`. Optional email when `app.mail.visit-appointment.enabled=true` (and global mail enabled).
+
+### 3. File Upload (Avatar/Attachment)
 
 ```
 User (Browser)
@@ -155,7 +167,7 @@ User (Browser)
   ← Returns success response
 ```
 
-### 3. Password Reset
+### 4. Password Reset
 
 ```
 User requests reset

@@ -94,6 +94,13 @@
                 </div>
             </div>
 
+            <div sec:authorize="hasAnyRole('ADMIN','ACCOUNT_MANAGER','SALES_MANAGER','CUSTOMER')" class="mb-4">
+                <a th:href="@{/score-trends}" class="btn btn-outline-info">
+                    <i class="fas fa-chart-line me-2"></i>
+                    <span th:text="#{ui.score_trends.f2c8}">Score trends</span>
+                </a>
+            </div>
+
             <!-- Quick Actions -->
             <div class="quick-actions">
 

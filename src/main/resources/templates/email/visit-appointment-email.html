@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title th:text="#{ui.visit_appointment.v24a}">Visit appointment</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f7f7f7; padding: 20px;">
+
+<div style="max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 6px;">
+
+    <h2>
+        <span th:if="${confirmed}" th:text="#{ui.visit_confirmed_email.v24m}">Confirmed visit</span>
+        <span th:if="${!confirmed}" th:text="#{ui.visit_proposed_email.v24n}">Proposed visit</span>
+        — <span th:text="${tpNumber}"></span>
+    </h2>
+
+    <p><strong th:text="#{ui.visit_scheduled_at.v24b}">Scheduled visit:</strong> <span th:text="${scheduledAt}"></span></p>
+    <p th:if="${location != null and !#strings.isEmpty(location)}">
+        <strong th:text="#{ui.visit_location.v24e}">Location:</strong> <span th:text="${location}"></span>
+    </p>
+    <p th:if="${notes != null and !#strings.isEmpty(notes)}">
+        <strong th:text="#{ui.visit_notes.v24f}">Notes:</strong> <span th:text="${notes}"></span>
+    </p>
+
+    <hr/>
+
+    <p style="font-size: 0.9em; color: #555;" th:text="#{ui.this_is_an_automated_message_from_the_te.c71c}">
+        This is an automated message from the Test Purchase System.
+    </p>
+
+</div>
+
+</body>
+</html>

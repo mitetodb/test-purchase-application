@@ -89,6 +89,67 @@
         </tbody>
     </table>
 
+    <h3 class="mt-4" th:text="#{ui.visit_appointment.v24a}">Shop visit appointment</h3>
+
+    <div th:if="${appointmentError}" class="alert alert-danger" th:text="${appointmentError}"></div>
+
+    <div th:if="${purchase.visitAppointmentAt != null}" class="mb-3">
+        <div class="mb-2">
+            <label th:text="#{ui.visit_scheduled_at.v24b}">Scheduled visit:</label>
+            <strong th:text="${#temporals.format(purchase.visitAppointmentAt, 'dd MMM yyyy HH:mm')}"></strong>
+            <span th:if="${purchase.visitAppointmentConfirmed}" class="badge bg-success ms-2"
+                  th:text="#{ui.visit_confirmed.v24c}">Confirmed</span>
+            <span th:if="${!purchase.visitAppointmentConfirmed}" class="badge bg-warning text-dark ms-2"
+                  th:text="#{ui.visit_proposed.v24d}">Proposed</span>
+        </div>
+        <div class="mb-2" th:if="${purchase.visitAppointmentLocation}">
+            <label th:text="#{ui.visit_location.v24e}">Location:</label>
+            <span th:text="${purchase.visitAppointmentLocation}"></span>
+        </div>
+        <div class="mb-2" th:if="${purchase.visitAppointmentNotes}">
+            <label th:text="#{ui.visit_notes.v24f}">Notes:</label>
+            <span th:text="${purchase.visitAppointmentNotes}"></span>
+        </div>
+    </div>
+    <p th:if="${purchase.visitAppointmentAt == null}" class="text-muted" th:text="#{ui.no_visit_scheduled.v24g}">
+        No shop visit scheduled yet.
+    </p>
+
+    <div th:if="${!purchase.archived and canManageVisitAppointment}" class="card card-body mb-4">
+        <form th:action="@{'/testpurchases/' + ${purchase.id} + '/visit-appointment'}" method="post">
+            <div class="mb-2">
+                <label class="form-label" for="visit-scheduled-at" th:text="#{ui.visit_date_time.v24h}">Visit date &amp; time</label>
+                <input id="visit-scheduled-at" class="form-control" type="datetime-local" name="scheduledAt" required
+                       th:value="${purchase.visitAppointmentAt != null ? #temporals.format(purchase.visitAppointmentAt, 'yyyy-MM-dd''T''HH:mm') : ''}"/>
+            </div>
+            <div class="mb-2">
+                <label class="form-label" for="visit-location" th:text="#{ui.visit_location.v24e}">Location</label>
+                <input id="visit-location" class="form-control" type="text" name="location" maxlength="500"
+                       th:placeholder="#{ui.visit_location_placeholder.v24i}"
+                       th:value="${purchase.visitAppointmentLocation}"/>
+            </div>
+            <div class="mb-2">
+                <label class="form-label" for="visit-notes" th:text="#{ui.visit_notes.v24f}">Notes</label>
+                <textarea id="visit-notes" class="form-control" name="notes" rows="2" maxlength="2000"
+                          th:text="${purchase.visitAppointmentNotes}"></textarea>
+            </div>
+            <div class="form-check mb-2" sec:authorize="hasRole('MYSTERY_SHOPPER')">
+                <input class="form-check-input" type="checkbox" name="confirm" value="true" id="visit-confirm"/>
+                <label class="form-check-label" for="visit-confirm" th:text="#{ui.confirm_visit_proposal.v24j}">
+                    Confirm this visit time (otherwise save as proposed)
+                </label>
+            </div>
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit" class="btn btn-primary" th:text="#{ui.save_visit_appointment.v24k}">Save visit appointment</button>
+        </form>
+        <form th:if="${purchase.visitAppointmentAt != null and !purchase.visitAppointmentConfirmed}"
+              th:action="@{'/testpurchases/' + ${purchase.id} + '/visit-appointment/confirm'}"
+              method="post" class="mt-2">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit" class="btn btn-outline-success" th:text="#{ui.confirm_visit.v24l}">Confirm visit</button>
+        </form>
+    </div>
+
     <h5 th:text="#{ui.attachments.7e27}">Attachments</h5>
 
     <div th:if="${!purchase.archived}">
@@ -132,6 +193,50 @@
             </div>
         </li>
     </ul>
+
+    <h3 class="mt-4" th:text="#{ui.questionnaire_results.q8e1}">Evaluation score</h3>
+
+    <div class="card mb-4" th:if="${hasQuestionnaire}">
+        <div class="card-body">
+            <p>
+                <strong th:text="#{ui.overall_score.9a2d}">Overall score</strong>:
+                <span th:text="${questionnaireResult.overallScore + '%'}"></span>
+            </p>
+            <p th:if="${questionnaireResult.submittedAt}">
+                <span th:text="#{ui.submitted_on.4b7c}">Submitted on</span>:
+                <span th:text="${#temporals.format(questionnaireResult.submittedAt, 'dd MMM yyyy HH:mm')}"></span>
+            </p>
+            <p th:if="${!questionnaireResult.hideEvaluatorIdentity and questionnaireResult.evaluatorDisplayName}">
+                <span th:text="#{ui.evaluator.2e91}">Evaluator</span>:
+                <span th:text="${questionnaireResult.evaluatorDisplayName}"></span>
+            </p>
+            <p th:if="${questionnaireResult.hideEvaluatorIdentity}" class="text-muted small"
+               th:text="#{ui.evaluator_hidden.6f02}">Evaluator identity is hidden for your role.</p>
+
+            <table class="table table-sm mt-3">
+                <thead>
+                <tr>
+                    <th th:text="#{ui.question.8d11}">Question</th>
+                    <th th:text="#{ui.score.3c22}">Score</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="q : ${questionnaireResult.questions}">
+                    <td th:text="${q.prompt}"></td>
+                    <td th:text="${q.givenScore + ' / ' + q.maxScore}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="mb-3" th:if="${!purchase.archived and canFillQuestionnaire}">
+        <a th:href="@{'/testpurchases/' + ${purchase.id} + '/questionnaire'}"
+           class="btn btn-outline-primary"
+           th:text="${hasQuestionnaire} ? #{ui.edit_questionnaire.a1b2} : #{ui.fill_questionnaire.c3d4}">
+            Fill questionnaire
+        </a>
+    </div>
 
     <h3 class="mt-4" th:text="#{ui.status_history.b421}">Status History</h3>
 

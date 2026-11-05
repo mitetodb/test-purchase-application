@@ -29,6 +29,7 @@ public class EntityNumberSequenceBootstrap {
         seedIfAbsent(EntityNumberSequenceName.CUSTOMER, 0L);
         seedIfAbsent(EntityNumberSequenceName.SHOP, 0L);
         seedIfAbsent(EntityNumberSequenceName.TEST_PURCHASE, 1000L);
+        seedIfAbsent(EntityNumberSequenceName.INVOICE, 0L);
     }
 
     private void seedIfAbsent(EntityNumberSequenceName name, long defaultLastUsedValue) {

@@ -31,6 +31,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.UUID;
 
@@ -46,10 +49,13 @@ public class TestPurchaseController {
     private final ShopService shopService;
     private final AttachmentService attachmentService;
     private final StatusHistoryService statusHistoryService;
+    private final QuestionnaireService questionnaireService;
+    private final AccessControlService accessControlService;
     private final UserService userService;
     private final ListPagingSupport listPagingSupport;
     private final AppListExportProperties exportProperties;
     private final ListExportResponseFactory exportResponses;
+    private final VisitAppointmentService visitAppointmentService;
     private final TestPurchaseReportService testPurchaseReportService;
 
     @GetMapping
@@ -250,6 +256,7 @@ public class TestPurchaseController {
     @GetMapping("/view/{id}")
     public String view(@PathVariable UUID id, Model model) {
         TestPurchaseViewDTO purchase = testPurchaseService.findByIdForCurrentUser(id);
+        TestPurchase entity = testPurchaseService.findEntityByIdForCurrentUser(id);
         model.addAttribute("purchase", purchase);
         model.addAttribute("attachments", attachmentService.getByTestPurchase(id));
         model.addAttribute("history", statusHistoryService.getHistory(id));
@@ -261,7 +268,56 @@ public class TestPurchaseController {
                 "ROLE_ADMIN".equals(a.getAuthority()) || "ROLE_ACCOUNT_MANAGER".equals(a.getAuthority()))) {
             model.addAttribute("mysteryShoppers", userService.findAllMysteryShoppers());
         }
+        model.addAttribute("canManageVisitAppointment", accessControlService.canManageVisitAppointment(entity));
+        model.addAttribute("canFillQuestionnaire", accessControlService.canFillQuestionnaire(entity));
+        model.addAttribute("hasQuestionnaire", questionnaireService.hasResponse(id));
+        if (questionnaireService.hasResponse(id)) {
+            model.addAttribute("questionnaireResult", questionnaireService.getResultForTestPurchase(id));
+        }
         return "testpurchases/testpurchase-view";
+    }
+
+    private static final DateTimeFormatter VISIT_APPOINTMENT_FORMAT =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+
+    @PostMapping("/{id}/visit-appointment")
+    @PreAuthorize("hasAnyRole('ADMIN','ACCOUNT_MANAGER','MYSTERY_SHOPPER')")
+    public String scheduleVisitAppointment(@PathVariable UUID id,
+                                           @RequestParam String scheduledAt,
+                                           @RequestParam(required = false) String location,
+                                           @RequestParam(required = false) String notes,
+                                           @RequestParam(required = false, defaultValue = "false") boolean confirm,
+                                           RedirectAttributes redirectAttributes) {
+        return handleVisitAppointment(id, scheduledAt, location, notes, confirm, redirectAttributes);
+    }
+
+    @PostMapping("/{id}/visit-appointment/confirm")
+    @PreAuthorize("hasAnyRole('ADMIN','ACCOUNT_MANAGER','MYSTERY_SHOPPER')")
+    public String confirmVisitAppointment(@PathVariable UUID id,
+                                          RedirectAttributes redirectAttributes) {
+        try {
+            visitAppointmentService.confirm(id);
+        } catch (RuntimeException ex) {
+            redirectAttributes.addFlashAttribute("appointmentError", ex.getMessage());
+        }
+        return "redirect:/testpurchases/view/" + id;
+    }
+
+    private String handleVisitAppointment(UUID id,
+                                          String scheduledAt,
+                                          String location,
+                                          String notes,
+                                          boolean confirm,
+                                          RedirectAttributes redirectAttributes) {
+        try {
+            LocalDateTime at = LocalDateTime.parse(scheduledAt.trim(), VISIT_APPOINTMENT_FORMAT);
+            visitAppointmentService.scheduleOrUpdate(id, at, location, notes, confirm);
+        } catch (DateTimeParseException ex) {
+            redirectAttributes.addFlashAttribute("appointmentError", "Invalid date and time");
+        } catch (RuntimeException ex) {
+            redirectAttributes.addFlashAttribute("appointmentError", ex.getMessage());
+        }
+        return "redirect:/testpurchases/view/" + id;
     }
 
     @PostMapping("/{id}/change-status")

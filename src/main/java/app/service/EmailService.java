@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @Slf4j
@@ -27,6 +28,39 @@ public class EmailService {
 
     @Value("${app.mail.from:}")
     private String mailFrom;
+
+    @Value("${app.mail.visit-appointment.enabled:false}")
+    private boolean visitAppointmentMailEnabled;
+
+    @Async
+    public void sendVisitAppointmentEmail(String toEmail,
+                                        String tpNumber,
+                                        LocalDateTime scheduledAt,
+                                        String location,
+                                        String notes,
+                                        boolean confirmed) {
+        if (!visitAppointmentMailEnabled) {
+            log.info("Visit appointment mail disabled (app.mail.visit-appointment.enabled=false); skipping");
+            return;
+        }
+        if (!mailEnabled) {
+            log.info("Mail disabled (app.mail.enabled=false); skipping visit appointment email");
+            return;
+        }
+        String state = confirmed ? "confirmed" : "proposed";
+        sendHtmlEmail(
+                toEmail,
+                "Visit appointment " + state + " for test purchase " + tpNumber,
+                "visit-appointment-email",
+                Map.of(
+                        "tpNumber", tpNumber,
+                        "scheduledAt", scheduledAt.toString(),
+                        "location", location != null ? location : "",
+                        "notes", notes != null ? notes : "",
+                        "confirmed", confirmed
+                )
+        );
+    }
 
     @Async
     public void sendStatusChangeEmail(String toEmail,

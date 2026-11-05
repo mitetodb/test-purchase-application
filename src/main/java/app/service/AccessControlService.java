@@ -111,6 +111,25 @@ public class AccessControlService {
         }
     }
 
+    public boolean canManageVisitAppointment(TestPurchase testPurchase) {
+        User currentUser = getCurrentUserWithManagedCustomers();
+        Role role = currentUser.getRole();
+
+        return switch (role) {
+            case ADMIN -> true;
+            case ACCOUNT_MANAGER -> canAccountManagerEditTestPurchase(testPurchase, currentUser);
+            case MYSTERY_SHOPPER -> canMysteryShopperViewTestPurchase(testPurchase, currentUser)
+                    && testPurchase.getMysteryShopper() != null;
+            default -> false;
+        };
+    }
+
+    public void checkCanManageVisitAppointment(TestPurchase testPurchase) {
+        if (!canManageVisitAppointment(testPurchase)) {
+            throw new AccessDeniedException("You are not allowed to manage visit appointments for this test purchase");
+        }
+    }
+
     public boolean canViewCustomer(Customer customer) {
         User currentUser = getCurrentUserWithManagedCustomers();
         Role role = currentUser.getRole();
@@ -119,6 +138,8 @@ public class AccessControlService {
             case ADMIN -> true;
             case SALES_MANAGER -> canSalesManagerViewCustomer(customer, currentUser);
             case ACCOUNT_MANAGER -> canAccountManagerViewCustomer(customer, currentUser);
+            case CUSTOMER -> currentUser.getCustomer() != null
+                    && customer.getId().equals(currentUser.getCustomer().getId());
             default -> false;
         };
     }
@@ -161,6 +182,41 @@ public class AccessControlService {
         User currentUser = getCurrentUser();
         Role role = currentUser.getRole();
         return role == Role.SALES_MANAGER || role == Role.CUSTOMER;
+    }
+
+    public boolean canFillQuestionnaire(TestPurchase testPurchase) {
+        if (testPurchase.getStatus() == app.model.enums.TestPurchaseStatus.ARCHIVED) {
+            return false;
+        }
+        User currentUser = getCurrentUserWithManagedCustomers();
+        Role role = currentUser.getRole();
+        return switch (role) {
+            case ADMIN -> true;
+            case ACCOUNT_MANAGER -> canAccountManagerViewTestPurchase(testPurchase, currentUser);
+            case MYSTERY_SHOPPER -> canMysteryShopperViewTestPurchase(testPurchase, currentUser);
+            default -> false;
+        };
+    }
+
+    public void checkCanFillQuestionnaire(TestPurchase testPurchase) {
+        if (!canFillQuestionnaire(testPurchase)) {
+            throw new AccessDeniedException("You are not allowed to submit a questionnaire for this test purchase");
+        }
+    }
+
+    public boolean canViewScoreTrends() {
+        User currentUser = getCurrentUser();
+        Role role = currentUser.getRole();
+        return role == Role.ADMIN
+                || role == Role.ACCOUNT_MANAGER
+                || role == Role.SALES_MANAGER
+                || role == Role.CUSTOMER;
+    }
+
+    public void checkCanViewScoreTrends() {
+        if (!canViewScoreTrends()) {
+            throw new AccessDeniedException("You are not allowed to view score trends");
+        }
     }
 
     private boolean canSalesManagerViewTestPurchase(TestPurchase testPurchase, User salesManager) {
@@ -206,5 +262,34 @@ public class AccessControlService {
         }
         return accountManager.getManagedCustomers().stream()
                 .anyMatch(c -> customerId.equals(c.getId()));
+    }
+
+    public boolean canViewInvoice(app.model.entity.Invoice invoice) {
+        if (invoice == null || invoice.getCustomer() == null) {
+            return false;
+        }
+        return canViewCustomer(invoice.getCustomer());
+    }
+
+    public void checkCanViewInvoice(app.model.entity.Invoice invoice) {
+        if (!canViewInvoice(invoice)) {
+            throw new AccessDeniedException("You are not allowed to view this invoice");
+        }
+    }
+
+    public boolean canManageInvoicesForCustomer(Customer customer) {
+        User currentUser = getCurrentUserWithManagedCustomers();
+        Role role = currentUser.getRole();
+        return switch (role) {
+            case ADMIN -> true;
+            case ACCOUNT_MANAGER -> canAccountManagerEditCustomer(customer, currentUser);
+            default -> false;
+        };
+    }
+
+    public void checkCanManageInvoicesForCustomer(Customer customer) {
+        if (!canManageInvoicesForCustomer(customer)) {
+            throw new AccessDeniedException("You are not allowed to manage invoices for this customer");
+        }
     }
 }

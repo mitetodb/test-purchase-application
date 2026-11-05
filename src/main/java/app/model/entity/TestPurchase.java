@@ -69,6 +69,18 @@ public class TestPurchase {
 
     private String updatedByUser;
 
+    @Column(name = "visit_appointment_at")
+    private LocalDateTime visitAppointmentAt;
+
+    @Column(name = "visit_appointment_location", length = 500)
+    private String visitAppointmentLocation;
+
+    @Column(name = "visit_appointment_notes", length = 2000)
+    private String visitAppointmentNotes;
+
+    @Column(name = "visit_appointment_confirmed", nullable = false)
+    private boolean visitAppointmentConfirmed;
+
     @PrePersist
     public void onCreate() {
         createdOn = LocalDateTime.now();

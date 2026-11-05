@@ -43,6 +43,8 @@ public interface TestPurchaseService {
 
     TestPurchaseViewDTO findByIdForCurrentUser(UUID id);
 
+    TestPurchase findEntityByIdForCurrentUser(UUID id);
+
     TestPurchase findByIdForEdit(UUID id);
 
     PriceCalculationResponseDTO previewPrice(TestPurchaseCreateDTO dto);
