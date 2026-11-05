@@ -45,4 +45,14 @@ public interface UserRepository extends JpaRepository<User, UUID>, JpaSpecificat
     List<User> findAllActive();
 
     List<User> findByRoleAndActive(Role role, boolean active);
+
+    @Query("""
+        SELECT DISTINCT u
+        FROM User u
+        JOIN u.managedCustomers mc
+        WHERE mc.id = :customerId
+          AND u.role = app.model.enums.Role.ACCOUNT_MANAGER
+          AND u.active = true
+        """)
+    List<User> findActiveAccountManagersForCustomer(UUID customerId);
 }

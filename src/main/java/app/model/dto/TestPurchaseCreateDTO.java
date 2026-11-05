@@ -9,6 +9,9 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -33,4 +36,7 @@ public class TestPurchaseCreateDTO {
 
     @Valid
     private List<ItemDTO> items = new ArrayList<>();
+
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+    private LocalDate deadlineAt;
 }

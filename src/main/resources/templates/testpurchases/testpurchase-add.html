@@ -63,6 +63,11 @@
             </select>
         </div>
 
+        <div class="mb-3">
+            <label for="deadlineAt" th:text="#{ui.deadline_optional.e17f}">Deadline (optional)</label>
+            <input type="date" id="deadlineAt" th:field="*{deadlineAt}" class="form-control"/>
+        </div>
+
         <h5 th:text="#{ui.items.9dea}">Items</h5>
         <button type="button" class="btn btn-secondary mb-3" onclick="addItem()" th:text="#{ui.add_item.3c5d}">+ Add Item</button>
 

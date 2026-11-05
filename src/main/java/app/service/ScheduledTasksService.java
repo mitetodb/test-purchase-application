@@ -21,6 +21,14 @@ public class ScheduledTasksService {
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final TestPurchaseRepository testPurchaseRepository;
     private final LoginSecurityService loginSecurityService;
+    private final DeadlineReminderService deadlineReminderService;
+
+    @Scheduled(cron = "${app.deadline-reminder.cron:0 0 8 * * ?}")
+    @Transactional
+    public void sendTestPurchaseDeadlineReminders() {
+        log.info("Starting scheduled task: test purchase deadline reminders");
+        deadlineReminderService.processDueReminders();
+    }
 
     @Scheduled(cron = "0 0 2 * * ?")
     @Transactional
