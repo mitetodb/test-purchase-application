@@ -181,6 +181,10 @@ public class TestPurchaseController {
         dto.setId(purchase.getId());
         dto.setCustomerId(purchase.getCustomer().getId());
         dto.setShopId(purchase.getShop().getId());
+        dto.setCountry(purchase.getCountry());
+        dto.setCategory(purchase.getCategory());
+        dto.setType(purchase.getType());
+        dto.setDeadlineAt(purchase.getDeadlineAt());
 
         purchase.getItems().forEach(i -> {
             app.model.dto.ItemDTO itemDTO = new app.model.dto.ItemDTO();

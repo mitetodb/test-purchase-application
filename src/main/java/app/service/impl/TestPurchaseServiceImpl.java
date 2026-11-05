@@ -105,6 +105,7 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
         purchase.setServiceFee(responseDTO.getTestPurchaseFee());
         purchase.setPostageFee(responseDTO.getPostageFee());
 
+        purchase.setDeadlineAt(dto.getDeadlineAt());
         purchase.setUpdatedByUser(SecurityUtils.getCurrentUsername());
 
         TestPurchase saved = testPurchaseRepository.save(purchase);
@@ -229,6 +230,7 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
 
         purchase.setProductPrice(itemsTotalPrice(purchase));
 
+        purchase.setDeadlineAt(dto.getDeadlineAt());
         purchase.setUpdatedByUser(SecurityUtils.getCurrentUsername());
 
         TestPurchase saved = testPurchaseRepository.save(purchase);

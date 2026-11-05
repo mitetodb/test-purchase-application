@@ -31,6 +31,9 @@ class ScheduledTasksServiceTest {
     @Mock
     private LoginSecurityService loginSecurityService;
 
+    @Mock
+    private DeadlineReminderService deadlineReminderService;
+
     @InjectMocks
     private ScheduledTasksService scheduledTasksService;
 
