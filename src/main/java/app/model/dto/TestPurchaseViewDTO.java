@@ -34,6 +34,10 @@ public class TestPurchaseViewDTO {
     private String updatedByUser;
     private LocalDateTime createdDate;
     private boolean active;
+    private LocalDateTime visitAppointmentAt;
+    private String visitAppointmentLocation;
+    private String visitAppointmentNotes;
+    private boolean visitAppointmentConfirmed;
 
     public static TestPurchaseViewDTO from(TestPurchase purchase, boolean hideMysteryShopperName) {
         TestPurchaseViewDTO dto = new TestPurchaseViewDTO();
@@ -52,7 +56,11 @@ public class TestPurchaseViewDTO {
         dto.setUpdatedByUser(purchase.getUpdatedByUser());
         dto.setCreatedDate(purchase.getCreatedOn());
         dto.setActive(purchase.isActive());
-        
+        dto.setVisitAppointmentAt(purchase.getVisitAppointmentAt());
+        dto.setVisitAppointmentLocation(purchase.getVisitAppointmentLocation());
+        dto.setVisitAppointmentNotes(purchase.getVisitAppointmentNotes());
+        dto.setVisitAppointmentConfirmed(purchase.isVisitAppointmentConfirmed());
+
         if (hideMysteryShopperName) {
             dto.setMysteryShopper(null);
             dto.setMysteryShopperHidden(true);

@@ -111,6 +111,25 @@ public class AccessControlService {
         }
     }
 
+    public boolean canManageVisitAppointment(TestPurchase testPurchase) {
+        User currentUser = getCurrentUserWithManagedCustomers();
+        Role role = currentUser.getRole();
+
+        return switch (role) {
+            case ADMIN -> true;
+            case ACCOUNT_MANAGER -> canAccountManagerEditTestPurchase(testPurchase, currentUser);
+            case MYSTERY_SHOPPER -> canMysteryShopperViewTestPurchase(testPurchase, currentUser)
+                    && testPurchase.getMysteryShopper() != null;
+            default -> false;
+        };
+    }
+
+    public void checkCanManageVisitAppointment(TestPurchase testPurchase) {
+        if (!canManageVisitAppointment(testPurchase)) {
+            throw new AccessDeniedException("You are not allowed to manage visit appointments for this test purchase");
+        }
+    }
+
     public boolean canViewCustomer(Customer customer) {
         User currentUser = getCurrentUserWithManagedCustomers();
         Role role = currentUser.getRole();
