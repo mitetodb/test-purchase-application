@@ -212,11 +212,12 @@ class CustomerCrossClientIdorIntegrationTest {
         tp.setCountry(Country.GERMANY);
         tp.setCategory(TestPurchaseCategory.S);
         tp.setType(TestPurchaseType.FORWARDING_TO_CLIENT);
-        tp.setStatus(TestPurchaseStatus.CLOSED);
         tp.setActive(true);
         tp.setProductPrice(50.0);
         tp.setServiceFee(10.0);
         tp.setPostageFee(5.0);
+        testPurchaseRepository.save(tp);
+        tp.setStatus(TestPurchaseStatus.CLOSED);
         tp.setCreatedOn(createdOn);
         testPurchaseRepository.save(tp);
     }
