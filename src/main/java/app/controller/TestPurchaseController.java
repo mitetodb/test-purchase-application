@@ -7,7 +7,6 @@ import app.model.dto.TestPurchaseViewDTO;
 import app.model.entity.TestPurchase;
 import app.model.enums.TestPurchaseStatus;
 import app.model.filter.TestPurchaseListFilter;
-import app.model.entity.TestPurchase;
 import app.service.*;
 import app.support.ListExportResponseFactory;
 import app.support.ListExportRows;
@@ -50,12 +49,13 @@ public class TestPurchaseController {
     private final ShopService shopService;
     private final AttachmentService attachmentService;
     private final StatusHistoryService statusHistoryService;
+    private final QuestionnaireService questionnaireService;
+    private final AccessControlService accessControlService;
     private final UserService userService;
     private final ListPagingSupport listPagingSupport;
     private final AppListExportProperties exportProperties;
     private final ListExportResponseFactory exportResponses;
     private final VisitAppointmentService visitAppointmentService;
-    private final AccessControlService accessControlService;
     private final TestPurchaseReportService testPurchaseReportService;
 
     @GetMapping
@@ -256,7 +256,7 @@ public class TestPurchaseController {
     @GetMapping("/view/{id}")
     public String view(@PathVariable UUID id, Model model) {
         TestPurchaseViewDTO purchase = testPurchaseService.findByIdForCurrentUser(id);
-        TestPurchase entity = testPurchaseService.findById(id);
+        TestPurchase entity = testPurchaseService.findEntityByIdForCurrentUser(id);
         model.addAttribute("purchase", purchase);
         model.addAttribute("attachments", attachmentService.getByTestPurchase(id));
         model.addAttribute("history", statusHistoryService.getHistory(id));
@@ -269,6 +269,11 @@ public class TestPurchaseController {
             model.addAttribute("mysteryShoppers", userService.findAllMysteryShoppers());
         }
         model.addAttribute("canManageVisitAppointment", accessControlService.canManageVisitAppointment(entity));
+        model.addAttribute("canFillQuestionnaire", accessControlService.canFillQuestionnaire(entity));
+        model.addAttribute("hasQuestionnaire", questionnaireService.hasResponse(id));
+        if (questionnaireService.hasResponse(id)) {
+            model.addAttribute("questionnaireResult", questionnaireService.getResultForTestPurchase(id));
+        }
         return "testpurchases/testpurchase-view";
     }
 

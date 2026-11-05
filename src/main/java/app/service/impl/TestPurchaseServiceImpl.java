@@ -466,6 +466,15 @@ public class TestPurchaseServiceImpl implements TestPurchaseService {
 
     @Override
     @Transactional
+    public TestPurchase findEntityByIdForCurrentUser(UUID id) {
+        TestPurchase purchase = testPurchaseRepository.findByIdWithRelations(id)
+                .orElseThrow(() -> new EntityNotFoundException("TestPurchase not found"));
+        accessControlService.checkCanViewTestPurchase(purchase);
+        return purchase;
+    }
+
+    @Override
+    @Transactional
     public TestPurchase findByIdForEdit(UUID id) {
         TestPurchase purchase = testPurchaseRepository.findByIdWithRelations(id)
                 .orElseThrow(() -> new EntityNotFoundException("TestPurchase not found"));
