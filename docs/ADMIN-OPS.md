@@ -92,7 +92,9 @@ From `.env.example` and `application.properties` — set values only in `deploy/
 | App DB URL (local dev) | `DB_URL`, `JPA_DDL_AUTO`, `FLYWAY_ENABLED` |
 | Pricing API | `PRICING_API_KEY`, `PRICING_API_BASE_URL`, `PRICING_BUILD_CONTEXT`, `PRICING_IMAGE`, `PRICING_LOG_LEVEL` |
 | App | `SPRING_PROFILES_ACTIVE`, `APP_BASE_URL`, `APP_HOST_PORT`, `ADMIN_PASSWORD`, `ADMIN_EMAIL`, `DEMO_DATA_ENABLED`, `DEMO_PURCHASES`, `DEMO_USERS`, `SWAGGER_ENABLED`, `UPLOAD_DIR`, `UPLOAD_ATTACHMENT_ALLOWED_TYPES`, `UPLOAD_AVATAR_ALLOWED_TYPES` |
-| Mail | `MAIL_ENABLED`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_SSL`, `MAIL_STARTTLS`, `MAIL_SMTP_AUTH`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM` |
+| Mail | `MAIL_ENABLED`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_SSL`, `MAIL_STARTTLS`, `MAIL_SMTP_AUTH`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM`, `MAIL_VISIT_APPOINTMENT_ENABLED` |
+| Deadlines | `DEADLINE_REMINDER_ENABLED`, `DEADLINE_REMINDER_DAYS_BEFORE`, `DEADLINE_REMINDER_CRON` |
+| Monitoring | `MONITORING_BACKUP_CHECK_ENABLED`, `MONITORING_BACKUP_MARKER_PATH`, `MONITORING_BACKUP_SCAN_DIRECTORY`, `MONITORING_BACKUP_MAX_AGE_HOURS`, `MONITORING_SERVER_ERROR_*`, `MONITORING_ALERT_*` |
 | Security | `APP_TOTP_ENCRYPTION_KEY`, `APP_TOTP_ISSUER`, `app.security.login.*`, `app.security.password.min-length` (default 12), `app.security.two-factor.max-session-failed-attempts` |
 | Lists | `app.list-pagination.default-page-size`, `app.list-pagination.max-page-size`, `app.list-export.max-rows` |
 
@@ -168,4 +170,5 @@ Full wiring guide: **[MONITORING.md](MONITORING.md)** (marker file path, JSON fi
 - [DEPLOYMENT.md](DEPLOYMENT.md) — first-time install and nginx/TLS notes  
 - [SECURITY.md](SECURITY.md) — RBAC, uploads, session security  
 - [ROLES.md](ROLES.md) — permission matrix  
+- [STATUS.md](STATUS.md) — live features vs deferred (#10)  
 - User guides: [docs/user-guide/](user-guide/)

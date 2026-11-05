@@ -28,15 +28,21 @@ Dieses Handbuch beschreibt die Möglichkeiten der Rolle **Administrator** in der
 | Test purchases | `/testpurchases` | Liste, Filter, Export, Archivierung |
 | Customers | `/customers` | Kunden, Preise, deaktivieren/reaktivieren |
 | Shops | `/shops` | Shops pflegen, deaktivieren/reaktivieren |
+| Invoices | `/invoices` | Rechnungen, Monatsabrechnung, PDF |
+
+**Score trends:** `/score-trends` — aggregierte Fragebogen-Scores.
 
 ---
 
 ## Wichtige Funktionen
 
 - **Benutzer:** Paginierung, Filter, CSV/Excel-Export; **Deaktivieren** statt Löschen; **Unlock** bei Login-Sperre.
-- **Testkäufe:** voller Zugriff; Mystery Shopper zuweisen; Status ändern; **Archivieren** (Status ARCHIVED, nur Lesen); kein Hard-Delete (alte Delete-URLs → **404**).
+- **Testkäufe:** voller Zugriff; **Frist (deadline)**; **Shop-Termin**; **Fragebogen**; **PDF-Bericht** (`/testpurchases/view/{id}/report.pdf`); Mystery Shopper zuweisen; Status ändern; **Archivieren** (Status ARCHIVED, nur Lesen); kein Hard-Delete (alte Delete-URLs → **404**).
 - **Anhänge:** Upload mit Magic-Byte-Prüfung; **kein Löschen** (Endpoint 404), max. 10 MB standardmäßig.
 - **Invites:** `/invites` — Einladungslinks für Mystery Shopper (7 Tage, Rolle MYSTERY_SHOPPER).
-- **Audit:** `/audit` mit Filtern.
+- **Audit:** `/audit` mit Filtern (auch Rechnungen, Profil/2FA).
+- **Rechnungen:** `/invoices` — Monatsabrechnung, Entwurf → ausgestellt → bezahlt / storniert; PDF-Download.
+
+E-Mail für Fristen, Termine und Monitoring standardmäßig **aus** — siehe [STATUS.md](../STATUS.md).
 
 Betrieb und 2FA-Notfall: [ADMIN-OPS.md](../ADMIN-OPS.md). Matrix: [ROLES.md](../ROLES.md).

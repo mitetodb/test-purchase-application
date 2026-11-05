@@ -25,7 +25,8 @@ You see **only test purchases for your company** (linked to your user account).
 You **can**:
 
 - Open **Test purchases** from the navigation
-- **Create** new test purchases for your company (active customer + active shop)
+- Open **Invoices** (your company only) and **Score trends** (`/score-trends`) for your company’s aggregated scores
+- **Create** new test purchases for your company (active customer + active shop); optional **deadline**
 - Add or edit **line items** on your purchases while they are editable
 - View **status** and **status history**
 - **Preview price** (service fee/postage via pricing service)
@@ -51,8 +52,10 @@ You **cannot**:
 
 ## Tracking progress
 
-- Open a purchase to see current **status**, history, and attachments.
-- Email notifications may appear if the operator enabled `MAIL_ENABLED` on the server.
+- Open a purchase to see current **status**, history, attachments, **deadline** (if set), and questionnaire **results** (read-only).
+- **PDF report:** download from purchase detail or `/testpurchases/view/{id}/report.pdf`.
+- **Invoices:** view your company’s invoices and download PDFs; you cannot create or issue invoices.
+- Email notifications may appear if the operator enabled `MAIL_ENABLED` on the server (deadline reminders are a separate flag — default off).
 - Purchases in **ARCHIVED** status are read-only.
 
 ---

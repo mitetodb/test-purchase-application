@@ -32,6 +32,9 @@ Under **Admin** you can open:
 | Test purchases | `/testpurchases` | Full list, filters, export, archive |
 | Customers | `/customers` | All customers, pricing, deactivate/reactivate |
 | Shops | `/shops` | Create, edit, deactivate/reactivate |
+| Invoices | `/invoices` | List, monthly statement, issue/mark paid/cancel |
+
+Under **Management** (or reports menu): **Score trends** at `/score-trends` (aggregated questionnaire scores).
 
 ---
 
@@ -57,13 +60,26 @@ Users receive sequential **entity numbers** (see audit log and lists).
 ## Test purchases
 
 - View **all** purchases (filter by status, customer, dates, etc.).
-- Create and edit purchases for any customer/shop.
+- Create and edit purchases for any customer/shop; optional **deadline** date (overdue shown on detail when past due and not closed).
 - **Assign mystery shopper:** action on purchase (`/testpurchases/{id}/assign-mystery-shopper`) — Admin and Account Manager only.
+- **Visit appointment:** schedule or confirm a shop visit on purchase detail (optional e-mail only if operator enabled mail + `MAIL_VISIT_APPOINTMENT_ENABLED`).
+- **Questionnaire:** open `/testpurchases/{id}/questionnaire` to fill or review scored responses (Admin, Account Manager, assigned shopper).
+- **PDF report:** link or URL `/testpurchases/view/{id}/report.pdf` — download summary PDF for any purchase you can view.
 - **Change status** along the workflow (e.g. INITIALISED → IN_PROGRESS → … → CLOSED / CANCELLED). Status history is recorded.
 - **Archive / Unarchive:** Admin only — sets status **ARCHIVED**; archived purchases are **read-only** (no status changes, no uploads). Show archived via list filter.
 - **No hard delete:** legacy delete URLs return **404**.
 - **Attachments:** upload (PDF, images, Office Open XML per allowlist); **download/preview only** — delete endpoint removed (404). Files validated by **magic bytes**, size limit `spring.servlet.multipart.max-file-size` (default 10 MB).
 - **Export:** `/testpurchases/export.csv` or `.xlsx` with current filters.
+
+---
+
+## Invoices
+
+- **List** (`/invoices`): filter by customer, status, period; pagination.
+- **Monthly statement** (`/invoices/statement`): pick customer + year/month to preview billable test purchases before invoicing.
+- **Create draft** from statement (Admin and Account Manager for customers they manage).
+- On invoice detail: **Issue**, **Mark paid**, **Cancel** (audit log records lifecycle); **Download PDF** (`/invoices/{id}/pdf`).
+- Status flow: **DRAFT** → **ISSUED** → **PAID**, or **CANCELLED**.
 
 ---
 
@@ -76,14 +92,15 @@ Users receive sequential **entity numbers** (see audit log and lists).
 
 ## Audit log
 
-**Audit log** (`/audit`): filter by action, entity type, actor, date range; paginated (25 rows). Covers user/customer/shop lifecycle, test purchase status, pricing-related events, and similar actions recorded by the application.
+**Audit log** (`/audit`): filter by action, entity type, actor, date range; paginated (25 rows). Covers user/customer/shop lifecycle, test purchase status, **invoices**, profile/password/TOTP events, pricing-related events, and similar actions recorded by the application.
 
 ---
 
 ## System notes
 
 - **Swagger / OpenAPI:** only if `SWAGGER_ENABLED=true` (default off).
-- **Health:** `/actuator/health` (public); use for monitoring behind nginx.
+- **Health:** `/actuator/health` (public); optional `backup` / `serverErrors` components — see [MONITORING.md](../MONITORING.md).
+- **E-mail defaults:** deadline reminders, visit mail, and monitoring alerts are **off** until env flags are set on the server — see [STATUS.md](../STATUS.md).
 - **Operations:** deployment, backup, rollback, 2FA break-glass — see [ADMIN-OPS.md](../ADMIN-OPS.md).
 
 For the full permission matrix see [ROLES.md](../ROLES.md).

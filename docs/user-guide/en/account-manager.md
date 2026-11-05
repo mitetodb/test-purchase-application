@@ -32,6 +32,8 @@ Under **Management**:
 | Customers | Create (auto-assigned to you), edit **managed** customers |
 | Shops | Full shop list — create and edit shops |
 | Invites | Create mystery-shopper invite links |
+| Invoices | List, statements, create/issue for **managed** customers |
+| Score trends | `/score-trends` for managed customers |
 
 You **cannot** open **Users** or **Audit log** (Admin only).
 
@@ -54,13 +56,26 @@ You **cannot** open **Users** or **Audit log** (Admin only).
 
 ## Test purchases
 
-- **Create** for managed customers (pick active customer + active shop).
+- **Create** for managed customers (pick active customer + active shop); optional **deadline** date.
 - **Edit** purchases for managed customers.
 - **Assign mystery shopper** to a purchase (you see shopper names; customers and sales managers do not).
+- **Visit appointment:** schedule or confirm on purchase detail.
+- **Questionnaire:** `/testpurchases/{id}/questionnaire` when allowed.
+- **PDF report:** `/testpurchases/view/{id}/report.pdf` for purchases you can view.
 - **Change status** on purchases you can view (same status enum as the rest of the app: INITIALISED, IN_PROGRESS, PRODUCT_ORDERED, …, CLOSED, CANCELLED).
 - **Upload attachments** on purchase detail (allowlisted types, max size 10 MB default).
 - **Lists:** filters, pagination, CSV/Excel export within export cap.
 - **Cannot archive** purchases (Admin only). Archived purchases are read-only.
+
+---
+
+## Invoices (managed customers)
+
+- Open **Invoices** from the navigation.
+- Preview **monthly statement** per customer; **create draft** invoice from statement.
+- **Issue**, **mark paid**, or **cancel** on invoice detail; download **PDF**.
+
+Reminder and visit e-mails require operator configuration (`MAIL_ENABLED` and feature flags) — default is no outbound mail.
 
 ---
 

@@ -98,6 +98,50 @@ Server-side role-based access control is enforced in controllers, services, and 
 | Generate system reports | ✅ | ✅ | ✅ | ❌ | ❌ |
 | View customer analytics | ✅ | ✅ Managed | ✅ Owned | ❌ | ❌ |
 | View own statistics | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Download test purchase PDF report** | ✅ Scoped | ✅ Managed | ✅ Owned | ✅ Own company | ✅ Assigned |
+| **View score trends** (`/score-trends`) | ✅ All scoped | ✅ Managed | ✅ Owned | ✅ Own company | ❌ |
+
+PDF report URL: `/testpurchases/view/{id}/report.pdf` — same visibility rules as viewing the purchase.
+
+### Deadlines
+
+| Permission | Admin | Account Manager | Sales Manager | Customer | Mystery Shopper |
+|-----------|:-----:|:---------------:|:-------------:|:--------:|:---------------:|
+| Set/edit deadline on purchase | ✅ | ✅ Managed | ❌ | ✅ Own company (create/edit) | ❌ |
+| See deadline / overdue indicator | ✅ | ✅ Managed | ✅ Owned | ✅ Own company | ✅ Assigned |
+
+**Deadline reminder e-mails** are sent only when the operator enables `MAIL_ENABLED` and `DEADLINE_REMINDER_ENABLED` on the server (default off).
+
+### Visit appointments
+
+| Permission | Admin | Account Manager | Sales Manager | Customer | Mystery Shopper |
+|-----------|:-----:|:---------------:|:-------------:|:--------:|:---------------:|
+| Schedule or update visit slot | ✅ | ✅ Managed | ❌ | ❌ | ✅ Assigned |
+| Confirm visit | ✅ | ✅ Managed | ❌ | ❌ | ✅ Assigned |
+| View appointment on purchase | ✅ | ✅ Managed | ✅ Owned | ✅ Own company | ✅ Assigned |
+
+Optional notification e-mail when `MAIL_ENABLED` and `MAIL_VISIT_APPOINTMENT_ENABLED` are true (default off).
+
+### Questionnaire (scored)
+
+| Permission | Admin | Account Manager | Sales Manager | Customer | Mystery Shopper |
+|-----------|:-----:|:---------------:|:-------------:|:--------:|:---------------:|
+| Fill questionnaire | ✅ | ✅ Managed | ❌ | ❌ | ✅ Assigned |
+| View questionnaire result on purchase | ✅ | ✅ Managed | ✅ Owned | ✅ Own company | ✅ Assigned |
+
+Form: `/testpurchases/{id}/questionnaire`. Sales Manager and Customer see aggregated scores on trends, not the fill form.
+
+### Invoices and monthly statements
+
+| Permission | Admin | Account Manager | Sales Manager | Customer | Mystery Shopper |
+|-----------|:-----:|:---------------:|:-------------:|:--------:|:---------------:|
+| List/view invoices (scoped) | ✅ | ✅ Managed | ✅ Owned | ✅ Own company | ❌ |
+| Monthly statement preview | ✅ | ✅ Managed | ✅ Owned | ✅ Own company | ❌ |
+| Create draft from statement | ✅ | ✅ Managed | ❌ | ❌ | ❌ |
+| Issue / mark paid / cancel | ✅ | ✅ Managed | ❌ | ❌ | ❌ |
+| Download invoice PDF | ✅ | ✅ Managed | ✅ Owned | ✅ Own company | ❌ |
+
+Invoice statuses: **DRAFT**, **ISSUED**, **PAID**, **CANCELLED**. Mystery shoppers have no invoice menu access.
 
 ### System Administration
 
@@ -105,10 +149,11 @@ Server-side role-based access control is enforced in controllers, services, and 
 |-----------|:-----:|:---------------:|:-------------:|:--------:|:---------------:|
 | Access API documentation | ✅ | ❌ | ❌ | ❌ | ❌ |
 | View system health | ✅ | ❌ | ❌ | ❌ | ❌ |
+| View aggregate `/actuator/health` (nginx) | Public | Public | Public | Public | Public |
 | Manage system settings | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Access audit logs | ✅ | ❌ | ❌ | ❌ | ❌ |
 
-Audit entries are written for deactivation, status changes, pricing updates, login unlock, and other sensitive actions (see `AuditAction` enum).
+Audit entries are written for deactivation, status changes, pricing updates, login unlock, **invoice lifecycle**, profile/password/TOTP flows, and other sensitive actions (see `AuditAction` enum).
 
 ## Key Security Features
 
@@ -281,4 +326,4 @@ Repositories filter results based on the current user's role and relationships:
 
 ## Future Enhancements
 
-See [MASTERPLAN.md](MASTERPLAN.md) for remaining roadmap items. Implemented since the original RBAC issue: TOTP 2FA, login lockout/rate limits, audit log, pagination/export, upload magic-byte validation, entity numbers, deactivation/archive-only data lifecycle.
+See [MASTERPLAN.md](MASTERPLAN.md) for remaining roadmap items. Implemented since the original RBAC issue: TOTP 2FA, login lockout/rate limits, audit log, pagination/export, upload magic-byte validation, entity numbers, deactivation/archive-only data lifecycle, PDF purchase reports ([#11](https://github.com/mitetodb/test-purchase-application/issues/11)), deadlines ([#16](https://github.com/mitetodb/test-purchase-application/issues/16)), questionnaire and score trends ([#17](https://github.com/mitetodb/test-purchase-application/issues/17)), monitoring health components ([#18](https://github.com/mitetodb/test-purchase-application/issues/18)), visit appointments ([#24](https://github.com/mitetodb/test-purchase-application/issues/24)), invoices ([#12](https://github.com/mitetodb/test-purchase-application/issues/12)).

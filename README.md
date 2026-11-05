@@ -7,20 +7,28 @@ status workflow and history, attachments, and price calculation via a separate p
 
 ## Features
 - Roles: Admin, Account Manager, Sales Manager, Customer, Mystery Shopper (Spring Security, server-side RBAC)
-- Test purchases: create/edit, items, status changes with history and optional email notification; **archive** (no hard delete)
+- Test purchases: create/edit, items, optional **deadline** date, status changes with history and optional email notification; **archive** (no hard delete)
+- **PDF report** per test purchase (`/testpurchases/view/{id}/report.pdf`); list **CSV/Excel export** (capped by `app.list-export.max-rows`)
+- **Shop visit appointment** on purchase detail (schedule / confirm); optional visit e-mail when enabled on server
+- **Scored questionnaire** after visits; **score trends** dashboard (`/score-trends`) for client analytics
+- **Invoices** and **monthly statements** per client (`/invoices`, `/invoices/statement`); invoice PDF; lifecycle DRAFT → ISSUED → PAID / CANCELLED
 - Customers, shops, and users: **deactivate/reactivate only** (no hard delete in UI)
 - TOTP **2FA** for Admin and Account Manager; one-time **recovery codes** (invalidated on re-issue, rows retained)
 - Login **rate limiting** and account **lockout**; Admin **Unlock** on user list
-- **Audit log** (Admin): filter by action, entity, actor, date
-- Sequential **entity numbers** (users, customers, shops, test purchases)
-- List **pagination**, **filters**, and **CSV/Excel export** ( capped by `app.list-export.max-rows`)
+- **Audit log** (Admin): filter by action, entity, actor, date (includes profile/password/TOTP, invoices, and data changes)
+- Sequential **entity numbers** (users, customers, shops, test purchases, invoices)
+- List **pagination**, **filters**, and export on major lists
 - **Invite-only** registration for mystery shoppers (`/register?token=…`)
 - **Password policy:** minimum length 12 (`app.security.password.min-length`)
 - Upload **magic-byte** validation (attachments and avatars), size limits via multipart settings
 - Price calculation (service fee, postage) via the pricing microservice (Feign + `X-API-Key`)
 - Attachments retained with purchases (**no delete** endpoint — returns 404)
+- **Monitoring signals** on `/actuator/health` (`backup`, `serverErrors`) for external checks — optional in-app alerts default **off**
+- **Deadline reminder e-mails** scheduled in app but default **off** (`DEADLINE_REMINDER_ENABLED=false`; requires `MAIL_ENABLED=true`)
 - UI in **Bulgarian, English, German** (`?lang=bg|en|de`, navbar switcher, cookie)
-- Flyway migrations, actuator health, OpenAPI (springdoc), MySQL backups
+- Flyway migrations through **V15**, actuator health, OpenAPI (springdoc), MySQL backup scripts (full off-site plan: [docs/BACKUP.md](docs/BACKUP.md))
+
+See **[docs/STATUS.md](docs/STATUS.md)** for live vs deferred features (e.g. issue #10 Storage Box backup awaits operator decision).
 
 ## Roles and Permissions
 
@@ -145,6 +153,12 @@ Set a DNS A record for `testkauf.getinweb.de` pointing at the server before you 
 | V9 | `V9__audit_log.sql` |
 | V10 | `V10__customer_deactivation_only.sql` |
 | V11 | `V11__shop_deactivation_and_test_purchase_archive.sql` |
+| V12 | `V12__test_purchase_deadlines_and_reminders.sql` |
+| V13 | `V13__visit_appointment.sql` |
+| V14 | `V14__questionnaire_and_scores.sql` |
+| V15 | `V15__invoices.sql` |
+
+Monitoring (#81) adds **no** new Flyway version — health components are application-only.
 
 `V1__baseline.sql` is the schema at the time Flyway was introduced.
 Existing databases are baselined at v1 automatically (`baseline-on-migrate`), and Hibernate runs with `ddl-auto=validate` in prod.
@@ -168,6 +182,7 @@ Comprehensive documentation is available in the [`docs/`](docs/) directory.
 
 ### Project Documentation
 
+- **[Status (live vs deferred)](docs/STATUS.md)** - Feature wave #75–#81, Flyway V15, e-mail defaults off; [BG](docs/status/bg.md) / [DE](docs/status/de.md) summaries
 - **[Original Vision](docs/ORIGINAL_VISION.md)** - Original project goals and feature implementation status
 - **[Master Plan](docs/MASTERPLAN.md)** - Development roadmap organized by priority (High, Medium, Later)
 - **[Architecture](docs/ARCHITECTURE.md)** - System architecture with Mermaid diagrams, components, and data flows
