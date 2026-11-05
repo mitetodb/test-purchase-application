@@ -17,6 +17,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -28,6 +33,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
+
+import com.lowagie.text.DocumentException;
 
 @Controller
 @RequiredArgsConstructor
@@ -43,6 +50,7 @@ public class TestPurchaseController {
     private final ListPagingSupport listPagingSupport;
     private final AppListExportProperties exportProperties;
     private final ListExportResponseFactory exportResponses;
+    private final TestPurchaseReportService testPurchaseReportService;
 
     @GetMapping
     public String list(
@@ -221,6 +229,18 @@ public class TestPurchaseController {
     public String unarchive(@PathVariable UUID id) {
         testPurchaseService.unarchive(id);
         return "redirect:/testpurchases/view/" + id;
+    }
+
+    @GetMapping("/view/{id}/report.pdf")
+    public ResponseEntity<byte[]> downloadPdfReport(@PathVariable UUID id) throws DocumentException {
+        var report = testPurchaseReportService.buildPdfReport(id, LocaleContextHolder.getLocale());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
+                        .filename(report.downloadFilename())
+                        .build()
+                        .toString())
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(report.content());
     }
 
     @GetMapping("/view/{id}")

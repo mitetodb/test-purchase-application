@@ -74,6 +74,9 @@ class TestPurchaseControllerTest {
     private app.support.ListExportResponseFactory exportResponses;
 
     @MockBean
+    private app.service.TestPurchaseReportService testPurchaseReportService;
+
+    @MockBean
     private LoginSecurityService loginSecurityService;
 
     @MockBean
