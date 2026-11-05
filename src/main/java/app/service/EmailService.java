@@ -125,6 +125,34 @@ public class EmailService {
         );
     }
 
+    public boolean sendMonitoringAlertEmail(String toEmail, String summary, java.util.List<String> issues) {
+        if (!mailEnabled) {
+            log.info("Mail disabled (app.mail.enabled=false); skipping monitoring alert");
+            return false;
+        }
+        String body = "Testkauf monitoring alert\n\nSummary: " + summary + "\n\nIssues:\n- "
+                + String.join("\n- ", issues) + "\n";
+        MimeMessage mime = javaMailSender.createMimeMessage();
+        try {
+            MimeMessageHelper helper = new MimeMessageHelper(mime, false, "UTF-8");
+            helper.setTo(toEmail);
+            if (!mailFrom.isBlank()) {
+                helper.setFrom(mailFrom);
+            }
+            helper.setSubject("testkauf monitoring alert");
+            helper.setText(body, false);
+            javaMailSender.send(mime);
+            log.info("Monitoring alert mail sent to {}", toEmail);
+            return true;
+        } catch (org.springframework.mail.MailException e) {
+            log.warn("Monitoring alert mail send failed: {}", e.getMostSpecificCause().getMessage());
+            return false;
+        } catch (MessagingException e) {
+            log.warn("Monitoring alert mail build failed: {}", e.getMessage());
+            return false;
+        }
+    }
+
     public boolean sendContactInquiry(String recipient,
                                       String replyToEmail,
                                       String name,

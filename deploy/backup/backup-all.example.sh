@@ -36,3 +36,5 @@ if [[ -n "${RESTIC_REPOSITORY:-}" && -x "$HERE/offsite-restic.example.sh" ]]; th
 fi
 
 echo "$(date -Is) $LOG_TAG: backup-all completed OK"
+# Optional marker for app monitoring (issue #18) — mount MONITORING_BACKUP_MARKER_PATH into the app container:
+# date -u +"%Y-%m-%dT%H:%M:%SZ" > /var/lib/testkauf/backup-last-success.timestamp

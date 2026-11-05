@@ -155,6 +155,14 @@ Ensure **`pricedb`** is included in every backup and restore test (not only `tes
 
 ---
 
+## Monitoring (health.getinweb.de)
+
+External uptime checks for missing backups and elevated 5xx rates are configured on **health.getinweb.de** (not in this repo). The app exposes Actuator components `backup` and `serverErrors` on **`/actuator/health`**; enable checks with `MONITORING_BACKUP_CHECK_ENABLED` and optional alert stubs with `MONITORING_ALERT_ENABLED` (default **false**).
+
+Full wiring guide: **[MONITORING.md](MONITORING.md)** (marker file path, JSON fields, env names only).
+
+---
+
 ## Related documentation
 
 - [DEPLOYMENT.md](DEPLOYMENT.md) — first-time install and nginx/TLS notes  
