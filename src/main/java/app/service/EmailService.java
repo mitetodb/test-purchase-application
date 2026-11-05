@@ -43,6 +43,10 @@ public class EmailService {
             log.info("Visit appointment mail disabled (app.mail.visit-appointment.enabled=false); skipping");
             return;
         }
+        if (!mailEnabled) {
+            log.info("Mail disabled (app.mail.enabled=false); skipping visit appointment email");
+            return;
+        }
         String state = confirmed ? "confirmed" : "proposed";
         sendHtmlEmail(
                 toEmail,
