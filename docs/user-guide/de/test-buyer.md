@@ -32,8 +32,11 @@ Handbuch für **Mystery Shopper** — durchführung zugewiesener Testkäufe.
 2. Shop, Positionen und Anweisungen prüfen.
 3. **Status** anpassen (z. B. INITIALISED, IN_PROGRESS, PRODUCT_ORDERED, PRODUCT_RECEIVED, Weiterleitung/Rücksendung, CLOSED, CANCELLED — nach Vorgabe des Account Managers).
 4. Optional **Kommentar** bei Statuswechsel.
-5. **Anhänge hochladen** (Allowlist + Magic Bytes, Standard max. 10 MB).
-6. **Download** möglich; **Löschen** nicht (404).
+5. **Shop-Termin** vorschlagen oder bestätigen.
+6. **Fragebogen:** `/testpurchases/{id}/questionnaire`.
+7. **PDF-Bericht:** `/testpurchases/view/{id}/report.pdf`.
+8. **Anhänge hochladen** (Allowlist + Magic Bytes, Standard max. 10 MB).
+9. **Download** möglich; **Löschen** nicht (404).
 
 Status **ARCHIVED** = nur Lesen.
 

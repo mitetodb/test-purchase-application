@@ -46,8 +46,11 @@ Customers and sales managers **do not see your name** on their views; admins and
    - Forward/return steps (**PRODUCT_FORWARDED_TO_CLIENT**, **PRODUCT_SHIPPED_BACK_TO_SELLER**)
    - **CLOSED** or **CANCELLED** when instructed
 4. Add an optional **comment** when changing status (stored in status history).
-5. **Upload attachments** (receipts, photos, PDF/Office documents per server allowlist) on the purchase page — button visible for your role. Files are checked by content (magic bytes), not only file extension.
-6. **Download** attachments; there is **no delete** action in the UI.
+5. **Visit appointment:** propose or confirm date/time on purchase detail (optional e-mail if operator enabled mail flags).
+6. **Questionnaire:** complete `/testpurchases/{id}/questionnaire` when the purchase is ready.
+7. **PDF report:** download your assignment summary from purchase detail or `/testpurchases/view/{id}/report.pdf`.
+8. **Upload attachments** (receipts, photos, PDF/Office documents per server allowlist) on the purchase page — button visible for your role. Files are checked by content (magic bytes), not only file extension.
+9. **Download** attachments; there is **no delete** action in the UI.
 
 If a purchase is **ARCHIVED**, it is read-only (no uploads or status changes).
 

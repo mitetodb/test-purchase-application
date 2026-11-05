@@ -273,12 +273,13 @@ Details in `deploy/backup/restore-test.example.sh`: starts temporary MySQL + emp
 
 ## 7. Monitoring and alerting
 
-Backup failure must be **visible** (issue #10).
+Backup failure must be **visible** (issue #10). After backup automation is installed on the server, also wire **application** health if using health.getinweb.de:
 
 | Signal | Mechanism |
 |--------|-----------|
 | Cron exit code | Wrap scripts with `set -euo pipefail`; last line `echo OK` |
 | Log file | Append to `/var/log/testkauf-backup.log`; ship to central logs if available |
+| **Actuator `backup` component** | Enable `MONITORING_BACKUP_CHECK_ENABLED=true` and maintain a marker file or scan directory — see [MONITORING.md](MONITORING.md) |
 | Heartbeat | Optional [Healthchecks.io](https://healthchecks.io) `curl -fsS -m 10 --retry 5 https://hc.example/ping/<uuid>` on success only |
 | Email | `mail -s "testkauf backup FAILED" ops@example.com < /var/log/testkauf-backup.log` on failure |
 | Metrics | Push exit code to Prometheus node textfile collector |
@@ -343,4 +344,4 @@ Existing MySQL-only script (may already be cron-installed): `deploy/backup-mysql
 | Restore documented and tested | §6, `restore-test.example.sh` |
 | No credentials in repo | Placeholders only; real secrets in server `.env` |
 
-Implementing the plan on the server is a separate change (cron, restic install, Storage Box account) and is intentionally **not** done by merging this documentation PR alone.
+Implementing the plan on the server is a separate change (cron, restic install, Storage Box account) and is intentionally **not** done by merging documentation alone — **awaiting operator cost/decision for Hetzner Storage Box** per [STATUS.md](STATUS.md).

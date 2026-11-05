@@ -24,7 +24,8 @@ Sie sehen **nur Testkäufe Ihres Unternehmens**.
 
 **Erlaubt:**
 
-- Testkäufe **anlegen** (aktiver Kunde + aktiver Shop)
+- Testkäufe **anlegen** (aktiver Kunde + aktiver Shop, optional **Frist**)
+- **Rechnungen** (nur eigene Firma) und **Score trends** (`/score-trends`) öffnen
 - **Positionen** bearbeiten, solange der Kauf editierbar ist
 - **Status** und **Historie** lesen
 - **Preisvorschau**
@@ -40,6 +41,6 @@ Sie sehen **nur Testkäufe Ihres Unternehmens**.
 
 ## Erstellung und Verfolgung
 
-Neuer Testkauf über **Test purchases**; Statussteuerung durch Account Manager. **ARCHIVED** = nur Lesen.
+Neuer Testkauf über **Test purchases**; Statussteuerung durch Account Manager. **PDF-Bericht**, **Frist**, Fragebogen-Ergebnis (Lesen), **Rechnungen** (Lesen/PDF). **ARCHIVED** = nur Lesen.
 
 [ROLES.md](../ROLES.md)

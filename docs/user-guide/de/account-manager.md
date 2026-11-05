@@ -26,6 +26,8 @@ Handbuch für **Account Manager** — betreute Kunden, Shops, Testkäufe und Ein
 | Customers | Anlegen (automatisch zugeordnet), betreute bearbeiten |
 | Shops | Shops anlegen und pflegen |
 | Invites | Mystery-Shopper-Einladungen |
+| Invoices | Rechnungen für **betreute** Kunden |
+| Score trends | `/score-trends` |
 
 Kein Zugriff auf **Users** oder **Audit log**.
 
@@ -35,7 +37,8 @@ Kein Zugriff auf **Users** oder **Audit log**.
 
 - **Kunden:** anlegen/bearbeiten; **Deaktivieren** nur über Admin-UI.
 - **Shops:** pflegen; Deaktivieren/Reaktivieren nur Admin.
-- **Testkäufe:** anlegen/bearbeiten; **Mystery Shopper zuweisen**; **Status** ändern; **Anhänge hochladen**; Listen mit Filter, Paginierung, Export. **Archivieren** nur Admin.
+- **Testkäufe:** anlegen/bearbeiten; **Frist**; **Termin**; **Fragebogen**; **PDF**; Mystery Shopper zuweisen; Status; Anhänge; Export. **Archivieren** nur Admin.
+- **Rechnungen:** Monatsabrechnung, Entwurf, ausstellen, PDF (betreute Kunden).
 - **Invites:** Link `/register?token=…` (7 Tage, einmalig).
 
 Kunden und Sales Manager sehen **keine** Mystery-Shopper-Namen.

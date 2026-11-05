@@ -125,15 +125,18 @@ Expect exactly one of each app header, no `X-Frame-Options`, and `Server` withou
 ### Logging and Monitoring
 
 **Current Capabilities**
-- Spring Boot Actuator health endpoints (`/actuator/health` public)
+- Spring Boot Actuator health endpoints (`/actuator/health` public via nginx)
+- Custom health components **`backup`** and **`serverErrors`** when monitoring properties are enabled ([#18](https://github.com/mitetodb/test-purchase-application/issues/18)) — see [MONITORING.md](MONITORING.md)
+- Optional scheduled **monitoring alert stub** (webhook and/or e-mail) — default **`MONITORING_ALERT_ENABLED=false`**
 - Application logs via Docker logs
 - **Audit log** (Admin UI `/audit`) for sensitive changes — see `AuditLogService`
 - Failed login lockout and rate-limit counters in database
 - Password reset token usage logged
 
 **Remaining gaps**
-- No centralized SIEM/alerting integration
+- No centralized SIEM/alerting integration beyond optional monitoring stub and external health.getinweb.de
 - No antivirus scanning on uploads
+- Off-site backup automation on server not installed by default ([#10](https://github.com/mitetodb/test-purchase-application/issues/10))
 
 ### Email Security
 
@@ -141,7 +144,17 @@ Expect exactly one of each app header, no `X-Frame-Options`, and `Server` withou
 - STARTTLS for SMTP (port 587) on Hetzner (blocks port 465)
 - SSL for SMTP (port 465) on other hosts
 - Configurable mail server (ALL-INKL in production)
-- Optional: disabled by default (`MAIL_ENABLED=false`)
+- **Global mail disabled by default** (`MAIL_ENABLED=false`) — password reset, status change, deadline reminders, visit appointment mail, and monitoring alert mail are all no-ops until mail is enabled
+
+**Optional mail features (require `MAIL_ENABLED=true`)**
+
+| Feature | Env var | Default |
+|---------|---------|---------|
+| Deadline reminders | `DEADLINE_REMINDER_ENABLED` | `false` |
+| Visit appointment notifications | `MAIL_VISIT_APPOINTMENT_ENABLED` | `false` |
+| Monitoring alert e-mail | `MONITORING_ALERT_ENABLED` + `MONITORING_ALERT_EMAIL_TO` | alerts off |
+
+Scheduled jobs for deadline reminders and monitoring alerts exist in code but do not send externally until the flags above are set on the server.
 
 **Password Reset Security**
 - Time-limited tokens (default: 24 hours)
@@ -162,7 +175,7 @@ Expect exactly one of each app header, no `X-Frame-Options`, and `Server` withou
 
 1. **[#19 Role-based access control enforced on the server](https://github.com/mitetodb/test-purchase-application/issues/19)** — continue expanding integration tests for edge cases.
 
-2. **[#10 Backups of uploaded files plus an off-server copy](https://github.com/mitetodb/test-purchase-application/issues/10)** — operational plan in [BACKUP.md](BACKUP.md); server install is manual.
+2. **[#10 Backups of uploaded files plus an off-server copy](https://github.com/mitetodb/test-purchase-application/issues/10)** — operational plan in [BACKUP.md](BACKUP.md); server install and Storage Box await operator decision (deferred).
 
 ### Implemented (formerly open issues)
 
@@ -172,6 +185,12 @@ Expect exactly one of each app header, no `X-Frame-Options`, and `Server` withou
 - **[#13 Full audit log for clients, prices and users](https://github.com/mitetodb/test-purchase-application/issues/13)** — implemented (Admin audit UI)
 - **[#15 Pagination and filters](https://github.com/mitetodb/test-purchase-application/issues/15)** — implemented on major lists
 - **[#20 Public /register allows role=ADMIN](https://github.com/mitetodb/test-purchase-application/issues/20)** — invite-only registration; MYSTERY_SHOPPER only
+- **[#11 PDF report per test purchase](https://github.com/mitetodb/test-purchase-application/issues/11)** — implemented
+- **[#12 Invoices and monthly statements](https://github.com/mitetodb/test-purchase-application/issues/12)** — implemented
+- **[#16 Deadlines and email reminders](https://github.com/mitetodb/test-purchase-application/issues/16)** — UI and scheduler live; **e-mail off by default**
+- **[#17 Scored questionnaire and score trends](https://github.com/mitetodb/test-purchase-application/issues/17)** — implemented
+- **[#18 Monitoring health signals](https://github.com/mitetodb/test-purchase-application/issues/18)** — Actuator components + optional alert stub ([MONITORING.md](MONITORING.md)); health.getinweb.de wiring external
+- **[#24 Visit appointment booking](https://github.com/mitetodb/test-purchase-application/issues/24)** — implemented; visit mail off by default
 
 ## Security Best Practices
 
@@ -377,6 +396,12 @@ See [MASTERPLAN.md](MASTERPLAN.md) for the complete security improvement roadmap
 - CSP / security headers ([#14](https://github.com/mitetodb/test-purchase-application/issues/14))
 - Pagination, filters, export ([#15](https://github.com/mitetodb/test-purchase-application/issues/15))
 - Invite-only registration ([#20](https://github.com/mitetodb/test-purchase-application/issues/20))
+- PDF test purchase reports ([#11](https://github.com/mitetodb/test-purchase-application/issues/11))
+- Invoices ([#12](https://github.com/mitetodb/test-purchase-application/issues/12))
+- Deadlines + reminder job ([#16](https://github.com/mitetodb/test-purchase-application/issues/16))
+- Questionnaire + score trends ([#17](https://github.com/mitetodb/test-purchase-application/issues/17))
+- Monitoring health components ([#18](https://github.com/mitetodb/test-purchase-application/issues/18))
+- Visit appointments ([#24](https://github.com/mitetodb/test-purchase-application/issues/24))
 
 ### Future
 
