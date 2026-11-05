@@ -94,6 +94,7 @@ public class SecurityConfig {
                         .requestMatchers("/audit","/audit/**").hasRole("ADMIN")
                         .requestMatchers("/users","/users/**").hasRole("ADMIN")
                         .requestMatchers("/customers","/customers/**").hasAnyRole("ADMIN","ACCOUNT_MANAGER","SALES_MANAGER")
+                        .requestMatchers("/invoices","/invoices/**").hasAnyRole("ADMIN","ACCOUNT_MANAGER","SALES_MANAGER","CUSTOMER")
                         .requestMatchers("/shops","/shops/**").hasAnyRole("ADMIN","ACCOUNT_MANAGER")
                         .requestMatchers("/invites","/invites/**").hasAnyRole("ADMIN","ACCOUNT_MANAGER")
                         .requestMatchers("/testpurchases/*/assign-mystery-shopper").hasAnyRole("ADMIN","ACCOUNT_MANAGER")

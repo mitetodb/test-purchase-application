@@ -16,6 +16,7 @@ public class ListPagingSupport {
     private static final Sort TEST_PURCHASE_DEFAULT = Sort.by(Sort.Direction.DESC, "createdOn");
     private static final Sort CUSTOMER_DEFAULT = Sort.by(Sort.Direction.ASC, "name");
     private static final Sort USER_DEFAULT = Sort.by(Sort.Direction.DESC, "createdOn");
+    private static final Sort INVOICE_DEFAULT = Sort.by(Sort.Direction.DESC, "createdOn");
 
     public Pageable forTestPurchases(Pageable pageable) {
         return clamp(pageable, ListSortAllowlist.ListKind.TEST_PURCHASE, TEST_PURCHASE_DEFAULT);
@@ -27,6 +28,10 @@ public class ListPagingSupport {
 
     public Pageable forUsers(Pageable pageable) {
         return clamp(pageable, ListSortAllowlist.ListKind.USER, USER_DEFAULT);
+    }
+
+    public Pageable forInvoices(Pageable pageable) {
+        return clamp(pageable, ListSortAllowlist.ListKind.INVOICE, INVOICE_DEFAULT);
     }
 
     /** Sort only (page 0, size 1) for export queries. */

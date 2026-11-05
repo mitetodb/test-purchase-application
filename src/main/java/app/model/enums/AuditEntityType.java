@@ -7,5 +7,6 @@ public enum AuditEntityType {
     CUSTOMER,
     SHOP,
     TEST_PURCHASE,
-    ATTACHMENT
+    ATTACHMENT,
+    INVOICE
 }

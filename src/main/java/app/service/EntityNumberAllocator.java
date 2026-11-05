@@ -31,6 +31,12 @@ public class EntityNumberAllocator {
         return "TP-" + String.format("%04d", seq);
     }
 
+    @Transactional
+    public String nextInvoiceNumber() {
+        long seq = nextSequenceValue(EntityNumberSequenceName.INVOICE);
+        return "INV-" + String.format("%04d", seq);
+    }
+
     long nextSequenceValue(EntityNumberSequenceName name) {
         EntityNumberSequence row = entityNumberSequenceRepository
                 .findBySequenceNameForUpdate(name.name())
