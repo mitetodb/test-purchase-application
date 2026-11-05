@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title th:text="#{ui.deadline_reminder_email_title.d8e1}">Deadline reminder</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body style="font-family: Arial, sans-serif; background-color: #f7f7f7; padding: 20px;">
+
+<div style="max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 6px;">
+
+    <h2>
+        <th:block th:text="#{ui.deadline_reminder_for_test_purchase.e2f3}">Deadline reminder for test purchase</th:block>
+        <span th:text="${tpNumber}"></span>
+    </h2>
+
+    <p>
+        <th:block th:text="#{ui.deadline_date.f4a5}">Deadline date:</th:block>
+        <strong th:text="${deadline}"></strong>
+    </p>
+
+    <p th:if="${daysBeforeOffset == 0}">
+        <strong th:text="#{ui.deadline_is_today.g6h7}">The deadline is today.</strong>
+    </p>
+    <p th:if="${daysBeforeOffset > 0}">
+        <th:block th:text="#{ui.days_until_deadline.h8i9}">Days until deadline:</th:block>
+        <strong th:text="${daysBeforeOffset}"></strong>
+    </p>
+
+    <p>
+        <a th:href="${purchaseUrl}" th:text="#{ui.view_test_purchase.j0k1}">View test purchase</a>
+    </p>
+
+    <hr/>
+
+    <p style="font-size: 0.9em; color: #555;" th:text="#{ui.this_is_an_automated_message_from_the_te.c71c}">
+        This is an automated message from the Test Purchase System.
+    </p>
+
+</div>
+
+</body>
+</html>

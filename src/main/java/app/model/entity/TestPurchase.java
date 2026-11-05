@@ -6,6 +6,7 @@ import app.model.enums.TestPurchaseType;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -59,6 +60,9 @@ public class TestPurchase {
     private List<Attachment> attachments;
 
     private boolean active = true;
+
+    @Column(name = "deadline_at")
+    private LocalDate deadlineAt;
 
     private LocalDateTime createdOn;
     private LocalDateTime updatedOn;

@@ -41,6 +41,12 @@
         <label th:text="#{ui.status.24a2}">Status:</label> <span th:text="${purchase.status.getDisplayName()}"></span>
     </div>
 
+    <div class="mb-3" th:if="${purchase.deadlineAt != null}">
+        <label th:text="#{ui.deadline.d16e}">Deadline:</label>
+        <span th:text="${#temporals.format(purchase.deadlineAt, 'yyyy-MM-dd')}"></span>
+        <span th:if="${purchase.overdue}" class="badge bg-danger ms-2" th:text="#{ui.deadline_overdue.f18g}">Overdue</span>
+    </div>
+
     <div class="mb-3">
         <label th:text="#{ui.total_price.614d}">Total Price:</label> <span th:text="${purchase.productPrice}"></span>
     </div>

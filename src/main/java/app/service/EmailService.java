@@ -100,6 +100,31 @@ public class EmailService {
         );
     }
 
+    public boolean sendDeadlineReminderEmail(String toEmail,
+                                             String tpNumber,
+                                             java.time.LocalDate deadline,
+                                             int daysBeforeOffset,
+                                             String purchaseUrl) {
+        if (!mailEnabled) {
+            log.info("Mail disabled (app.mail.enabled=false); skipping deadline reminder for {}", tpNumber);
+            return false;
+        }
+        String subject = daysBeforeOffset == 0
+                ? "Test purchase " + tpNumber + " deadline is today"
+                : "Reminder: test purchase " + tpNumber + " deadline in " + daysBeforeOffset + " day(s)";
+        return sendHtmlEmailSync(
+                toEmail,
+                subject,
+                "deadline-reminder-email",
+                Map.of(
+                        "tpNumber", tpNumber,
+                        "deadline", deadline.toString(),
+                        "daysBeforeOffset", daysBeforeOffset,
+                        "purchaseUrl", purchaseUrl
+                )
+        );
+    }
+
     public boolean sendContactInquiry(String recipient,
                                       String replyToEmail,
                                       String name,
@@ -151,6 +176,13 @@ public class EmailService {
             log.info("Mail disabled (app.mail.enabled=false); skipping '{}' email", templateName);
             return;
         }
+        sendHtmlEmailSync(to, subject, templateName, variables);
+    }
+
+    private boolean sendHtmlEmailSync(String to,
+                                      String subject,
+                                      String templateName,
+                                      Map<String, Object> variables) {
         Context ctx = new Context();
         variables.forEach(ctx::setVariable);
 
@@ -167,6 +199,7 @@ public class EmailService {
 
             javaMailSender.send(mime);
             log.info("Mail sent: template='{}'", templateName);
+            return true;
 
         } catch (org.springframework.mail.MailException e) {
             log.warn("Mail send failed: template='{}', cause={}", templateName, e.getClass().getSimpleName() + ": " + e.getMostSpecificCause().getMessage());

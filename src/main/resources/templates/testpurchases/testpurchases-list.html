@@ -102,6 +102,7 @@
             <th th:text="#{ui.type.a1fa}">Type</th>
             <th th:text="#{ui.total_price.f354}">Total Price</th>
             <th th:text="#{ui.status.ec53}">Status</th>
+            <th th:text="#{ui.deadline.d16e}">Deadline</th>
             <th th:text="#{ui.created_on.1b60}">Created On</th>
             <th sec:authorize="hasRole('ADMIN')" th:text="#{ui.updated_by.eb4d}">Updated By</th>
             <th th:text="#{ui.actions.06df}">Actions</th>
@@ -109,7 +110,8 @@
         </thead>
 
         <tbody>
-        <tr th:each="p : ${purchases}">
+        <tr th:each="p : ${purchases}"
+            th:classappend="${p.overdue and (#authorization.expression('hasRole(''ACCOUNT_MANAGER'')') or #authorization.expression('hasRole(''ADMIN'')'))} ? 'table-warning' : ''">
             <td th:text="${p.number}"></td>
             <td th:text="${p.customer.name}"></td>
             <td th:text="${p.shop.name}"></td>
@@ -118,6 +120,11 @@
             <td th:text="${p.type.getDisplayName()}"></td>
             <td th:text="${p.productPrice}"></td>
             <td th:text="${p.status.getDisplayName()}"></td>
+            <td>
+                <span th:if="${p.deadlineAt != null}" th:text="${#temporals.format(p.deadlineAt, 'yyyy-MM-dd')}"></span>
+                <span th:if="${p.overdue and (#authorization.expression('hasRole(''ACCOUNT_MANAGER'')') or #authorization.expression('hasRole(''ADMIN'')'))}"
+                      class="badge bg-danger ms-1" th:text="#{ui.deadline_overdue.f18g}">Overdue</span>
+            </td>
             <td th:text="${#temporals.format(p.createdDate, 'yyyy-MM-dd HH:mm')}"></td>
             <td sec:authorize="hasRole('ADMIN')" th:text="${p.updatedByUser}"></td>
             <td>
@@ -150,7 +157,7 @@
             </td>
         </tr>
         <tr th:if="${#lists.isEmpty(purchases)}">
-            <td colspan="11" class="text-muted text-center" th:text="#{list.empty}">No records found.</td>
+            <td colspan="12" class="text-muted text-center" th:text="#{list.empty}">No records found.</td>
         </tr>
         </tbody>
     </table>

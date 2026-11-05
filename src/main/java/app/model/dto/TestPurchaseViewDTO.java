@@ -7,6 +7,7 @@ import app.model.enums.TestPurchaseStatus;
 import app.model.enums.TestPurchaseType;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -33,6 +34,7 @@ public class TestPurchaseViewDTO {
     private boolean mysteryShopperHidden;
     private String updatedByUser;
     private LocalDateTime createdDate;
+    private LocalDate deadlineAt;
     private boolean active;
     private LocalDateTime visitAppointmentAt;
     private String visitAppointmentLocation;
@@ -55,6 +57,7 @@ public class TestPurchaseViewDTO {
         dto.setItems(purchase.getItems());
         dto.setUpdatedByUser(purchase.getUpdatedByUser());
         dto.setCreatedDate(purchase.getCreatedOn());
+        dto.setDeadlineAt(purchase.getDeadlineAt());
         dto.setActive(purchase.isActive());
         dto.setVisitAppointmentAt(purchase.getVisitAppointmentAt());
         dto.setVisitAppointmentLocation(purchase.getVisitAppointmentLocation());
@@ -78,5 +81,17 @@ public class TestPurchaseViewDTO {
 
     public boolean isArchived() {
         return status != null && status.isArchived();
+    }
+
+    public boolean isOverdue() {
+        if (deadlineAt == null || status == null) {
+            return false;
+        }
+        if (status == TestPurchaseStatus.CLOSED
+                || status == TestPurchaseStatus.CANCELLED
+                || status.isArchived()) {
+            return false;
+        }
+        return LocalDate.now().isAfter(deadlineAt);
     }
 }

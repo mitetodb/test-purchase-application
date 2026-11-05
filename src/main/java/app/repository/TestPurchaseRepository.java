@@ -122,6 +122,20 @@ public interface TestPurchaseRepository extends JpaRepository<TestPurchase, UUID
         """)
     long countNonArchived();
 
+    @Query("""
+        SELECT DISTINCT p
+        FROM TestPurchase p
+        LEFT JOIN FETCH p.customer
+        LEFT JOIN FETCH p.mysteryShopper
+        WHERE p.deadlineAt IS NOT NULL
+          AND p.status NOT IN (
+              app.model.enums.TestPurchaseStatus.ARCHIVED,
+              app.model.enums.TestPurchaseStatus.CANCELLED,
+              app.model.enums.TestPurchaseStatus.CLOSED
+          )
+        """)
+    List<TestPurchase> findActiveWithDeadline();
+
     /** @deprecated use {@link #findAllNonArchived()} */
     @Deprecated
     default List<TestPurchase> findAllActive() {
