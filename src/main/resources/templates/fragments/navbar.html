@@ -53,6 +53,11 @@
                             </a>
                         </li>
                         <li>
+                            <a class="dropdown-item" th:href="@{/invoices}">
+                                <i class="fas fa-file-invoice me-2"></i> <span th:text="#{nav.invoices}">Invoices</span>
+                            </a>
+                        </li>
+                        <li>
                             <a class="dropdown-item" th:href="@{/shops}">
                                 <i class="fas fa-store me-2"></i> <span th:text="#{nav.shops}">Shops</span>
                             </a>
@@ -78,6 +83,11 @@
                         <li>
                             <a class="dropdown-item" th:href="@{/customers}">
                                 <i class="fas fa-user-tie me-2"></i> <span th:text="#{nav.customers}">Customers</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" th:href="@{/invoices}">
+                                <i class="fas fa-file-invoice me-2"></i> <span th:text="#{nav.invoices}">Invoices</span>
                             </a>
                         </li>
                         <li>
@@ -109,6 +119,11 @@
                             </a>
                         </li>
                         <li>
+                            <a class="dropdown-item" th:href="@{/invoices}">
+                                <i class="fas fa-file-invoice me-2"></i> <span th:text="#{nav.invoices}">Invoices</span>
+                            </a>
+                        </li>
+                        <li>
                             <a class="dropdown-item" th:href="@{/shops}">
                                 <i class="fas fa-store me-2"></i> <span th:text="#{nav.shops}">Shops</span>
                             </a>
@@ -126,11 +141,23 @@
                 </li>
 
                 <!-- Customer -->
-                <li class="nav-item"
+                <li class="nav-item dropdown"
                     sec:authorize="hasRole('CUSTOMER')">
-                    <a class="nav-link" th:href="@{/testpurchases}">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fas fa-shopping-cart me-1"></i> <span th:text="#{nav.my}">My Test Purchases</span>
                     </a>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a class="dropdown-item" th:href="@{/testpurchases}">
+                                <i class="fas fa-shopping-cart me-2"></i> <span th:text="#{nav.testpurchases}">Test Purchases</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" th:href="@{/invoices}">
+                                <i class="fas fa-file-invoice me-2"></i> <span th:text="#{nav.invoices}">Invoices</span>
+                            </a>
+                        </li>
+                    </ul>
                 </li>
 
             </ul>

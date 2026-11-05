@@ -138,6 +138,8 @@ public class AccessControlService {
             case ADMIN -> true;
             case SALES_MANAGER -> canSalesManagerViewCustomer(customer, currentUser);
             case ACCOUNT_MANAGER -> canAccountManagerViewCustomer(customer, currentUser);
+            case CUSTOMER -> currentUser.getCustomer() != null
+                    && customer.getId().equals(currentUser.getCustomer().getId());
             default -> false;
         };
     }
@@ -260,5 +262,34 @@ public class AccessControlService {
         }
         return accountManager.getManagedCustomers().stream()
                 .anyMatch(c -> customerId.equals(c.getId()));
+    }
+
+    public boolean canViewInvoice(app.model.entity.Invoice invoice) {
+        if (invoice == null || invoice.getCustomer() == null) {
+            return false;
+        }
+        return canViewCustomer(invoice.getCustomer());
+    }
+
+    public void checkCanViewInvoice(app.model.entity.Invoice invoice) {
+        if (!canViewInvoice(invoice)) {
+            throw new AccessDeniedException("You are not allowed to view this invoice");
+        }
+    }
+
+    public boolean canManageInvoicesForCustomer(Customer customer) {
+        User currentUser = getCurrentUserWithManagedCustomers();
+        Role role = currentUser.getRole();
+        return switch (role) {
+            case ADMIN -> true;
+            case ACCOUNT_MANAGER -> canAccountManagerEditCustomer(customer, currentUser);
+            default -> false;
+        };
+    }
+
+    public void checkCanManageInvoicesForCustomer(Customer customer) {
+        if (!canManageInvoicesForCustomer(customer)) {
+            throw new AccessDeniedException("You are not allowed to manage invoices for this customer");
+        }
     }
 }

@@ -136,6 +136,22 @@ public interface TestPurchaseRepository extends JpaRepository<TestPurchase, UUID
         """)
     List<TestPurchase> findActiveWithDeadline();
 
+    @Query("""
+        SELECT DISTINCT p
+        FROM TestPurchase p
+        LEFT JOIN FETCH p.items
+        WHERE p.customer.id = :customerId
+          AND p.status = app.model.enums.TestPurchaseStatus.CLOSED
+          AND p.active = true
+          AND p.createdOn >= :periodStart
+          AND p.createdOn < :periodEndExclusive
+        ORDER BY p.createdOn ASC
+        """)
+    List<TestPurchase> findClosedForCustomerInPeriod(
+            UUID customerId,
+            java.time.LocalDateTime periodStart,
+            java.time.LocalDateTime periodEndExclusive);
+
     /** @deprecated use {@link #findAllNonArchived()} */
     @Deprecated
     default List<TestPurchase> findAllActive() {

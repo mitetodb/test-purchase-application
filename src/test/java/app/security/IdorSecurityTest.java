@@ -284,12 +284,18 @@ class IdorSecurityTest {
     }
 
     @Test
-    void customerRoleUserCannotAccessAnyCustomerData() {
+    void customerRoleUserCannotAccessOtherCustomersData() {
         authenticateAs(customerUser1);
 
+        assertDoesNotThrow(() -> customerService.findByIdForCurrentUser(customer1.getId()));
+
         assertThrows(AccessDeniedException.class, () -> {
-            customerService.findByIdForCurrentUser(customer1.getId());
-        }, "Customer role should not access customer management data");
+            customerService.findByIdForCurrentUser(customer2.getId());
+        }, "Customer role should not access another client's data");
+
+        assertThrows(AccessDeniedException.class, () -> {
+            customerService.findByIdForCurrentUser(customer3.getId());
+        }, "Customer role should not access unrelated customer data");
     }
 
     @Test

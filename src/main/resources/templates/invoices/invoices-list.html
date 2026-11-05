@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en"
+      th:replace="~{layout :: layout(~{::title}, ~{::main})}"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title th:text="#{invoice.list.title}">Invoices</title>
+</head>
+<body>
+<main>
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h2 th:text="#{invoice.list.title}">Invoices</h2>
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-primary" th:href="@{/invoices/statement}" th:text="#{invoice.nav.statement}">Monthly statement</a>
+        </div>
+    </div>
+
+    <form class="card card-body mb-3" method="get" th:action="@{/invoices}">
+        <input type="hidden" name="size" th:value="${invoicePage.size}"/>
+        <div class="row g-2 align-items-end">
+            <div class="col-md-3" sec:authorize="!hasRole('CUSTOMER')">
+                <label class="form-label small mb-0" for="filter-customer" th:text="#{ui.customer.5eea}">Customer</label>
+                <select id="filter-customer" name="customerId" class="form-select form-select-sm">
+                    <option value="" th:text="#{list.filter.all}">All</option>
+                    <option th:each="c : ${customers}" th:value="${c.id}" th:text="${c.name}"
+                            th:selected="${filter.customerId != null and filter.customerId.equals(c.id)}"></option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small mb-0" for="filter-status" th:text="#{ui.status.24a2}">Status</label>
+                <select id="filter-status" name="status" class="form-select form-select-sm">
+                    <option value="" th:text="#{list.filter.all}">All</option>
+                    <option th:each="st : ${invoiceStatuses}" th:value="${st.name()}" th:text="${st.displayName}"
+                            th:selected="${filter.status == st}"></option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small mb-0" for="filter-year" th:text="#{invoice.field.year}">Year</label>
+                <input type="number" id="filter-year" name="periodYear" class="form-control form-control-sm"
+                       th:value="${filter.periodYear}" min="2000" max="2100"/>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small mb-0" for="filter-month" th:text="#{invoice.field.month}">Month</label>
+                <input type="number" id="filter-month" name="periodMonth" class="form-control form-control-sm"
+                       th:value="${filter.periodMonth}" min="1" max="12"/>
+            </div>
+            <div class="col-md-auto d-flex gap-2 align-items-center">
+                <div sec:authorize="hasRole('ADMIN')" class="form-check mb-0">
+                    <input class="form-check-input" type="checkbox" name="showCancelled" value="true"
+                           id="showCancelledInvoices" th:checked="${showCancelled}"/>
+                    <label class="form-check-label" for="showCancelledInvoices"
+                           th:text="#{invoice.filter.showCancelled}">Show cancelled</label>
+                </div>
+                <button type="submit" class="btn btn-sm btn-primary" th:text="#{list.filter.apply}">Apply</button>
+                <a th:href="@{/invoices}" class="btn btn-sm btn-outline-secondary" th:text="#{list.filter.reset}">Reset</a>
+            </div>
+        </div>
+    </form>
+
+    <div th:replace="~{fragments/server-list-pagination :: serverPagination(${invoicePage}, '/invoices')}"></div>
+
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th th:text="#{ui.number.2a39}">Number</th>
+            <th th:text="#{ui.customer.5eea}">Customer</th>
+            <th th:text="#{invoice.field.period}">Period</th>
+            <th th:text="#{ui.status.24a2}">Status</th>
+            <th th:text="#{invoice.field.total}">Total</th>
+            <th th:text="#{ui.actions.06df}">Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="inv : ${invoices}">
+            <td th:text="${inv.number}"></td>
+            <td th:text="${inv.customer.name}"></td>
+            <td th:text="${inv.periodYear + '-' + #numbers.formatInteger(inv.periodMonth, 2)}"></td>
+            <td th:text="${inv.status.displayName}"></td>
+            <td th:text="${#numbers.formatDecimal(inv.totalAmount, 1, 2) + ' ' + inv.currency}"></td>
+            <td>
+                <a class="btn btn-sm btn-outline-primary" th:href="@{/invoices/{id}(id=${inv.id})}"
+                   th:text="#{invoice.action.view}">View</a>
+            </td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(invoices)}">
+            <td colspan="6" class="text-muted" th:text="#{invoice.list.empty}">No invoices found.</td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+</body>
+</html>

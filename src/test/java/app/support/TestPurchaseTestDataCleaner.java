@@ -27,6 +27,8 @@ public class TestPurchaseTestDataCleaner {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void deleteAllPurchasesAndDependents() {
+        jdbcTemplate.update("DELETE FROM \"invoice_line_items\"");
+        jdbcTemplate.update("DELETE FROM \"invoices\"");
         jdbcTemplate.update("DELETE FROM \"testpurchase_status_history\"");
         jdbcTemplate.update("DELETE FROM \"test_purchases_attachments\"");
         jdbcTemplate.update("DELETE FROM \"attachments\"");
@@ -92,5 +94,9 @@ public class TestPurchaseTestDataCleaner {
                 "INSERT INTO \"entity_number_sequence\" (\"sequence_name\", \"last_used_value\") VALUES (?, ?)",
                 "TEST_PURCHASE",
                 1000L);
+        jdbcTemplate.update(
+                "INSERT INTO \"entity_number_sequence\" (\"sequence_name\", \"last_used_value\") VALUES (?, ?)",
+                "INVOICE",
+                0L);
     }
 }

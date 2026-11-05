@@ -14,7 +14,8 @@ public final class ListSortAllowlist {
     public enum ListKind {
         TEST_PURCHASE,
         CUSTOMER,
-        USER
+        USER,
+        INVOICE
     }
 
     private static final Map<String, String> TEST_PURCHASE = Map.ofEntries(
@@ -48,6 +49,15 @@ public final class ListSortAllowlist {
             Map.entry("active", "active"),
             Map.entry("createdOn", "createdOn"),
             Map.entry("updatedByUser", "updatedByUser")
+    );
+
+    private static final Map<String, String> INVOICE = Map.ofEntries(
+            Map.entry("number", "number"),
+            Map.entry("customerName", "customer.name"),
+            Map.entry("status", "status"),
+            Map.entry("periodYear", "periodYear"),
+            Map.entry("totalAmount", "totalAmount"),
+            Map.entry("createdOn", "createdOn")
     );
 
     private ListSortAllowlist() {
@@ -109,6 +119,7 @@ public final class ListSortAllowlist {
             case TEST_PURCHASE -> TEST_PURCHASE;
             case CUSTOMER -> CUSTOMER;
             case USER -> USER;
+            case INVOICE -> INVOICE;
         };
     }
 }
