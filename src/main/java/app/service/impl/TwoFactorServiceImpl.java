@@ -7,6 +7,11 @@ import app.model.enums.Role;
 import app.repository.UserRepository;
 import app.repository.UserTotpRecoveryCodeRepository;
 import app.security.TotpSecretEncryptor;
+import app.audit.AuditChangeSummary;
+import app.audit.AuditContext;
+import app.model.enums.AuditAction;
+import app.model.enums.AuditEntityType;
+import app.service.AuditLogService;
 import app.service.TwoFactorService;
 import dev.samstevens.totp.code.CodeVerifier;
 import dev.samstevens.totp.code.DefaultCodeGenerator;
@@ -49,6 +54,7 @@ public class TwoFactorServiceImpl implements TwoFactorService {
     private final UserRepository userRepository;
     private final UserTotpRecoveryCodeRepository recoveryCodeRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuditLogService auditLogService;
 
     private final SecretGenerator secretGenerator = new DefaultSecretGenerator();
     private final TimeProvider timeProvider = new SystemTimeProvider();
@@ -105,7 +111,16 @@ public class TwoFactorServiceImpl implements TwoFactorService {
             return false;
         }
         String secret = encryptor.decrypt(user.getTotpSecretEncrypted());
-        return verifyTotpCode(secret, code, user);
+        boolean ok = verifyTotpCode(secret, code, user);
+        AuditAction action = ok ? AuditAction.TOTP_VERIFY_SUCCESS : AuditAction.TOTP_VERIFY_FAILURE;
+        auditLogService.record(
+                action,
+                AuditEntityType.AUTH,
+                user.getId(),
+                AuditChangeSummary.kv("username", user.getUsername()),
+                user.getId(),
+                AuditContext.getClientIp());
+        return ok;
     }
 
     @Override
@@ -149,6 +164,13 @@ public class TwoFactorServiceImpl implements TwoFactorService {
         user.setTotpEnabled(true);
         user.setTotpLastTimeStep(matchedStep);
         userRepository.save(user);
+        auditLogService.record(
+                AuditAction.TOTP_ENROLL,
+                AuditEntityType.AUTH,
+                user.getId(),
+                AuditChangeSummary.kv("username", user.getUsername()),
+                user.getId(),
+                AuditContext.getClientIp());
         return regenerateRecoveryCodes(user);
     }
 
@@ -157,6 +179,7 @@ public class TwoFactorServiceImpl implements TwoFactorService {
     public List<String> regenerateRecoveryCodes(User user) {
         LocalDateTime now = LocalDateTime.now();
         List<UserTotpRecoveryCode> active = recoveryCodeRepository.findConsumableByUserId(user.getId());
+        boolean reissue = !active.isEmpty();
         for (UserTotpRecoveryCode existing : active) {
             existing.setInvalidatedAt(now);
             existing.setInvalidationReason(RECOVERY_INVALIDATION_REASON_REGENERATED);
@@ -173,6 +196,15 @@ public class TwoFactorServiceImpl implements TwoFactorService {
                     .codeHash(passwordEncoder.encode(normalizeRecoveryCode(plain)))
                     .build());
         }
+        if (reissue) {
+            auditLogService.record(
+                    AuditAction.TOTP_RECOVERY_REGENERATE,
+                    AuditEntityType.AUTH,
+                    user.getId(),
+                    AuditChangeSummary.kv("username", user.getUsername()),
+                    user.getId(),
+                    AuditContext.getClientIp());
+        }
         return plainCodes;
     }
 
@@ -188,6 +220,13 @@ public class TwoFactorServiceImpl implements TwoFactorService {
             if (passwordEncoder.matches(normalized, stored.getCodeHash())) {
                 stored.setUsedAt(LocalDateTime.now());
                 recoveryCodeRepository.save(stored);
+                auditLogService.record(
+                        AuditAction.TOTP_RECOVERY_USE,
+                        AuditEntityType.AUTH,
+                        user.getId(),
+                        AuditChangeSummary.kv("username", user.getUsername()),
+                        user.getId(),
+                        AuditContext.getClientIp());
                 return true;
             }
         }

@@ -7,6 +7,7 @@ import app.model.dto.UserProfileDTO;
 import app.model.entity.TestPurchase;
 import app.model.entity.User;
 import app.model.enums.Country;
+import app.model.enums.PasswordChangeKind;
 import app.model.enums.Role;
 import app.model.filter.UserListFilter;
 
@@ -33,6 +34,8 @@ public interface UserService {
     void updateProfile(String username, UserProfileDTO dto, String imageUrl);
 
     void changePassword(User user, String newPassword);
+
+    void changePassword(User user, String newPassword, PasswordChangeKind kind);
 
     Optional<User> findByUsername(String username);
 

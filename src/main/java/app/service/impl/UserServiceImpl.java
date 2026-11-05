@@ -9,6 +9,7 @@ import app.model.entity.Customer;
 import app.model.entity.TestPurchase;
 import app.model.entity.User;
 import app.model.enums.Country;
+import app.model.enums.PasswordChangeKind;
 import app.model.enums.Role;
 import app.repository.CustomerRepository;
 import app.repository.TestPurchaseRepository;
@@ -84,6 +85,11 @@ public class UserServiceImpl implements UserService {
                 AuditChangeSummary.join(
                         AuditChangeSummary.kv("username", savedUser.getUsername()),
                         AuditChangeSummary.kv("role", savedUser.getRole())));
+        auditLogService.record(
+                AuditAction.PASSWORD_CHANGE,
+                AuditEntityType.AUTH,
+                savedUser.getId(),
+                AuditChangeSummary.kv("source", PasswordChangeKind.INVITE_REGISTRATION));
         return savedUser;
     }
 
@@ -146,9 +152,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void updateProfile(String username, UserProfileDTO dto, String imageUrl) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        String previousEmail = user.getEmail();
+        Country previousCountry = user.getCountry();
+        String previousImageUrl = user.getImageUrl();
 
         user.setEmail(dto.getEmail());
         user.setCountry(dto.getCountry());
@@ -160,13 +171,40 @@ public class UserServiceImpl implements UserService {
         user.setUpdatedByUser(SecurityUtils.getCurrentUsername());
 
         userRepository.save(user);
+
+        String summary = AuditChangeSummary.join(
+                AuditChangeSummary.fieldChange("email", previousEmail, dto.getEmail()),
+                AuditChangeSummary.fieldChange("country", previousCountry, dto.getCountry()),
+                imageUrl != null
+                        ? AuditChangeSummary.fieldChange("imageUrl", previousImageUrl, imageUrl)
+                        : null);
+
+        if (summary != null && !summary.isBlank()) {
+            auditLogService.record(
+                    AuditAction.PROFILE_UPDATE,
+                    AuditEntityType.USER,
+                    user.getId(),
+                    summary);
+        }
     }
 
     @Override
+    @Transactional
     public void changePassword(User user, String newPassword) {
+        changePassword(user, newPassword, PasswordChangeKind.USER);
+    }
+
+    @Override
+    @Transactional
+    public void changePassword(User user, String newPassword, PasswordChangeKind kind) {
         passwordPolicyService.validateOrThrow(newPassword);
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
+        auditLogService.record(
+                AuditAction.PASSWORD_CHANGE,
+                AuditEntityType.AUTH,
+                user.getId(),
+                AuditChangeSummary.kv("source", kind));
     }
 
     @Override

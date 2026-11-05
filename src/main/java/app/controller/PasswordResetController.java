@@ -7,6 +7,7 @@ import app.model.entity.User;
 import app.service.EmailService;
 import app.service.PasswordResetService;
 import app.service.UserService;
+import app.model.enums.PasswordChangeKind;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -84,7 +85,7 @@ public class PasswordResetController {
             PasswordResetToken token = passwordResetService.validateToken(dto.getToken());
             User user = token.getUser();
 
-            userService.changePassword(user, dto.getPassword());
+            userService.changePassword(user, dto.getPassword(), PasswordChangeKind.PASSWORD_RESET);
             passwordResetService.markUsed(token);
 
             return "redirect:/login?passwordReset";
