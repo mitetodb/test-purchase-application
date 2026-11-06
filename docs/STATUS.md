@@ -63,7 +63,7 @@ Latest migration on `master`: **V15** (`V15__invoices.sql`). There is **no** new
 
 ## E-mail and alerting (default OFF)
 
-Until operators set env vars on the server, the app **does not send** these messages (they are logged or skipped):
+Until operators set env vars on the server **and** pass them into the `app` container (see [ADMIN-OPS.md](ADMIN-OPS.md) — Docker Compose env passthrough), the app **does not send** these messages (they are logged or skipped):
 
 | Feature | Env vars (names only) | Default |
 |---------|------------------------|---------|
