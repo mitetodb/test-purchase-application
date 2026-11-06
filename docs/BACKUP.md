@@ -345,3 +345,119 @@ Existing MySQL-only script (may already be cron-installed): `deploy/backup-mysql
 | No credentials in repo | Placeholders only; real secrets in server `.env` |
 
 Implementing the plan on the server is a separate change (cron, restic install, Storage Box account) and is intentionally **not** done by merging documentation alone — **awaiting operator cost/decision for Hetzner Storage Box** per [STATUS.md](STATUS.md).
+
+---
+
+## 12. Storage Box off-site (pending Dimitar)
+
+**Status:** [Issue #10](https://github.com/mitetodb/test-purchase-application/issues/10) is **deferred** until Dimitar approves Hetzner Storage Box cost and ordering. This section is a **bounded ops plan with placeholders only** — no real hostnames, credentials, or payment steps belong in git.
+
+Until the box is ordered and paid, treat §4 as design reference; follow the gates below before any production off-site sync.
+
+### 12.1 Prerequisites checklist (complete before setup)
+
+| Step | Question | Placeholder / note |
+|------|----------|-------------------|
+| 1 | Hetzner Storage Box **ordered and active**? | Account/subscription ID in internal ops record — **not** in this repo |
+| 2 | Credentials in **vault** (password manager / team vault)? | SFTP/SSH user + subaccount password; restic/borg repo password |
+| 3 | **Dedicated SSH key** generated for backup only? | e.g. `/root/.ssh/testkauf-storagebox_ed25519` (mode `600`, passphrase in vault) |
+| 4 | Remote **path** agreed and created on the box? | `STORAGE_BOX_PATH` (e.g. `backups/testkauf`) |
+| 5 | Local backup layout ready on app server? | `BACKUP_ROOT=/root/testkauf-backups` per §2 |
+| 6 | Dimitar **explicit OK** for recurring cost + production cron? | Ticket/issue comment — required before live off-site job |
+
+**Do not** paste vault secrets into GitHub, `.env` commits, or backup logs.
+
+### 12.2 Setup steps (after order — placeholders only)
+
+Replace every placeholder on the server; never commit real values.
+
+| Variable | Meaning | Example placeholder |
+|----------|---------|---------------------|
+| `STORAGE_BOX_HOST` | Hetzner-assigned host | `uXXXXX.your-storagebox.de` |
+| `STORAGE_BOX_USER` | SFTP/SSH subaccount user | `uXXXXX` |
+| `STORAGE_BOX_PATH` | Directory on the box for this app | `backups/testkauf` |
+| `STORAGE_BOX_SSH_KEY` | Private key path on app server | `/root/.ssh/testkauf-storagebox_ed25519` |
+
+**One-time (operator on app server):**
+
+1. Install `restic` (or `borg`) from distro packages or official release.
+2. Install the SSH public key on the Storage Box (Hetzner panel → Storage Box → SSH/SFTP keys).
+3. Test connectivity (read-only check — no production data required yet):
+
+   ```bash
+   ssh -i "${STORAGE_BOX_SSH_KEY}" -p 23 \
+     "${STORAGE_BOX_USER}@${STORAGE_BOX_HOST}" \
+     "ls -la ${STORAGE_BOX_PATH}" || true
+   ```
+
+4. Initialize encrypted off-site repo (restic example — **run only after Dimitar OK**):
+
+   ```bash
+   export RESTIC_REPOSITORY="sftp:${STORAGE_BOX_USER}@${STORAGE_BOX_HOST}:23/${STORAGE_BOX_PATH}/restic"
+   export RESTIC_PASSWORD_FILE=/root/.config/testkauf/restic-password   # mode 600; content from vault
+   export RESTIC_CACHE_DIR=/var/cache/restic-testkauf
+   restic init
+   ```
+
+5. Wire nightly flow: extend local `backup-all` → `offsite-restic.example.sh` → retention `forget`/`prune` (§4.2, §3). Add cron **only after** steps 1–4 succeed on a **dry-run** (§12.5).
+
+Reference script (edit placeholders locally): `deploy/backup/offsite-restic.example.sh`.
+
+### 12.3 Restore from off-site copy (non-production only)
+
+Use this path to **practice** recovery without touching production volumes or live `deploy/.env`.
+
+**Goal:** Pull a snapshot from the Storage Box restic/borg repo and restore into an **isolated demo** stack (temporary Docker project + demo DB names), not `/opt/testkauf` production compose.
+
+1. On a **lab machine or the app server in a separate directory**, set the same `RESTIC_REPOSITORY` / `RESTIC_PASSWORD_FILE` placeholders (from vault).
+2. List snapshots: `restic snapshots --tag testkauf` (adjust tags to your policy).
+3. Restore files to a **scratch directory** (not `BACKUP_ROOT` used by production):
+
+   ```bash
+   DEMO_RESTORE_ROOT=/tmp/testkauf-restore-demo-$(date +%Y%m%d)
+   mkdir -p "${DEMO_RESTORE_ROOT}"
+   restic restore latest --target "${DEMO_RESTORE_ROOT}" \
+     --path /root/testkauf-backups/mysql \
+     --path /root/testkauf-backups/uploads
+   ```
+
+4. Copy **one** `test_purchase_db-*.sql.gz`, `pricedb-*.sql.gz`, and matching `uploads-*.tar.gz` into paths expected by `deploy/backup/restore-test.example.sh`.
+5. Run the throwaway restore script (§6.3) with `DEMO_*` env vars pointing at those copies — creates ephemeral MySQL + volume, verifies gzip/tar/SQL footer, then `docker compose down -v`.
+6. **Do not** run `gunzip | mysql` against production `db` or replace `testkauf_uploads` until Dimitar approves a maintenance window and you follow §6.2 deliberately.
+
+If the app server was lost, production recovery still follows §6.4 — but **validate the procedure first** using §12.3 on demo data.
+
+### 12.4 Retention policy (proposal — decision needed)
+
+Align local tiers (§3) with off-site restic/borg forget rules once the box is live.
+
+| Tier | Proposed keep | Off-site tool | Status |
+|------|---------------|---------------|--------|
+| Daily | **14** nightly snapshots | `restic forget --keep-daily 14` | **Proposal** — confirm with Dimitar |
+| Weekly | **8** weeks | `--keep-weekly 8` | **Proposal** |
+| Monthly | **6** months | `--keep-monthly 6` | **Proposal** |
+
+**Decision needed:** total Storage Box size vs. upload growth (attachments). Adjust `--keep-*` after first month of real backup sizes. Document the chosen numbers in the server runbook (outside git).
+
+### 12.5 Safe dry-run test plan
+
+Run **only** against isolated demo copies or empty paths — **not** against production without Dimitar’s OK.
+
+| Phase | What to run | Safe scope |
+|-------|-------------|------------|
+| A | Local `deploy/backup-mysql.sh` + `backup-uploads.example.sh` to `/tmp/testkauf-backup-demo/` | Demo compose or copied `.env` on laptop |
+| B | `gzip -t`, `tar -tzf` on outputs | Same demo directory |
+| C | `restic backup …` to a **temporary** repo (local `/tmp/restic-demo` **or** Storage Box path `…/demo-restic` after box exists) | No production cron |
+| D | `restic check` + §12.3 restore into `DEMO_RESTORE_ROOT` + `restore-test.example.sh` | Ephemeral containers only |
+
+**Explicit rule:** Do **not** enable `/etc/cron.d/testkauf-backup` off-site steps, `MONITORING_BACKUP_CHECK_ENABLED=true` on production, or rsync/restic to `STORAGE_BOX_HOST` until the Storage Box is **ordered, paid, and Dimitar approves** production automation.
+
+### 12.6 What NOT to do until ordered
+
+- **Do not** order or pay for a Hetzner Storage Box from this repository or agent automation.
+- **Do not** add a production cron that rsyncs/restics to an unpaid or imaginary `STORAGE_BOX_HOST`.
+- **Do not** invent hostnames, users, or passwords in tickets or docs — use placeholders above.
+- **Do not** delete real backup files on the server or on any existing off-site copy to “test” retention.
+- **Do not** treat merging documentation as enabling backup — server changes remain manual after approval.
+
+When Dimitar approves, track implementation in [#10](https://github.com/mitetodb/test-purchase-application/issues/10) and execute §12.1–§12.5 before production cron.
