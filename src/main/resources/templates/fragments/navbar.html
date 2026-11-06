@@ -1,9 +1,8 @@
-<nav th:fragment="app-navbar" class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
+<nav th:fragment="app-navbar" class="navbar navbar-expand-lg">
+    <div class="container-fluid px-0 px-lg-2">
 
-        <a class="navbar-brand d-flex align-items-center" th:href="@{/}">
-            <i class="fas fa-shopping-bag me-2"></i>
-            <span th:text="#{app.name}">Test Purchase System</span>
+        <a class="navbar-brand" th:href="@{/}" th:attr="aria-label=#{app.name}">
+            <img th:src="@{/images/testkauf/testkauf-wordmark.svg}" alt="testkauf" width="144" height="40">
         </a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
@@ -19,7 +18,7 @@
                 <li class="nav-item"
                     sec:authorize="isAuthenticated()">
                     <a class="nav-link" th:href="@{/dashboard}">
-                        <i class="fas fa-home me-1"></i> <span th:text="#{nav.dashboard}">Dashboard</span>
+                        <i class="fas fa-home me-1" aria-hidden="true"></i> <span th:text="#{nav.dashboard}">Dashboard</span>
                     </a>
                 </li>
 
@@ -28,38 +27,38 @@
                     sec:authorize="hasRole('ADMIN')">
 
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-shield-alt me-1"></i> <span th:text="#{nav.admin}">Admin</span>
+                        <i class="fas fa-shield-alt me-1" aria-hidden="true"></i> <span th:text="#{nav.admin}">Admin</span>
                     </a>
 
                     <ul class="dropdown-menu">
                         <li>
                             <a class="dropdown-item" th:href="@{/users}">
-                                <i class="fas fa-users me-2"></i> <span th:text="#{nav.users}">Users</span>
+                                <i class="fas fa-users me-2" aria-hidden="true"></i> <span th:text="#{nav.users}">Users</span>
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item" th:href="@{/audit}">
-                                <i class="fas fa-clipboard-list me-2"></i> <span th:text="#{nav.audit}">Audit log</span>
+                                <i class="fas fa-clipboard-list me-2" aria-hidden="true"></i> <span th:text="#{nav.audit}">Audit log</span>
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item" th:href="@{/testpurchases}">
-                                <i class="fas fa-user-tie me-2"></i> <span th:text="#{nav.testpurchases}">Test Purchases</span>
+                                <i class="fas fa-user-tie me-2" aria-hidden="true"></i> <span th:text="#{nav.testpurchases}">Test Purchases</span>
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item" th:href="@{/customers}">
-                                <i class="fas fa-user-tie me-2"></i> <span th:text="#{nav.customers}">Customers</span>
+                                <i class="fas fa-user-tie me-2" aria-hidden="true"></i> <span th:text="#{nav.customers}">Customers</span>
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item" th:href="@{/invoices}">
-                                <i class="fas fa-file-invoice me-2"></i> <span th:text="#{nav.invoices}">Invoices</span>
+                                <i class="fas fa-file-invoice me-2" aria-hidden="true"></i> <span th:text="#{nav.invoices}">Invoices</span>
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item" th:href="@{/shops}">
-                                <i class="fas fa-store me-2"></i> <span th:text="#{nav.shops}">Shops</span>
+                                <i class="fas fa-store me-2" aria-hidden="true"></i> <span th:text="#{nav.shops}">Shops</span>
                             </a>
                         </li>
                     </ul>
@@ -71,28 +70,28 @@
                     sec:authorize="hasRole('ACCOUNT_MANAGER')">
 
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-briefcase me-1"></i> <span th:text="#{nav.management}">Management</span>
+                        <i class="fas fa-briefcase me-1" aria-hidden="true"></i> <span th:text="#{nav.management}">Management</span>
                     </a>
 
                     <ul class="dropdown-menu">
                         <li>
                             <a class="dropdown-item" th:href="@{/testpurchases}">
-                                <i class="fas fa-shopping-cart me-2"></i> <span th:text="#{nav.testpurchases}">Test Purchases</span>
+                                <i class="fas fa-shopping-cart me-2" aria-hidden="true"></i> <span th:text="#{nav.testpurchases}">Test Purchases</span>
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item" th:href="@{/customers}">
-                                <i class="fas fa-user-tie me-2"></i> <span th:text="#{nav.customers}">Customers</span>
+                                <i class="fas fa-user-tie me-2" aria-hidden="true"></i> <span th:text="#{nav.customers}">Customers</span>
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item" th:href="@{/invoices}">
-                                <i class="fas fa-file-invoice me-2"></i> <span th:text="#{nav.invoices}">Invoices</span>
+                                <i class="fas fa-file-invoice me-2" aria-hidden="true"></i> <span th:text="#{nav.invoices}">Invoices</span>
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item" th:href="@{/shops}">
-                                <i class="fas fa-store me-2"></i> <span th:text="#{nav.shops}">Shops</span>
+                                <i class="fas fa-store me-2" aria-hidden="true"></i> <span th:text="#{nav.shops}">Shops</span>
                             </a>
                         </li>
                     </ul>
@@ -104,28 +103,28 @@
                     sec:authorize="hasRole('SALES_MANAGER')">
 
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-chart-line me-1"></i> <span th:text="#{nav.sales}">Sales</span>
+                        <i class="fas fa-chart-line me-1" aria-hidden="true"></i> <span th:text="#{nav.sales}">Sales</span>
                     </a>
 
                     <ul class="dropdown-menu">
                         <li>
                             <a class="dropdown-item" th:href="@{/testpurchases}">
-                                <i class="fas fa-shopping-cart me-2"></i> <span th:text="#{nav.testpurchases}">Test Purchases</span>
+                                <i class="fas fa-shopping-cart me-2" aria-hidden="true"></i> <span th:text="#{nav.testpurchases}">Test Purchases</span>
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item" th:href="@{/customers}">
-                                <i class="fas fa-user-tie me-2"></i> <span th:text="#{nav.customers}">Customers</span>
+                                <i class="fas fa-user-tie me-2" aria-hidden="true"></i> <span th:text="#{nav.customers}">Customers</span>
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item" th:href="@{/invoices}">
-                                <i class="fas fa-file-invoice me-2"></i> <span th:text="#{nav.invoices}">Invoices</span>
+                                <i class="fas fa-file-invoice me-2" aria-hidden="true"></i> <span th:text="#{nav.invoices}">Invoices</span>
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item" th:href="@{/shops}">
-                                <i class="fas fa-store me-2"></i> <span th:text="#{nav.shops}">Shops</span>
+                                <i class="fas fa-store me-2" aria-hidden="true"></i> <span th:text="#{nav.shops}">Shops</span>
                             </a>
                         </li>
                     </ul>
@@ -136,7 +135,7 @@
                 <li class="nav-item"
                     sec:authorize="hasRole('MYSTERY_SHOPPER')">
                     <a class="nav-link" th:href="@{/testpurchases}">
-                        <i class="fas fa-tasks me-1"></i> <span th:text="#{nav.my}">My Test Purchases</span>
+                        <i class="fas fa-tasks me-1" aria-hidden="true"></i> <span th:text="#{nav.my}">My Test Purchases</span>
                     </a>
                 </li>
 
@@ -144,17 +143,17 @@
                 <li class="nav-item dropdown"
                     sec:authorize="hasRole('CUSTOMER')">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-shopping-cart me-1"></i> <span th:text="#{nav.my}">My Test Purchases</span>
+                        <i class="fas fa-shopping-cart me-1" aria-hidden="true"></i> <span th:text="#{nav.my}">My Test Purchases</span>
                     </a>
                     <ul class="dropdown-menu">
                         <li>
                             <a class="dropdown-item" th:href="@{/testpurchases}">
-                                <i class="fas fa-shopping-cart me-2"></i> <span th:text="#{nav.testpurchases}">Test Purchases</span>
+                                <i class="fas fa-shopping-cart me-2" aria-hidden="true"></i> <span th:text="#{nav.testpurchases}">Test Purchases</span>
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item" th:href="@{/invoices}">
-                                <i class="fas fa-file-invoice me-2"></i> <span th:text="#{nav.invoices}">Invoices</span>
+                                <i class="fas fa-file-invoice me-2" aria-hidden="true"></i> <span th:text="#{nav.invoices}">Invoices</span>
                             </a>
                         </li>
                     </ul>
@@ -163,33 +162,33 @@
             </ul>
 
             <!-- Right side -->
-            <ul class="navbar-nav">
+            <ul class="navbar-nav align-items-lg-center">
 
                 <th:block th:replace="~{fragments/language-switcher :: app-language-switcher}"></th:block>
 
                 <li class="nav-item" sec:authorize="isAnonymous()">
-                    <a class="nav-link" th:href="@{/login}">
-                        <i class="fas fa-sign-in-alt me-1"></i> <span th:text="#{nav.login}">Login</span>
+                    <a class="nav-link btn-login-nav ms-lg-2" th:href="@{/login}">
+                        <span th:text="#{nav.login}">Login</span>
                     </a>
                 </li>
 
                 <li class="nav-item" sec:authorize="isAnonymous()">
                     <a class="nav-link" th:href="@{/register}">
-                        <i class="fas fa-user-plus me-1"></i> <span th:text="#{nav.register}">Register</span>
+                        <span th:text="#{nav.register}">Register</span>
                     </a>
                 </li>
 
                 <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
 
                     <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-user-circle me-2"></i>
+                        <i class="fas fa-user-circle me-2" aria-hidden="true"></i>
                         <span sec:authentication="name"></span>
                     </a>
 
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li>
                             <a class="dropdown-item" th:href="@{/profile}">
-                                <i class="fas fa-user me-2"></i> <span th:text="#{nav.profile}">Profile</span>
+                                <i class="fas fa-user me-2" aria-hidden="true"></i> <span th:text="#{nav.profile}">Profile</span>
                             </a>
                         </li>
                         <li><hr class="dropdown-divider"></li>
@@ -197,7 +196,7 @@
                             <form th:action="@{/logout}" method="post">
                                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                                 <button class="dropdown-item" type="submit">
-                                    <i class="fas fa-sign-out-alt me-2"></i> <span th:text="#{nav.logout}">Logout</span>
+                                    <i class="fas fa-sign-out-alt me-2" aria-hidden="true"></i> <span th:text="#{nav.logout}">Logout</span>
                                 </button>
                             </form>
                         </li>
