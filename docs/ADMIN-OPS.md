@@ -100,6 +100,18 @@ From `.env.example` and `application.properties` — set values only in `deploy/
 
 Initial admin user is created only when the `users` table is empty and `ADMIN_PASSWORD` is set (minimum 12 characters).
 
+### Docker Compose: which `deploy/.env` keys reach the app container
+
+`docker compose --env-file deploy/.env` uses that file for **variable substitution in the compose YAML**. Only keys listed under the `app` service `environment:` block in `deploy/docker-compose.prod.yml` are passed into the running Spring Boot container.
+
+On current `master`, mail-related keys (`MAIL_*`) and the core app keys in that block work as documented. These documented keys are **not** in the compose `environment:` list yet, so setting them only in `deploy/.env` has **no effect** in Docker production until they are added (and backup marker paths are mounted read-only into the container when using `MONITORING_BACKUP_*`):
+
+- `DEADLINE_REMINDER_ENABLED`, `DEADLINE_REMINDER_DAYS_BEFORE`, `DEADLINE_REMINDER_CRON`
+- `MAIL_VISIT_APPOINTMENT_ENABLED`
+- `MONITORING_BACKUP_CHECK_ENABLED`, `MONITORING_BACKUP_MARKER_PATH`, `MONITORING_BACKUP_SCAN_DIRECTORY`, `MONITORING_BACKUP_MAX_AGE_HOURS`, `MONITORING_SERVER_ERROR_*`, `MONITORING_ALERT_*`
+
+Spring reads them from the process environment via `application.properties`; the gap is compose wiring, not wrong variable names.
+
 ---
 
 ## Two-factor authentication (Admin / Account Manager)
