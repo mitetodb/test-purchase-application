@@ -8,4 +8,4 @@ Vollständige Liste auf Englisch: [../STATUS.md](../STATUS.md).
 
 **E-Mail standardmäßig aus:** `MAIL_ENABLED=false`; Frist-Erinnerungen (`DEADLINE_REMINDER_ENABLED`), Besuchs-Mail (`MAIL_VISIT_APPOINTMENT_ENABLED`), Alert-Stub (`MONITORING_ALERT_ENABLED`) — nur auf dem Server aktivieren.
 
-**Zurückgestellt:** [#10](https://github.com/mitetodb/test-purchase-application/issues/10) — Off-Site-Backup (Storage Box) und Server-Cron warten auf Dimitars Entscheidung; Plan in [BACKUP.md](../BACKUP.md).
+**Zurückgestellt:** [#10](https://github.com/mitetodb/test-purchase-application/issues/10) — Off-Site-Backup (Storage Box) und Cron warten auf Dimitars Entscheidung; Plan mit Platzhaltern: [BACKUP.md §12](../BACKUP.md#12-storage-box-off-site-pending-dimitar).
