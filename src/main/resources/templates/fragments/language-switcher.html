@@ -1,38 +1,20 @@
-<!-- Accessible language switcher (BG / EN / DE). Included from the main navbar on every layout page. -->
-<li th:fragment="app-language-switcher" class="nav-item dropdown" id="app-language-switcher">
-    <a class="nav-link dropdown-toggle"
-       href="#"
-       id="app-lang-switcher-toggle"
-       role="button"
-       data-bs-toggle="dropdown"
-       aria-expanded="false"
-       aria-haspopup="true"
-       aria-controls="app-lang-switcher-menu"
-       th:attr="aria-label=#{lang.label}">
-        <i class="fas fa-globe me-1" aria-hidden="true"></i>
-        <span th:text="${#locale.language.toUpperCase()}">EN</span>
-    </a>
-    <ul class="dropdown-menu dropdown-menu-end"
-        id="app-lang-switcher-menu"
-        role="menu"
-        th:attr="aria-label=#{lang.menu}">
-        <li role="none">
-            <a class="dropdown-item"
-               role="menuitem"
-               th:href="@{''(lang='bg')}"
-               th:text="#{lang.bg}">Български</a>
-        </li>
-        <li role="none">
-            <a class="dropdown-item"
-               role="menuitem"
-               th:href="@{''(lang='en')}"
-               th:text="#{ui.english.7846}">English</a>
-        </li>
-        <li role="none">
-            <a class="dropdown-item"
-               role="menuitem"
-               th:href="@{''(lang='de')}"
-               th:text="#{ui.deutsch.8f0c}">Deutsch</a>
-        </li>
-    </ul>
+<!-- Accessible language switcher (BG / EN / DE). Public-style pill links. -->
+<li th:fragment="app-language-switcher" class="nav-item">
+    <nav class="app-langs" th:attr="aria-label=#{lang.label}">
+        <a th:href="@{''(lang='de')}"
+           lang="de"
+           hreflang="de"
+           title="Deutsch"
+           th:attr="aria-current=${#locale.language=='de'}?'true'">DE</a>
+        <a th:href="@{''(lang='en')}"
+           lang="en"
+           hreflang="en"
+           title="English"
+           th:attr="aria-current=${#locale.language=='en'}?'true'">EN</a>
+        <a th:href="@{''(lang='bg')}"
+           lang="bg"
+           hreflang="bg"
+           title="Български"
+           th:attr="aria-current=${#locale.language=='bg'}?'true'">BG</a>
+    </nav>
 </li>
