@@ -83,8 +83,27 @@ services:
       MAIL_STARTTLS: ${MAIL_STARTTLS:-false}
       MAIL_SSL: ${MAIL_SSL:-false}
       MAIL_FROM: ${MAIL_FROM:-}
+      MAIL_VISIT_APPOINTMENT_ENABLED: ${MAIL_VISIT_APPOINTMENT_ENABLED:-false}
+      DEADLINE_REMINDER_ENABLED: ${DEADLINE_REMINDER_ENABLED:-false}
+      DEADLINE_REMINDER_DAYS_BEFORE: "${DEADLINE_REMINDER_DAYS_BEFORE:-7,1,0}"
+      DEADLINE_REMINDER_CRON: "${DEADLINE_REMINDER_CRON:-0 0 8 * * ?}"
+      MONITORING_BACKUP_CHECK_ENABLED: ${MONITORING_BACKUP_CHECK_ENABLED:-false}
+      MONITORING_BACKUP_MARKER_PATH: ${MONITORING_BACKUP_MARKER_PATH:-}
+      MONITORING_BACKUP_SCAN_DIRECTORY: ${MONITORING_BACKUP_SCAN_DIRECTORY:-}
+      MONITORING_BACKUP_MAX_AGE_HOURS: ${MONITORING_BACKUP_MAX_AGE_HOURS:-26}
+      MONITORING_SERVER_ERROR_WINDOW_SECONDS: ${MONITORING_SERVER_ERROR_WINDOW_SECONDS:-300}
+      MONITORING_SERVER_ERROR_THRESHOLD: ${MONITORING_SERVER_ERROR_THRESHOLD:-20}
+      MONITORING_ALERT_ENABLED: ${MONITORING_ALERT_ENABLED:-false}
+      MONITORING_ALERT_WEBHOOK_URL: ${MONITORING_ALERT_WEBHOOK_URL:-}
+      MONITORING_ALERT_EMAIL_TO: ${MONITORING_ALERT_EMAIL_TO:-}
+      MONITORING_ALERT_CRON: "${MONITORING_ALERT_CRON:-0 */5 * * * ?}"
     volumes:
       - uploads:/app/uploads
+      # Optional read-only mounts when MONITORING_BACKUP_CHECK_ENABLED=true (set host paths on the server; match container paths in MONITORING_* env):
+      # - ${HOST_BACKUP_MARKER:-/path/on/host/backup-last-success.timestamp}:/var/lib/testkauf/backup-last-success.timestamp:ro
+      #   → MONITORING_BACKUP_MARKER_PATH=/var/lib/testkauf/backup-last-success.timestamp
+      # - ${HOST_BACKUP_SCAN_DIR:-/path/on/host/mysql-backups}:/var/lib/testkauf/backup-scan:ro
+      #   → MONITORING_BACKUP_SCAN_DIRECTORY=/var/lib/testkauf/backup-scan
     depends_on:
       db: { condition: service_healthy }
       pricing-svc: { condition: service_healthy }
