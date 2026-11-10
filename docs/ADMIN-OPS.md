@@ -100,6 +100,33 @@ From `.env.example` and `application.properties` — set values only in `deploy/
 
 Initial admin user is created only when the `users` table is empty and `ADMIN_PASSWORD` is set (minimum 12 characters).
 
+### Docker Compose: which `deploy/.env` keys reach the app container
+
+`docker compose --env-file deploy/.env` uses that file for **variable substitution in the compose YAML**. Only keys listed under the `app` service `environment:` block in `deploy/docker-compose.prod.yml` are passed into the running Spring Boot container.
+
+`DEADLINE_REMINDER_*`, `MAIL_VISIT_APPOINTMENT_ENABLED`, and `MONITORING_*` are bound in `application.properties`. They reach the container when that `environment` block lists them. The compose env passthrough adds exactly these keys, with defaults matching `application.properties`:
+
+| Variable | Default when forwarded |
+|----------|------------------------|
+| `MAIL_VISIT_APPOINTMENT_ENABLED` | `false` |
+| `DEADLINE_REMINDER_ENABLED` | `false` |
+| `DEADLINE_REMINDER_DAYS_BEFORE` | `7,1,0` |
+| `DEADLINE_REMINDER_CRON` | `0 0 8 * * ?` |
+| `MONITORING_BACKUP_CHECK_ENABLED` | `false` |
+| `MONITORING_BACKUP_MARKER_PATH` | empty |
+| `MONITORING_BACKUP_SCAN_DIRECTORY` | empty |
+| `MONITORING_BACKUP_MAX_AGE_HOURS` | `26` |
+| `MONITORING_SERVER_ERROR_WINDOW_SECONDS` | `300` |
+| `MONITORING_SERVER_ERROR_THRESHOLD` | `20` |
+| `MONITORING_ALERT_ENABLED` | `false` |
+| `MONITORING_ALERT_WEBHOOK_URL` | empty |
+| `MONITORING_ALERT_EMAIL_TO` | empty |
+| `MONITORING_ALERT_CRON` | `0 */5 * * * ?` |
+
+Listing the keys does **not** turn anything on. Outbound mail, deadline reminders, visit-appointment mail, backup checks, monitoring alerts, and off-site backup stay off until an operator sets the relevant flag in `deploy/.env`. A compose file that does not list a key still ignores that key in `deploy/.env`.
+
+`MONITORING_BACKUP_MARKER_PATH` and `MONITORING_BACKUP_SCAN_DIRECTORY` are paths **inside** the app container. Host backup files are not mounted. The read-only volume examples under `app.volumes` stay commented; uncomment them only when backup checks are intentionally enabled, and point the env vars at the container paths (suggested marker: `/var/lib/testkauf/backup-last-success.timestamp`, see [MONITORING.md](MONITORING.md)).
+
 ---
 
 ## Two-factor authentication (Admin / Account Manager)
