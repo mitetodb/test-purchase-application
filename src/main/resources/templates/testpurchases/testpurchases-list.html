@@ -23,16 +23,16 @@
 
     <form class="list-filters" method="get" th:action="@{/testpurchases}">
         <input type="hidden" name="size" th:value="${purchasePage.size}"/>
+        <div sec:authorize="hasRole('ADMIN')" class="list-check">
+            <input type="checkbox"
+                   name="showArchived"
+                   value="true"
+                   id="showArchivedPurchases"
+                   th:checked="${showArchived}"/>
+            <label for="showArchivedPurchases"
+                   th:text="#{ui.show_archived_test_purchases.t1a2}">Show archived test purchases</label>
+        </div>
         <div class="list-filter-grid">
-            <div sec:authorize="hasRole('ADMIN')" class="list-check">
-                <input type="checkbox"
-                       name="showArchived"
-                       value="true"
-                       id="showArchivedPurchases"
-                       th:checked="${showArchived}"/>
-                <label for="showArchivedPurchases"
-                       th:text="#{ui.show_archived_test_purchases.t1a2}">Show archived test purchases</label>
-            </div>
             <div class="list-field">
                 <label for="filter-status" th:text="#{ui.status.ec53}">Status</label>
                 <select id="filter-status" name="status" class="list-select">
@@ -67,10 +67,10 @@
                             th:selected="${filter.mysteryShopperId != null and filter.mysteryShopperId == ms.id}"></option>
                 </select>
             </div>
-            <div class="list-filter-actions">
-                <button type="submit" class="btn btn-sm btn-tk-primary" th:text="#{list.filter.apply}">Apply</button>
-                <a th:href="@{/testpurchases}" class="btn btn-sm btn-tk-outline" th:text="#{list.filter.reset}">Reset</a>
-            </div>
+        </div>
+        <div class="list-filter-actions">
+            <button type="submit" class="btn btn-sm btn-tk-primary" th:text="#{list.filter.apply}">Apply</button>
+            <a th:href="@{/testpurchases}" class="btn btn-sm btn-tk-outline" th:text="#{list.filter.reset}">Reset</a>
         </div>
     </form>
 
@@ -94,7 +94,7 @@
             <table id="tpTable" class="list-table" aria-labelledby="tp-heading">
                 <thead>
                 <tr>
-                    <th scope="col">#</th>
+                    <th scope="col" th:text="#{list.col.number}">#</th>
                     <th scope="col" th:text="#{ui.customer.ce26}">Customer</th>
                     <th scope="col" th:text="#{ui.shop.9f82}">Shop</th>
                     <th scope="col" th:text="#{ui.country.5971}">Country</th>

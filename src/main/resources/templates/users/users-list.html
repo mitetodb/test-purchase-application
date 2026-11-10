@@ -48,10 +48,10 @@
                             th:selected="${filter.country == co}"></option>
                 </select>
             </div>
-            <div class="list-filter-actions">
-                <button type="submit" class="btn btn-sm btn-tk-primary" th:text="#{list.filter.apply}">Apply</button>
-                <a th:href="@{/users}" class="btn btn-sm btn-tk-outline" th:text="#{list.filter.reset}">Reset</a>
-            </div>
+        </div>
+        <div class="list-filter-actions">
+            <button type="submit" class="btn btn-sm btn-tk-primary" th:text="#{list.filter.apply}">Apply</button>
+            <a th:href="@{/users}" class="btn btn-sm btn-tk-outline" th:text="#{list.filter.reset}">Reset</a>
         </div>
     </form>
 
@@ -75,7 +75,7 @@
             <table id="usersTable" class="list-table" aria-labelledby="users-heading">
                 <thead>
                 <tr>
-                    <th scope="col">#</th>
+                    <th scope="col" th:text="#{list.col.number}">#</th>
                     <th scope="col" th:text="#{ui.username.f603}">Username</th>
                     <th scope="col" th:text="#{ui.email.ce8a}">Email</th>
                     <th scope="col" th:text="#{ui.country.5971}">Country</th>

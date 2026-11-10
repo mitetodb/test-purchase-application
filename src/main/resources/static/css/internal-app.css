@@ -458,6 +458,10 @@
 }
 
 .list-filters {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
     background: var(--card);
     border: 1px solid var(--line);
     border-radius: 14px;
@@ -524,6 +528,18 @@
     flex-wrap: wrap;
     gap: 8px;
     align-items: center;
+    justify-content: flex-end;
+}
+
+.list-filters-inline {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.list-filters-inline .list-filter-actions {
+    margin-left: auto;
 }
 
 .list-page .btn {
@@ -730,17 +746,26 @@
 
 .list-actions-cell {
     white-space: normal !important;
+    min-width: 8.25rem;
 }
 
 .list-actions {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: stretch;
     gap: 6px;
+}
+
+.list-page .list-actions .btn {
+    width: 100%;
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
 }
 
 .list-inline-form {
-    display: inline;
+    display: block;
+    width: 100%;
     margin: 0;
 }
 
@@ -976,35 +1001,25 @@ a.list-page-link:focus {
     border-color: var(--line);
 }
 
-.list-filters-inline .list-filter-grid {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-}
+/* Desktop: fit server-paged tables inside the card so Updated By and the
+   action labels stay fully visible. Shops keeps a second filter row.
+   Action cells are not sticky, so they cannot cover a header. */
+@media (min-width: 1100px) {
+    .list-page .list-table:not(:has(tr.list-filter-row)) {
+        table-layout: fixed;
+        min-width: 0;
+        width: 100%;
+    }
 
-@media (min-width: 960px) {
-    /* Shops keeps a second filter header row; sticky cells collide with DataTables there. */
+    .list-page .list-table:not(:has(tr.list-filter-row)) th,
+    .list-page .list-table:not(:has(tr.list-filter-row)) td {
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
     .list-page .list-table:not(:has(tr.list-filter-row)) th:last-child,
     .list-page .list-table:not(:has(tr.list-filter-row)) td.list-actions-cell {
-        position: sticky;
-        right: 0;
-        z-index: 1;
-        background: var(--card);
-        box-shadow: -8px 0 12px rgba(27, 42, 51, 0.04);
-    }
-
-    .list-page .list-table:not(:has(tr.list-filter-row)) thead th:last-child {
-        z-index: 2;
-        background: #FBFCFB;
-    }
-
-    .list-page .list-table tbody tr:hover td.list-actions-cell {
-        background: #eef6f3;
-    }
-
-    .list-page .list-row-attention td.list-actions-cell {
-        background: var(--clay-l);
+        width: 9rem;
     }
 }
 
@@ -1019,6 +1034,22 @@ a.list-page-link:focus {
 
     .list-filter-grid {
         grid-template-columns: 1fr;
+    }
+
+    .list-filter-actions,
+    .list-filters-inline .list-filter-actions {
+        justify-content: stretch;
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .list-filter-actions .btn {
+        flex: 1 1 8rem;
+    }
+
+    .list-filters-inline {
+        flex-direction: column;
+        align-items: stretch;
     }
 
     .list-pagination {

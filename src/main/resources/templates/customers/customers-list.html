@@ -36,16 +36,16 @@
                 <input type="text" id="filter-category" name="category" class="list-input"
                        th:value="${filter.category}" th:placeholder="#{ui.search_category.4218}"/>
             </div>
-            <div sec:authorize="hasRole('ADMIN')" class="list-check">
-                <input type="checkbox" name="showDeactivated" value="true"
-                       id="showDeactivatedCustomers" th:checked="${showDeactivated}"/>
-                <label for="showDeactivatedCustomers"
-                       th:text="#{ui.show_deactivated_customers.f7a8}">Show deactivated customers</label>
-            </div>
-            <div class="list-filter-actions">
-                <button type="submit" class="btn btn-sm btn-tk-primary" th:text="#{list.filter.apply}">Apply</button>
-                <a th:href="@{/customers}" class="btn btn-sm btn-tk-outline" th:text="#{list.filter.reset}">Reset</a>
-            </div>
+        </div>
+        <div sec:authorize="hasRole('ADMIN')" class="list-check">
+            <input type="checkbox" name="showDeactivated" value="true"
+                   id="showDeactivatedCustomers" th:checked="${showDeactivated}"/>
+            <label for="showDeactivatedCustomers"
+                   th:text="#{ui.show_deactivated_customers.f7a8}">Show deactivated customers</label>
+        </div>
+        <div class="list-filter-actions">
+            <button type="submit" class="btn btn-sm btn-tk-primary" th:text="#{list.filter.apply}">Apply</button>
+            <a th:href="@{/customers}" class="btn btn-sm btn-tk-outline" th:text="#{list.filter.reset}">Reset</a>
         </div>
     </form>
 
@@ -69,7 +69,7 @@
             <table id="customersTable" class="list-table" aria-labelledby="customers-heading">
                 <thead>
                 <tr>
-                    <th scope="col">#</th>
+                    <th scope="col" th:text="#{list.col.number}">#</th>
                     <th scope="col" th:text="#{ui.name.49ee}">Name</th>
                     <th scope="col" th:text="#{ui.category.3adb}">Category</th>
                     <th scope="col" th:text="#{ui.country.5971}">Country</th>

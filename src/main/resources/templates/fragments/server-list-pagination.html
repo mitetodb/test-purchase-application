@@ -3,13 +3,14 @@
 <body>
 <!--
   Server-side list pagination. Caller passes the Page and the list path.
-  Query params stay aligned with the existing list filters (users, customers,
-  test purchases, invoices). Sort is applied by the controller default when absent.
+  Links copy the current request query (sort, showArchived, and every other
+  filter) and only replace page and size. listPath is the fallback path.
 -->
 <nav th:fragment="serverPagination(page, listPath)"
      class="list-pagination"
      th:if="${page != null and page.totalElements > 0}"
-     th:attr="aria-label=#{list.pagination.nav}">
+     th:attr="aria-label=#{list.pagination.nav}"
+     th:with="keptSort=${#ctx.containsVariable('listSort') ? listSort : null}">
     <p class="list-pagination-summary"
        th:text="#{list.pagination.summary(${page.number + 1}, ${page.totalPages}, ${page.totalElements})}">
         Page 1 of 1 (0 items)
@@ -17,7 +18,7 @@
     <div class="list-pagination-controls" th:if="${page.totalPages > 1}">
         <a class="list-page-link"
            th:unless="${page.first}"
-           th:href="@{${listPath}(page=${page.number - 1}, size=${page.size}, status=${filter.status}, customerId=${filter.customerId}, createdFrom=${filter.createdFrom}, createdTo=${filter.createdTo}, mysteryShopperId=${filter.mysteryShopperId}, name=${filter.name}, category=${filter.category}, country=${filter.country}, showDeactivated=${filter.showDeactivated}, role=${filter.role}, active=${filter.active}, username=${filter.username})}"
+           th:href="${@listPaginationLinks.href(listPath, page.number - 1, page.size, keptSort)}"
            th:text="#{list.pagination.previous}">Previous</a>
         <span class="list-page-link is-disabled"
               th:if="${page.first}"
@@ -28,7 +29,7 @@
               th:text="#{list.pagination.pageIndicator(${page.number + 1}, ${page.totalPages})}">1 / 1</span>
         <a class="list-page-link"
            th:unless="${page.last}"
-           th:href="@{${listPath}(page=${page.number + 1}, size=${page.size}, status=${filter.status}, customerId=${filter.customerId}, createdFrom=${filter.createdFrom}, createdTo=${filter.createdTo}, mysteryShopperId=${filter.mysteryShopperId}, name=${filter.name}, category=${filter.category}, country=${filter.country}, showDeactivated=${filter.showDeactivated}, role=${filter.role}, active=${filter.active}, username=${filter.username})}"
+           th:href="${@listPaginationLinks.href(listPath, page.number + 1, page.size, keptSort)}"
            th:text="#{list.pagination.next}">Next</a>
         <span class="list-page-link is-disabled"
               th:if="${page.last}"

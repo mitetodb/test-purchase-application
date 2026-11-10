@@ -148,6 +148,32 @@ class TestPurchasesListPageRenderTest {
                 null);
     }
 
+    @Test
+    void paginationLinkKeepsSortShowArchivedAndFilters() throws Exception {
+        String suffix = UUID.randomUUID().toString().substring(0, 8);
+        User admin = saveUser("adminPg_" + suffix, "adminPg_" + suffix + "@tp-list-render.test", Role.ADMIN);
+        Shop shop = saveShop("ShopPg_" + suffix);
+        Customer customer = saveCustomer("CustPg_" + suffix, null, null);
+        saveTestPurchase("TP-PG1-" + suffix, customer, shop, null);
+        saveTestPurchase("TP-PG2-" + suffix, customer, shop, null);
+        testPurchaseRepository.flush();
+
+        mockMvc.perform(get("/testpurchases")
+                        .param("size", "1")
+                        .param("sort", "number,asc")
+                        .param("showArchived", "true")
+                        .param("status", "INITIALISED")
+                        .with(user(userDetailsService.loadUserByUsername(admin.getUsername()))))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("showArchived=true")))
+                .andExpect(content().string(containsString("status=INITIALISED")))
+                .andExpect(content().string(containsString("page=1")))
+                .andExpect(content().string(anyOf(
+                        containsString("sort=number,asc"),
+                        containsString("sort=number%2Casc"),
+                        containsString("sort=number%2casc"))));
+    }
+
     private ResultActions performListAs(User user) throws Exception {
         return mockMvc.perform(get("/testpurchases")
                 .with(user(userDetailsService.loadUserByUsername(user.getUsername()))));

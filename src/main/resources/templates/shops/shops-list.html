@@ -19,25 +19,30 @@
           method="get"
           th:action="@{/shops}"
           class="list-filters list-filters-inline">
-        <div class="list-filter-grid">
-            <div class="list-check">
-                <input type="checkbox"
-                       name="showDeactivated"
-                       value="true"
-                       id="showDeactivatedShops"
-                       th:checked="${showDeactivated}"/>
-                <label for="showDeactivatedShops"
-                       th:text="#{ui.show_deactivated_shops.s1a2}">Show deactivated shops</label>
-            </div>
-            <div class="list-filter-actions">
-                <button type="submit" class="btn btn-sm btn-tk-primary" th:text="#{ui.apply_filter.b9c0}">Apply</button>
-                <a th:href="@{/shops}" class="btn btn-sm btn-tk-outline" th:text="#{list.filter.reset}">Reset</a>
-            </div>
+        <div class="list-check">
+            <input type="checkbox"
+                   name="showDeactivated"
+                   value="true"
+                   id="showDeactivatedShops"
+                   th:checked="${showDeactivated}"/>
+            <label for="showDeactivatedShops"
+                   th:text="#{ui.show_deactivated_shops.s1a2}">Show deactivated shops</label>
+        </div>
+        <div class="list-filter-actions">
+            <button type="submit" class="btn btn-sm btn-tk-primary" th:text="#{ui.apply_filter.b9c0}">Apply</button>
+            <a th:href="@{/shops}" class="btn btn-sm btn-tk-outline" th:text="#{list.filter.reset}">Reset</a>
         </div>
     </form>
 
     <div class="list-toolbar">
-        <div id="export-buttons-shops" class="list-exports"></div>
+        <div id="export-buttons-shops" class="list-exports">
+            <button type="button" class="btn btn-sm btn-tk-outline"
+                    onclick="exportExcel('shopsTable', 'shopsTable.xlsx')"
+                    th:text="#{list.export.excel}">Export Excel</button>
+            <button type="button" class="btn btn-sm btn-tk-outline"
+                    onclick="exportCSV('shopsTable', 'shopsTable.csv')"
+                    th:text="#{list.export.csv}">Export CSV</button>
+        </div>
     </div>
 
     <div class="list-empty" th:if="${#lists.isEmpty(shops)}">
@@ -46,10 +51,19 @@
 
     <div class="list-table-card" th:unless="${#lists.isEmpty(shops)}">
         <div class="list-table-scroll">
-            <table id="shopsTable" class="list-table" aria-labelledby="shops-heading">
+            <table id="shopsTable" class="list-table" aria-labelledby="shops-heading"
+                   th:attr="data-dt-search=#{list.datatable.search},
+                            data-dt-length=#{list.datatable.length},
+                            data-dt-info=#{list.datatable.info},
+                            data-dt-info-empty=#{list.datatable.infoEmpty},
+                            data-dt-info-filtered=#{list.datatable.infoFiltered},
+                            data-dt-zero=#{list.datatable.zeroRecords},
+                            data-dt-empty=#{list.datatable.emptyTable},
+                            data-dt-previous=#{list.datatable.previous},
+                            data-dt-next=#{list.datatable.next}">
                 <thead>
                 <tr>
-                    <th scope="col" class="sortable">#</th>
+                    <th scope="col" class="sortable" th:text="#{list.col.number}">#</th>
                     <th scope="col" class="sortable" th:text="#{ui.name.49ee}">Name</th>
                     <th scope="col" class="sortable" th:text="#{ui.country.5971}">Country</th>
                     <th scope="col" sec:authorize="hasRole('ADMIN')" class="sortable" th:text="#{ui.active.4d3d}">Active</th>
@@ -57,7 +71,7 @@
                     <th scope="col" th:text="#{ui.actions.06df}">Actions</th>
                 </tr>
                 <tr class="list-filter-row">
-                    <th><input class="list-input column-filter" placeholder="Search #" aria-label="Search #"></th>
+                    <th><input class="list-input column-filter" th:placeholder="#{list.filter.searchNumber}" th:attr="aria-label=#{list.filter.searchNumber}"></th>
                     <th><input class="list-input column-filter" th:placeholder="#{ui.search_name.7c48}" th:attr="aria-label=#{ui.search_name.7c48}"></th>
                     <th><input class="list-input column-filter" th:placeholder="#{ui.search_country.08b5}" th:attr="aria-label=#{ui.search_country.08b5}"></th>
                     <th sec:authorize="hasRole('ADMIN')"><input class="list-input column-filter" th:placeholder="#{ui.search_active.bbf9}" th:attr="aria-label=#{ui.search_active.bbf9}"></th>
@@ -113,7 +127,6 @@
                 return;
             }
             initDataTable("shopsTable");
-            attachExportButtons("export-buttons-shops", "shopsTable");
         });
     </script>
 
