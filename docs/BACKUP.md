@@ -459,5 +459,6 @@ Run **only** against isolated demo copies or empty paths — **not** against pro
 - **Do not** invent hostnames, users, or passwords in tickets or docs — use placeholders above.
 - **Do not** delete real backup files on the server or on any existing off-site copy to “test” retention.
 - **Do not** treat merging documentation as enabling backup — server changes remain manual after approval.
+- **Do not** treat compose env passthrough (`MONITORING_*` forwarded into the app container) or the commented read-only backup volume examples as an off-site job. Those do not order a Storage Box, install cron, or upload backups.
 
 When Dimitar approves, track implementation in [#10](https://github.com/mitetodb/test-purchase-application/issues/10) and execute §12.1–§12.5 before production cron.
