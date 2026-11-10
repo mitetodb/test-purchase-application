@@ -171,7 +171,8 @@ class ScoreTrendsSecurityTest {
 
     private TestPurchase savePurchase(Customer customer, Shop shop, User mysteryShopper) {
         TestPurchase tp = new TestPurchase();
-        tp.setNumber("TP-T-" + System.nanoTime());
+        // varchar(20). Decimal nanoTime outgrows this prefix; base-36 of any long is at most 13 chars.
+        tp.setNumber("TP-T-" + Long.toUnsignedString(System.nanoTime(), 36));
         tp.setCustomer(customer);
         tp.setShop(shop);
         tp.setMysteryShopper(mysteryShopper);

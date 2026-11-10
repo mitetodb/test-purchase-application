@@ -202,7 +202,9 @@ class VisitAppointmentServiceTest {
         tp.setType(TestPurchaseType.FORWARDING_TO_CLIENT);
         tp.setStatus(status);
         tp.setActive(true);
-        tp.setNumber("TP-VIS-" + System.nanoTime());
+        // varchar(20). Decimal nanoTime is 14 digits after ~2.7h, so "TP-VIS-" + nanoTime is 21+ chars.
+        // Base-36 of any long is at most 13 chars (7 + 13 = 20).
+        tp.setNumber("TP-VIS-" + Long.toUnsignedString(System.nanoTime(), 36));
         tp.setProductPrice(100.0);
         tp.setServiceFee(10.0);
         tp.setPostageFee(5.0);
