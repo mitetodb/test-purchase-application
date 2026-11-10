@@ -82,7 +82,7 @@ See `.env.example`, [ADMIN-OPS.md](ADMIN-OPS.md), and [MONITORING.md](MONITORING
 
 | Item | Issue | Status |
 |------|-------|--------|
-| **Storage Box off-site backup + production cron** | [#10](https://github.com/mitetodb/test-purchase-application/issues/10) | **Plan in [BACKUP.md](BACKUP.md)**; example scripts under `deploy/backup/`. Server install and Hetzner Storage Box cost await **Dimitar’s decision** — merging docs does not enable cron. |
+| **Storage Box off-site backup + production cron** | [#10](https://github.com/mitetodb/test-purchase-application/issues/10) | **Plan in [BACKUP.md §12](BACKUP.md#12-storage-box-off-site-pending-dimitar)** (placeholders only); examples under `deploy/backup/`. Await **Dimitar’s cost/order decision** — no cron to an unpaid box. |
 | **health.getinweb.de check wiring** | [#18](https://github.com/mitetodb/test-purchase-application/issues/18) | App exposes signals; external dashboard configured outside this repo. |
 | Expanded RBAC edge-case tests | [#19](https://github.com/mitetodb/test-purchase-application/issues/19) | Ongoing |
 
@@ -95,7 +95,7 @@ See `.env.example`, [ADMIN-OPS.md](ADMIN-OPS.md), and [MONITORING.md](MONITORING
 | [ROLES.md](ROLES.md) | Permission matrix (invoices, questionnaire, etc.) |
 | [user-guide/](user-guide/) | Role guides BG / EN / DE |
 | [ADMIN-OPS.md](ADMIN-OPS.md) | Deploy, rollback, 2FA break-glass |
-| [BACKUP.md](BACKUP.md) | Backup/restore plan (#10) |
+| [BACKUP.md](BACKUP.md) | Backup/restore plan (#10); deferred Storage Box steps in [§12](BACKUP.md#12-storage-box-off-site-pending-dimitar) |
 | [MONITORING.md](MONITORING.md) | Actuator components and env |
 | [SECURITY.md](SECURITY.md) | Security practices |
 

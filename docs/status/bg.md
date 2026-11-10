@@ -8,4 +8,4 @@
 
 **Имейли изключени по подразбиране:** `MAIL_ENABLED=false`; напомняния за крайни срокове (`DEADLINE_REMINDER_ENABLED`), имейл за посещение (`MAIL_VISIT_APPOINTMENT_ENABLED`), alert stub (`MONITORING_ALERT_ENABLED`) — включват се само на сървъра.
 
-**Отложено:** [#10](https://github.com/mitetodb/test-purchase-application/issues/10) — off-site backup (Storage Box) и cron на сървъра чакат решение на Димитър; план в [BACKUP.md](../BACKUP.md).
+**Отложено:** [#10](https://github.com/mitetodb/test-purchase-application/issues/10) — off-site backup (Storage Box) и cron чакат решение на Димитър; план с placeholders: [BACKUP.md §12](../BACKUP.md#12-storage-box-off-site-pending-dimitar).
