@@ -8,119 +8,133 @@
 </head>
 
 <body>
-<main>
+<main class="list-page">
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 th:text="#{ui.customers.e6d0}">Customers</h2>
-        <a th:href="@{/customers/add}" class="btn btn-primary mb-3" th:text="#{ui.add_customer.daaa}">Add Customer</a>
-    </div>
+    <header class="list-page-header">
+        <h1 id="customers-heading" th:text="#{ui.customers.e6d0}">Customers</h1>
+        <a th:href="@{/customers/add}" class="btn btn-tk-primary" th:text="#{ui.add_customer.daaa}">Add Customer</a>
+    </header>
 
-    <form class="card card-body mb-3" method="get" th:action="@{/customers}">
+    <form class="list-filters" method="get" th:action="@{/customers}">
         <input type="hidden" name="size" th:value="${customerPage.size}"/>
-        <div class="row g-2 align-items-end">
-            <div class="col-md-4">
-                <label class="form-label small mb-0" for="filter-name" th:text="#{ui.name.49ee}">Name</label>
-                <input type="text" id="filter-name" name="name" class="form-control form-control-sm"
+        <div class="list-filter-grid">
+            <div class="list-field">
+                <label for="filter-name" th:text="#{ui.name.49ee}">Name</label>
+                <input type="text" id="filter-name" name="name" class="list-input"
                        th:value="${filter.name}" th:placeholder="#{ui.search_name.7c48}"/>
             </div>
-            <div class="col-md-3">
-                <label class="form-label small mb-0" for="filter-country" th:text="#{ui.country.5971}">Country</label>
-                <select id="filter-country" name="country" class="form-select form-select-sm">
+            <div class="list-field">
+                <label for="filter-country" th:text="#{ui.country.5971}">Country</label>
+                <select id="filter-country" name="country" class="list-select">
                     <option value="" th:text="#{list.filter.all}">All</option>
                     <option th:each="co : ${countries}" th:value="${co.name}" th:text="${co.displayName}"
                             th:selected="${filter.country == co}"></option>
                 </select>
             </div>
-            <div class="col-md-3">
-                <label class="form-label small mb-0" for="filter-category" th:text="#{ui.category.3adb}">Category</label>
-                <input type="text" id="filter-category" name="category" class="form-control form-control-sm"
+            <div class="list-field">
+                <label for="filter-category" th:text="#{ui.category.3adb}">Category</label>
+                <input type="text" id="filter-category" name="category" class="list-input"
                        th:value="${filter.category}" th:placeholder="#{ui.search_category.4218}"/>
             </div>
-            <div class="col-md-auto d-flex flex-wrap gap-3 align-items-center">
-                <div sec:authorize="hasRole('ADMIN')" class="form-check mb-0">
-                    <input class="form-check-input" type="checkbox" name="showDeactivated" value="true"
-                           id="showDeactivatedCustomers" th:checked="${showDeactivated}"/>
-                    <label class="form-check-label" for="showDeactivatedCustomers"
-                           th:text="#{ui.show_deactivated_customers.f7a8}">Show deactivated customers</label>
-                </div>
-                <button type="submit" class="btn btn-sm btn-primary" th:text="#{list.filter.apply}">Apply</button>
-                <a th:href="@{/customers}" class="btn btn-sm btn-outline-secondary" th:text="#{list.filter.reset}">Reset</a>
+            <div sec:authorize="hasRole('ADMIN')" class="list-check">
+                <input type="checkbox" name="showDeactivated" value="true"
+                       id="showDeactivatedCustomers" th:checked="${showDeactivated}"/>
+                <label for="showDeactivatedCustomers"
+                       th:text="#{ui.show_deactivated_customers.f7a8}">Show deactivated customers</label>
+            </div>
+            <div class="list-filter-actions">
+                <button type="submit" class="btn btn-sm btn-tk-primary" th:text="#{list.filter.apply}">Apply</button>
+                <a th:href="@{/customers}" class="btn btn-sm btn-tk-outline" th:text="#{list.filter.reset}">Reset</a>
             </div>
         </div>
     </form>
 
-    <div th:if="${exportLimitExceeded}" class="alert alert-warning" role="alert"
+    <div th:if="${exportLimitExceeded}" class="list-alert" role="alert"
          th:text="${exportLimitMessage}"></div>
 
-    <div th:replace="~{fragments/server-list-pagination :: serverPagination(${customerPage}, '/customers')}"></div>
-
-    <div class="mb-3 d-flex flex-wrap gap-2">
-        <a class="btn btn-success btn-sm"
-           th:href="@{/customers/export.csv(name=${filter.name}, country=${filter.country}, category=${filter.category}, showDeactivated=${filter.showDeactivated}, sort=${listSort})}"
-           th:text="#{list.export.csv}">Export CSV</a>
-        <a class="btn btn-secondary btn-sm"
-           th:href="@{/customers/export.xlsx(name=${filter.name}, country=${filter.country}, category=${filter.category}, showDeactivated=${filter.showDeactivated}, sort=${listSort})}"
-           th:text="#{list.export.excel}">Export Excel</a>
+    <div class="list-toolbar">
+        <th:block th:replace="~{fragments/server-list-pagination :: serverPagination(${customerPage}, '/customers')}"></th:block>
+        <div class="list-exports">
+            <a class="btn btn-sm btn-tk-outline"
+               th:href="@{/customers/export.csv(name=${filter.name}, country=${filter.country}, category=${filter.category}, showDeactivated=${filter.showDeactivated}, sort=${listSort})}"
+               th:text="#{list.export.csv}">Export CSV</a>
+            <a class="btn btn-sm btn-tk-outline"
+               th:href="@{/customers/export.xlsx(name=${filter.name}, country=${filter.country}, category=${filter.category}, showDeactivated=${filter.showDeactivated}, sort=${listSort})}"
+               th:text="#{list.export.excel}">Export Excel</a>
+        </div>
     </div>
 
-    <table id="customersTable" class="table table-striped">
-        <thead>
-        <tr>
-            <th>#</th>
-            <th th:text="#{ui.name.49ee}">Name</th>
-            <th th:text="#{ui.category.3adb}">Category</th>
-            <th th:text="#{ui.country.5971}">Country</th>
-            <th th:text="#{ui.email.ce8a}">Email</th>
-            <th th:text="#{ui.service_fee.a90d}">Service Fee</th>
-            <th sec:authorize="hasRole('ADMIN')" th:text="#{ui.active.4d3d}">Active</th>
-            <th sec:authorize="hasRole('ADMIN')" th:text="#{ui.updated_by.eb4d}">Updated By</th>
-            <th th:text="#{ui.actions.06df}">Actions</th>
-        </tr>
-        </thead>
+    <div class="list-table-card">
+        <div class="list-table-scroll">
+            <table id="customersTable" class="list-table" aria-labelledby="customers-heading">
+                <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col" th:text="#{ui.name.49ee}">Name</th>
+                    <th scope="col" th:text="#{ui.category.3adb}">Category</th>
+                    <th scope="col" th:text="#{ui.country.5971}">Country</th>
+                    <th scope="col" th:text="#{ui.email.ce8a}">Email</th>
+                    <th scope="col" th:text="#{ui.service_fee.a90d}">Service Fee</th>
+                    <th scope="col" sec:authorize="hasRole('ADMIN')" th:text="#{ui.active.4d3d}">Active</th>
+                    <th scope="col" sec:authorize="hasRole('ADMIN')" th:text="#{ui.updated_by.eb4d}">Updated By</th>
+                    <th scope="col" th:text="#{ui.actions.06df}">Actions</th>
+                </tr>
+                </thead>
 
-        <tbody>
-        <tr th:each="c : ${customers}">
-            <td th:text="${c.number}"></td>
-            <td th:text="${c.name}"></td>
-            <td th:text="${c.category}"></td>
-            <td th:text="${c.country}"></td>
-            <td th:text="${c.email}"></td>
-            <td th:text="${c.baseServiceFee}"></td>
-            <td sec:authorize="hasRole('ADMIN')">
-                <span th:text="${c.active ? 'Yes' : 'No'}"></span>
-            </td>
-            <td sec:authorize="hasRole('ADMIN')" th:text="${c.updatedByUser}"></td>
-            <td>
-                <a th:if="${#authorization.expression('hasAnyRole(''ADMIN'',''ACCOUNT_MANAGER'',''SALES_MANAGER'')') and c.active}"
-                   th:href="@{'/customers/edit/' + ${c.id}}" class="btn btn-warning btn-sm" th:text="#{ui.edit.7dce}">Edit</a>
+                <tbody>
+                <tr th:each="c : ${customers}">
+                    <td th:text="${c.number}"></td>
+                    <td th:text="${c.name}"></td>
+                    <td th:text="${c.category}"></td>
+                    <td th:text="${c.country != null ? c.country.displayName : ''}"></td>
+                    <td th:text="${c.email}"></td>
+                    <td th:text="${c.baseServiceFee}"></td>
+                    <td sec:authorize="hasRole('ADMIN')">
+                        <span th:if="${c.active}" class="tk-chip tk-chip-on" th:text="#{ui.yes}">Yes</span>
+                        <span th:unless="${c.active}" class="tk-chip tk-chip-off" th:text="#{ui.no}">No</span>
+                    </td>
+                    <td sec:authorize="hasRole('ADMIN')" th:text="${c.updatedByUser}"></td>
+                    <td class="list-actions-cell">
+                        <div class="list-actions">
+                            <a th:if="${#authorization.expression('hasAnyRole(''ADMIN'',''ACCOUNT_MANAGER'',''SALES_MANAGER'')') and c.active}"
+                               th:href="@{'/customers/edit/' + ${c.id}}" class="btn btn-sm btn-tk-clay" th:text="#{ui.edit.7dce}">Edit</a>
 
-                <form th:if="${#authorization.expression('hasRole(''ADMIN'')') and c.active}"
-                      th:action="@{'/customers/deactivate/' + ${c.id}}"
-                      method="post" style="display:inline;">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                    <button class="btn btn-sm btn-outline-danger"
-                            type="submit"
-                            th:attr="data-confirm=#{ui.confirm_deactivate_customer.a2b3}"
-                            onclick="return confirm(this.dataset.confirm);"
-                            th:text="#{ui.deactivate_customer.c4d5}">Deactivate</button>
-                </form>
+                            <form th:if="${#authorization.expression('hasRole(''ADMIN'')') and c.active}"
+                                  th:action="@{'/customers/deactivate/' + ${c.id}}"
+                                  method="post" class="list-inline-form">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <button class="btn btn-sm btn-tk-danger"
+                                        type="submit"
+                                        th:attr="data-confirm=#{ui.confirm_deactivate_customer.a2b3}"
+                                        onclick="return confirm(this.dataset.confirm);"
+                                        th:text="#{ui.deactivate_customer.c4d5}">Deactivate</button>
+                            </form>
 
-                <form th:if="${#authorization.expression('hasRole(''ADMIN'')') and !c.active}"
-                      th:action="@{'/customers/reactivate/' + ${c.id}}"
-                      method="post" style="display:inline;">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                    <button class="btn btn-sm btn-outline-success"
-                            type="submit" th:text="#{ui.reactivate_customer.e6f7}">Reactivate</button>
-                </form>
-            </td>
-        </tr>
-        <tr th:if="${#lists.isEmpty(customers)}">
-            <td colspan="9" class="text-muted text-center" th:text="#{list.empty}">No records found.</td>
-        </tr>
-        </tbody>
-    </table>
+                            <form th:if="${#authorization.expression('hasRole(''ADMIN'')') and !c.active}"
+                                  th:action="@{'/customers/reactivate/' + ${c.id}}"
+                                  method="post" class="list-inline-form">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <button class="btn btn-sm btn-tk-mint"
+                                        type="submit" th:text="#{ui.reactivate_customer.e6f7}">Reactivate</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(customers)}" class="list-empty-row">
+                    <td colspan="9">
+                        <div class="list-empty">
+                            <p th:text="#{list.empty}">No records found.</p>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-    <div th:replace="~{fragments/server-list-pagination :: serverPagination(${customerPage}, '/customers')}"></div>
+    <div class="list-toolbar list-toolbar-bottom">
+        <th:block th:replace="~{fragments/server-list-pagination :: serverPagination(${customerPage}, '/customers')}"></th:block>
+    </div>
 
 </main>
 </body>
