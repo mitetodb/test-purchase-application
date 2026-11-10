@@ -104,13 +104,28 @@ Initial admin user is created only when the `users` table is empty and `ADMIN_PA
 
 `docker compose --env-file deploy/.env` uses that file for **variable substitution in the compose YAML**. Only keys listed under the `app` service `environment:` block in `deploy/docker-compose.prod.yml` are passed into the running Spring Boot container.
 
-On current `master`, mail-related keys (`MAIL_*`) and the core app keys in that block work as documented. These documented keys are **not** in the compose `environment:` list yet, so setting them only in `deploy/.env` has **no effect** in Docker production until they are added (and backup marker paths are mounted read-only into the container when using `MONITORING_BACKUP_*`):
+`DEADLINE_REMINDER_*`, `MAIL_VISIT_APPOINTMENT_ENABLED`, and `MONITORING_*` are bound in `application.properties`. They reach the container when that `environment` block lists them. The compose env passthrough adds exactly these keys, with defaults matching `application.properties`:
 
-- `DEADLINE_REMINDER_ENABLED`, `DEADLINE_REMINDER_DAYS_BEFORE`, `DEADLINE_REMINDER_CRON`
-- `MAIL_VISIT_APPOINTMENT_ENABLED`
-- `MONITORING_BACKUP_CHECK_ENABLED`, `MONITORING_BACKUP_MARKER_PATH`, `MONITORING_BACKUP_SCAN_DIRECTORY`, `MONITORING_BACKUP_MAX_AGE_HOURS`, `MONITORING_SERVER_ERROR_*`, `MONITORING_ALERT_*`
+| Variable | Default when forwarded |
+|----------|------------------------|
+| `MAIL_VISIT_APPOINTMENT_ENABLED` | `false` |
+| `DEADLINE_REMINDER_ENABLED` | `false` |
+| `DEADLINE_REMINDER_DAYS_BEFORE` | `7,1,0` |
+| `DEADLINE_REMINDER_CRON` | `0 0 8 * * ?` |
+| `MONITORING_BACKUP_CHECK_ENABLED` | `false` |
+| `MONITORING_BACKUP_MARKER_PATH` | empty |
+| `MONITORING_BACKUP_SCAN_DIRECTORY` | empty |
+| `MONITORING_BACKUP_MAX_AGE_HOURS` | `26` |
+| `MONITORING_SERVER_ERROR_WINDOW_SECONDS` | `300` |
+| `MONITORING_SERVER_ERROR_THRESHOLD` | `20` |
+| `MONITORING_ALERT_ENABLED` | `false` |
+| `MONITORING_ALERT_WEBHOOK_URL` | empty |
+| `MONITORING_ALERT_EMAIL_TO` | empty |
+| `MONITORING_ALERT_CRON` | `0 */5 * * * ?` |
 
-Spring reads them from the process environment via `application.properties`; the gap is compose wiring, not wrong variable names.
+Listing the keys does **not** turn anything on. Outbound mail, deadline reminders, visit-appointment mail, backup checks, monitoring alerts, and off-site backup stay off until an operator sets the relevant flag in `deploy/.env`. A compose file that does not list a key still ignores that key in `deploy/.env`.
+
+`MONITORING_BACKUP_MARKER_PATH` and `MONITORING_BACKUP_SCAN_DIRECTORY` are paths **inside** the app container. Host backup files are not mounted. The read-only volume examples under `app.volumes` stay commented; uncomment them only when backup checks are intentionally enabled, and point the env vars at the container paths (suggested marker: `/var/lib/testkauf/backup-last-success.timestamp`, see [MONITORING.md](MONITORING.md)).
 
 ---
 
