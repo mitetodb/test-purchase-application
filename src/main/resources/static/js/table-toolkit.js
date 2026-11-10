@@ -113,11 +113,31 @@ function exportExcel(tableId, filename = "export.xlsx") {
    INITIALIZE DATATABLE
 -------------------------- */
 
+function dataTableLanguage(tableEl) {
+    const data = tableEl.dataset || {};
+    const language = {};
+    if (data.dtSearch) language.search = data.dtSearch;
+    if (data.dtLength) language.lengthMenu = data.dtLength;
+    if (data.dtInfo) language.info = data.dtInfo;
+    if (data.dtInfoEmpty) language.infoEmpty = data.dtInfoEmpty;
+    if (data.dtInfoFiltered) language.infoFiltered = data.dtInfoFiltered;
+    if (data.dtZero) language.zeroRecords = data.dtZero;
+    if (data.dtEmpty) language.emptyTable = data.dtEmpty;
+    if (data.dtPrevious || data.dtNext) {
+        language.paginate = {};
+        if (data.dtPrevious) language.paginate.previous = data.dtPrevious;
+        if (data.dtNext) language.paginate.next = data.dtNext;
+    }
+    return language;
+}
+
 function initDataTable(tableId) {
+    const tableEl = document.getElementById(tableId);
     let table = $('#' + tableId).DataTable({
         orderCellsTop: true,
         fixedHeader: true,
-        pageLength: 25
+        pageLength: 25,
+        language: dataTableLanguage(tableEl)
     });
 
     $('#' + tableId + ' thead').on('keyup change', '.column-filter', function () {
@@ -132,13 +152,27 @@ function initDataTable(tableId) {
 
 function attachExportButtons(containerId, tableId) {
     const container = document.getElementById(containerId);
-
-    container.innerHTML = `
-        <button class="btn btn-success me-2" onclick="exportExcel('${tableId}', '${tableId}.xlsx')">
-            Export Excel
-        </button>
-        <button class="btn btn-secondary" onclick="exportCSV('${tableId}', '${tableId}.csv')">
-            Export CSV
-        </button>
-    `;
+    if (!container || container.querySelector("button")) {
+        return;
+    }
+    const excelLabel = container.dataset.excelLabel;
+    const csvLabel = container.dataset.csvLabel;
+    if (!excelLabel || !csvLabel) {
+        return;
+    }
+    const excel = document.createElement("button");
+    excel.type = "button";
+    excel.className = "btn btn-sm btn-tk-outline";
+    excel.textContent = excelLabel;
+    excel.addEventListener("click", function () {
+        exportExcel(tableId, tableId + ".xlsx");
+    });
+    const csv = document.createElement("button");
+    csv.type = "button";
+    csv.className = "btn btn-sm btn-tk-outline";
+    csv.textContent = csvLabel;
+    csv.addEventListener("click", function () {
+        exportCSV(tableId, tableId + ".csv");
+    });
+    container.append(excel, csv);
 }

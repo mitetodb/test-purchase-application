@@ -1,6 +1,7 @@
 /**
- * Internal app shell + dashboard — extends public testkauf tokens (testkauf.css).
- * Phase 1: layout chrome and dashboard exemplar; list pages inherit tokens via style.css.
+ * Internal app shell, dashboard, and list pages — extends public testkauf tokens (testkauf.css).
+ * Phase 1: layout chrome and dashboard exemplar.
+ * Phase 2: shared list-page pattern (toolbar, filters, table, chips, empty state, pagination).
  */
 
 :root {
@@ -415,5 +416,643 @@
 
     .internal-top .app-langs {
         margin: 0.5rem 0;
+    }
+}
+
+/* ------------------------------------------------------------------ */
+/* Phase 2 — shared list pages                                        */
+/* ------------------------------------------------------------------ */
+
+.app-main:has(.list-page) {
+    max-width: 1280px;
+}
+
+.list-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.list-page-header h1 {
+    font-size: clamp(1.75rem, 3vw, 2.25rem);
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin: 0;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.list-page-header h1 i {
+    color: var(--teal);
+    font-size: 0.85em;
+    margin-right: 0.45rem;
+}
+
+.list-page-lead {
+    margin: 6px 0 0;
+    color: var(--muted);
+    font-size: 1.0625rem;
+}
+
+.list-filters {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 2px rgba(27, 42, 51, 0.05);
+}
+
+.list-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 12px 14px;
+    align-items: end;
+}
+
+.list-field label,
+.list-check label {
+    display: block;
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 6px;
+    color: var(--ink);
+}
+
+.list-input,
+.list-select {
+    width: 100%;
+    height: 40px;
+    border: 1px solid #9AA6AD;
+    border-radius: 10px;
+    padding: 0 12px;
+    font: 16px/1.2 Inter, system-ui, sans-serif;
+    color: var(--ink);
+    background: #fff;
+}
+
+.list-input:focus,
+.list-select:focus {
+    border-color: var(--teal);
+    outline: 3px solid rgba(31, 95, 91, 0.25);
+    outline-offset: 0;
+}
+
+.list-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+}
+
+.list-check label {
+    margin: 0;
+}
+
+.list-check input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--teal);
+    flex: none;
+}
+
+.list-filter-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.list-filters-inline {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.list-filters-inline .list-filter-actions {
+    margin-left: auto;
+}
+
+.list-page .btn {
+    border-radius: 10px;
+    font-weight: 600;
+    min-height: 40px;
+    padding: 0 14px;
+    box-shadow: none;
+    transform: none;
+    border: 1px solid transparent;
+    text-decoration: none;
+}
+
+.list-page .btn-sm {
+    min-height: 34px;
+    padding: 0 10px;
+    font-size: 0.875rem;
+}
+
+.list-page .btn-tk-primary {
+    background: var(--teal);
+    color: #fff;
+}
+
+.list-page .btn-tk-primary:hover,
+.list-page .btn-tk-primary:focus {
+    background: var(--teal-d);
+    color: #fff;
+}
+
+.list-page .btn-tk-outline {
+    background: #fff;
+    color: var(--teal-d);
+    border-color: var(--line);
+}
+
+.list-page .btn-tk-outline:hover,
+.list-page .btn-tk-outline:focus {
+    background: var(--mint);
+    color: var(--teal-d);
+    border-color: transparent;
+}
+
+.list-page .btn-tk-clay {
+    background: var(--clay-l);
+    color: #8A3B1C;
+    border-color: transparent;
+}
+
+.list-page .btn-tk-clay:hover,
+.list-page .btn-tk-clay:focus {
+    background: #efd5c8;
+    color: #8A3B1C;
+}
+
+.list-page .btn-tk-danger {
+    background: #fff;
+    color: var(--err);
+    border-color: #E7C4BE;
+}
+
+.list-page .btn-tk-danger:hover,
+.list-page .btn-tk-danger:focus {
+    background: var(--err-bg);
+    color: var(--err);
+}
+
+.list-page .btn-tk-mint {
+    background: #fff;
+    color: var(--teal-d);
+    border-color: #C6DCD5;
+}
+
+.list-page .btn-tk-mint:hover,
+.list-page .btn-tk-mint:focus {
+    background: var(--mint);
+    color: var(--teal-d);
+}
+
+.list-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 14px;
+}
+
+.list-toolbar-bottom {
+    margin: 14px 0 0;
+}
+
+.list-exports {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.list-page .list-exports .btn,
+.list-page .list-exports .btn-success,
+.list-page .list-exports .btn-secondary {
+    background: #fff;
+    color: var(--teal-d);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    min-height: 34px;
+    font-weight: 600;
+    box-shadow: none;
+}
+
+.list-page .list-exports .btn:hover,
+.list-page .list-exports .btn:focus,
+.list-page .list-exports .btn-success:hover,
+.list-page .list-exports .btn-secondary:hover {
+    background: var(--mint);
+    color: var(--teal-d);
+    transform: none;
+    box-shadow: none;
+}
+
+.list-alert {
+    background: var(--clay-l);
+    color: #8A3B1C;
+    border: 1px solid #E7C8B6;
+    border-radius: 10px;
+    padding: 11px 13px;
+    margin-bottom: 14px;
+    font-size: 14px;
+}
+
+.list-table-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: 0 1px 2px rgba(27, 42, 51, 0.05);
+    overflow: hidden;
+}
+
+.list-table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.list-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 720px;
+    background: var(--card);
+}
+
+.list-page .list-table th,
+.list-page .list-table td {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.list-page .list-table th {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    font-weight: 650;
+    background: #FBFCFB;
+}
+
+.list-page .list-table td {
+    color: var(--ink);
+    font-size: 14px;
+}
+
+.list-page .list-table tbody tr:hover td {
+    background: rgba(227, 238, 234, 0.45);
+}
+
+.list-page .list-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.list-page .list-table tr.list-filter-row th {
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 400;
+    background: #fff;
+    padding-top: 0;
+    padding-bottom: 10px;
+}
+
+.list-page .list-table tr.list-filter-row .list-input {
+    height: 34px;
+    font-size: 14px;
+    min-width: 7rem;
+}
+
+.list-page .list-row-attention td {
+    background: var(--clay-l);
+}
+
+.list-page .list-row-attention:hover td {
+    background: #f3ddd0;
+}
+
+.list-actions-cell {
+    white-space: normal !important;
+    min-width: 8.25rem;
+}
+
+.list-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+}
+
+.list-page .list-actions .btn {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.list-inline-form {
+    display: block;
+    width: 100%;
+    margin: 0;
+}
+
+.tk-chip {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-weight: 650;
+    font-size: 12px;
+    line-height: 1.45;
+    letter-spacing: 0.01em;
+    background: #EEF0F2;
+    color: #3D4A52;
+    white-space: nowrap;
+}
+
+.tk-chip-on,
+.tk-chip-initialised,
+.tk-chip-in_progress,
+.tk-chip-closed,
+.tk-chip-product_received,
+.tk-chip-product_forwarded_to_client,
+.tk-chip-product_shipped_back_to_seller {
+    background: var(--mint);
+    color: var(--teal-d);
+}
+
+.tk-chip-off,
+.tk-chip-product_ordered {
+    background: var(--clay-l);
+    color: #8A3B1C;
+}
+
+.tk-chip-locked,
+.tk-chip-cancelled {
+    background: var(--err-bg);
+    color: var(--err);
+}
+
+.tk-chip-archived {
+    background: #EEF0F2;
+    color: #3D4A52;
+}
+
+.list-muted {
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.list-id-clip {
+    display: inline-block;
+    max-width: 7.5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: bottom;
+}
+
+.list-empty {
+    text-align: center;
+    padding: 28px 16px;
+    color: var(--muted);
+}
+
+.list-empty p {
+    margin: 0;
+    color: var(--muted);
+}
+
+.list-page .list-empty-row td {
+    border-bottom: none;
+    white-space: normal;
+}
+
+.list-pagination {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 12px 0;
+}
+
+.list-toolbar .list-pagination {
+    margin: 0;
+    flex: 1 1 280px;
+}
+
+.list-pagination-summary {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.list-pagination-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
+.list-page-link,
+.list-page-indicator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--teal-d);
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+a.list-page-link:hover,
+a.list-page-link:focus {
+    background: var(--mint);
+    color: var(--teal-d);
+}
+
+.list-page-link.is-disabled {
+    color: var(--muted);
+    background: var(--paper);
+    border-color: var(--line);
+    cursor: not-allowed;
+}
+
+.list-page-indicator {
+    background: var(--mint);
+    border-color: transparent;
+    color: var(--teal-d);
+}
+
+/* Shops still uses client-side DataTables; keep it inside the same tokens. */
+.list-page .dataTables_wrapper {
+    color: var(--ink);
+    font-size: 14px;
+}
+
+.list-page .dataTables_wrapper .dataTables_length,
+.list-page .dataTables_wrapper .dataTables_filter,
+.list-page .dataTables_wrapper .dataTables_info {
+    color: var(--muted);
+    padding: 12px 12px 0;
+}
+
+.list-page .dataTables_wrapper .dataTables_filter input,
+.list-page .dataTables_wrapper .dataTables_length select {
+    border: 1px solid #9AA6AD;
+    border-radius: 10px;
+    padding: 6px 10px;
+    background: #fff;
+    color: var(--ink);
+    font-family: inherit;
+    margin-left: 8px;
+}
+
+.list-page .dataTables_wrapper .dataTables_filter input:focus,
+.list-page .dataTables_wrapper .dataTables_length select:focus {
+    border-color: var(--teal);
+    outline: 3px solid rgba(31, 95, 91, 0.25);
+    outline-offset: 0;
+}
+
+.list-page .dataTables_wrapper .dataTables_paginate {
+    padding: 8px 12px 12px;
+}
+
+.list-page .dataTables_wrapper .dataTables_paginate .paginate_button {
+    border-radius: 10px !important;
+    border: 1px solid var(--line) !important;
+    background: #fff !important;
+    color: var(--teal-d) !important;
+    font-weight: 600;
+}
+
+.list-page .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.list-page .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+    background: var(--mint) !important;
+    border-color: transparent !important;
+    color: var(--teal-d) !important;
+}
+
+.list-page .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: var(--mint) !important;
+    color: var(--teal-d) !important;
+    border-color: transparent !important;
+}
+
+.list-page .dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+.list-page .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover {
+    color: var(--muted) !important;
+    background: var(--paper) !important;
+    border-color: var(--line) !important;
+}
+
+/* Bootstrap 5 DataTables builds .page-item/.page-link instead of .paginate_button.current */
+.list-page .dataTables_wrapper .pagination {
+    gap: 6px;
+    margin: 0;
+}
+
+.list-page .dataTables_wrapper .page-item .page-link {
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--teal-d);
+    font-weight: 600;
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    box-shadow: none;
+}
+
+.list-page .dataTables_wrapper .page-item.active .page-link,
+.list-page .dataTables_wrapper .page-item.active .page-link:hover {
+    background: var(--mint);
+    border-color: transparent;
+    color: var(--teal-d);
+}
+
+.list-page .dataTables_wrapper .page-item .page-link:hover {
+    background: var(--mint);
+    color: var(--teal-d);
+    border-color: transparent;
+}
+
+.list-page .dataTables_wrapper .page-item.disabled .page-link {
+    color: var(--muted);
+    background: var(--paper);
+    border-color: var(--line);
+}
+
+/* Desktop: fit server-paged tables inside the card so Updated By and the
+   action labels stay fully visible. Shops keeps a second filter row.
+   Action cells are not sticky, so they cannot cover a header. */
+@media (min-width: 1100px) {
+    .list-page .list-table:not(:has(tr.list-filter-row)) {
+        table-layout: fixed;
+        min-width: 0;
+        width: 100%;
+    }
+
+    .list-page .list-table:not(:has(tr.list-filter-row)) th,
+    .list-page .list-table:not(:has(tr.list-filter-row)) td {
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+    .list-page .list-table:not(:has(tr.list-filter-row)) th:last-child,
+    .list-page .list-table:not(:has(tr.list-filter-row)) td.list-actions-cell {
+        width: 9rem;
+    }
+}
+
+@media (max-width: 720px) {
+    .list-page-header {
+        align-items: stretch;
+    }
+
+    .list-page-header > .btn {
+        width: 100%;
+    }
+
+    .list-filter-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .list-filter-actions,
+    .list-filters-inline .list-filter-actions {
+        justify-content: stretch;
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .list-filter-actions .btn {
+        flex: 1 1 8rem;
+    }
+
+    .list-filters-inline {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .list-pagination {
+        align-items: flex-start;
     }
 }

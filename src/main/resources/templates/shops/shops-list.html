@@ -8,92 +8,125 @@
 </head>
 
 <body>
-<main>
+<main class="list-page">
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 th:text="#{ui.shops.12a5}">Shops</h2>
-        <a th:href="@{/shops/add}" class="btn btn-primary mb-3" th:text="#{ui.add_shop.8713}">Add Shop</a>
-    </div>
+    <header class="list-page-header">
+        <h1 id="shops-heading" th:text="#{ui.shops.12a5}">Shops</h1>
+        <a th:href="@{/shops/add}" class="btn btn-tk-primary" th:text="#{ui.add_shop.8713}">Add Shop</a>
+    </header>
 
     <form sec:authorize="hasRole('ADMIN')"
           method="get"
           th:action="@{/shops}"
-          class="mb-3 d-flex align-items-center gap-2">
-        <div class="form-check">
-            <input class="form-check-input"
-                   type="checkbox"
+          class="list-filters list-filters-inline">
+        <div class="list-check">
+            <input type="checkbox"
                    name="showDeactivated"
                    value="true"
                    id="showDeactivatedShops"
                    th:checked="${showDeactivated}"/>
-            <label class="form-check-label" for="showDeactivatedShops"
+            <label for="showDeactivatedShops"
                    th:text="#{ui.show_deactivated_shops.s1a2}">Show deactivated shops</label>
         </div>
-        <button type="submit" class="btn btn-sm btn-outline-secondary" th:text="#{ui.apply_filter.b9c0}">Apply</button>
+        <div class="list-filter-actions">
+            <button type="submit" class="btn btn-sm btn-tk-primary" th:text="#{ui.apply_filter.b9c0}">Apply</button>
+            <a th:href="@{/shops}" class="btn btn-sm btn-tk-outline" th:text="#{list.filter.reset}">Reset</a>
+        </div>
     </form>
 
-    <div id="export-buttons-shops" class="mb-3"></div>
+    <div class="list-toolbar">
+        <div id="export-buttons-shops" class="list-exports">
+            <button type="button" class="btn btn-sm btn-tk-outline"
+                    onclick="exportExcel('shopsTable', 'shopsTable.xlsx')"
+                    th:text="#{list.export.excel}">Export Excel</button>
+            <button type="button" class="btn btn-sm btn-tk-outline"
+                    onclick="exportCSV('shopsTable', 'shopsTable.csv')"
+                    th:text="#{list.export.csv}">Export CSV</button>
+        </div>
+    </div>
 
-    <table id="shopsTable" class="table table-striped">
-        <thead>
-        <tr>
-            <th class="sortable">#</th>
-            <th class="sortable" th:text="#{ui.name.49ee}">Name</th>
-            <th class="sortable" th:text="#{ui.country.5971}">Country</th>
-            <th sec:authorize="hasRole('ADMIN')" class="sortable" th:text="#{ui.active.4d3d}">Active</th>
-            <th sec:authorize="hasRole('ADMIN')" class="sortable" th:text="#{ui.updated_by.eb4d}">Updated By</th>
-            <th th:text="#{ui.actions.06df}">Actions</th>
-        </tr>
-        <tr>
-            <th><input class="form-control form-control-sm column-filter" placeholder="Search #"></th>
-            <th><input class="form-control form-control-sm column-filter" placeholder="Search Name" th:placeholder="#{ui.search_name.7c48}"></th>
-            <th><input class="form-control form-control-sm column-filter" placeholder="Search Country" th:placeholder="#{ui.search_country.08b5}"></th>
-            <th sec:authorize="hasRole('ADMIN')"><input class="form-control form-control-sm column-filter" placeholder="Search active" th:placeholder="#{ui.search_active.bbf9}"></th>
-            <th sec:authorize="hasRole('ADMIN')"><input class="form-control form-control-sm column-filter" placeholder="Search Updated" th:placeholder="#{ui.search_updated.6899}"></th>
-            <th></th>
-        </tr>
-        </thead>
+    <div class="list-empty" th:if="${#lists.isEmpty(shops)}">
+        <p th:text="#{list.empty}">No records found.</p>
+    </div>
 
-        <tbody>
-        <tr th:each="s : ${shops}">
-            <td th:text="${s.number}"></td>
-            <td th:text="${s.name}"></td>
-            <td th:text="${s.country.getDisplayName()}"></td>
-            <td sec:authorize="hasRole('ADMIN')">
-                <span th:text="${s.active ? 'Yes' : 'No'}"></span>
-            </td>
-            <td sec:authorize="hasRole('ADMIN')" th:text="${s.updatedByUser}"></td>
-            <td>
-                <a th:if="${s.active}"
-                   th:href="@{'/shops/edit/' + ${s.id}}" class="btn btn-warning btn-sm" th:text="#{ui.edit.7dce}">Edit</a>
+    <div class="list-table-card" th:unless="${#lists.isEmpty(shops)}">
+        <div class="list-table-scroll">
+            <table id="shopsTable" class="list-table" aria-labelledby="shops-heading"
+                   th:attr="data-dt-search=#{list.datatable.search},
+                            data-dt-length=#{list.datatable.length},
+                            data-dt-info=#{list.datatable.info},
+                            data-dt-info-empty=#{list.datatable.infoEmpty},
+                            data-dt-info-filtered=#{list.datatable.infoFiltered},
+                            data-dt-zero=#{list.datatable.zeroRecords},
+                            data-dt-empty=#{list.datatable.emptyTable},
+                            data-dt-previous=#{list.datatable.previous},
+                            data-dt-next=#{list.datatable.next}">
+                <thead>
+                <tr>
+                    <th scope="col" class="sortable" th:text="#{list.col.number}">#</th>
+                    <th scope="col" class="sortable" th:text="#{ui.name.49ee}">Name</th>
+                    <th scope="col" class="sortable" th:text="#{ui.country.5971}">Country</th>
+                    <th scope="col" sec:authorize="hasRole('ADMIN')" class="sortable" th:text="#{ui.active.4d3d}">Active</th>
+                    <th scope="col" sec:authorize="hasRole('ADMIN')" class="sortable" th:text="#{ui.updated_by.eb4d}">Updated By</th>
+                    <th scope="col" th:text="#{ui.actions.06df}">Actions</th>
+                </tr>
+                <tr class="list-filter-row">
+                    <th><input class="list-input column-filter" th:placeholder="#{list.filter.searchNumber}" th:attr="aria-label=#{list.filter.searchNumber}"></th>
+                    <th><input class="list-input column-filter" th:placeholder="#{ui.search_name.7c48}" th:attr="aria-label=#{ui.search_name.7c48}"></th>
+                    <th><input class="list-input column-filter" th:placeholder="#{ui.search_country.08b5}" th:attr="aria-label=#{ui.search_country.08b5}"></th>
+                    <th sec:authorize="hasRole('ADMIN')"><input class="list-input column-filter" th:placeholder="#{ui.search_active.bbf9}" th:attr="aria-label=#{ui.search_active.bbf9}"></th>
+                    <th sec:authorize="hasRole('ADMIN')"><input class="list-input column-filter" th:placeholder="#{ui.search_updated.6899}" th:attr="aria-label=#{ui.search_updated.6899}"></th>
+                    <th></th>
+                </tr>
+                </thead>
 
-                <form th:if="${#authorization.expression('hasRole(''ADMIN'')') and s.active}"
-                      th:action="@{'/shops/deactivate/' + ${s.id}}"
-                      method="post" style="display:inline;">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                    <button class="btn btn-sm btn-outline-danger"
-                            type="submit"
-                            th:attr="data-confirm=#{ui.confirm_deactivate_shop.s3b4}"
-                            onclick="return confirm(this.dataset.confirm);"
-                            th:text="#{ui.deactivate_shop.s5c6}">Deactivate</button>
-                </form>
+                <tbody>
+                <tr th:each="s : ${shops}">
+                    <td th:text="${s.number}"></td>
+                    <td th:text="${s.name}"></td>
+                    <td th:text="${s.country.getDisplayName()}"></td>
+                    <td sec:authorize="hasRole('ADMIN')">
+                        <span th:if="${s.active}" class="tk-chip tk-chip-on" th:text="#{ui.yes}">Yes</span>
+                        <span th:unless="${s.active}" class="tk-chip tk-chip-off" th:text="#{ui.no}">No</span>
+                    </td>
+                    <td sec:authorize="hasRole('ADMIN')" th:text="${s.updatedByUser}"></td>
+                    <td class="list-actions-cell">
+                        <div class="list-actions">
+                            <a th:if="${s.active}"
+                               th:href="@{'/shops/edit/' + ${s.id}}" class="btn btn-sm btn-tk-clay" th:text="#{ui.edit.7dce}">Edit</a>
 
-                <form th:if="${#authorization.expression('hasRole(''ADMIN'')') and !s.active}"
-                      th:action="@{'/shops/reactivate/' + ${s.id}}"
-                      method="post" style="display:inline;">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                    <button class="btn btn-sm btn-outline-success"
-                            type="submit" th:text="#{ui.reactivate_shop.s7d8}">Reactivate</button>
-                </form>
-            </td>
-        </tr>
-        </tbody>
-    </table>
+                            <form th:if="${#authorization.expression('hasRole(''ADMIN'')') and s.active}"
+                                  th:action="@{'/shops/deactivate/' + ${s.id}}"
+                                  method="post" class="list-inline-form">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                <button class="btn btn-sm btn-tk-danger"
+                                        type="submit"
+                                        th:attr="data-confirm=#{ui.confirm_deactivate_shop.s3b4}"
+                                        onclick="return confirm(this.dataset.confirm);"
+                                        th:text="#{ui.deactivate_shop.s5c6}">Deactivate</button>
+                            </form>
 
-    <script>
+                            <form th:if="${#authorization.expression('hasRole(''ADMIN'')') and !s.active}"
+                                  th:action="@{'/shops/reactivate/' + ${s.id}}"
+                                  method="post" class="list-inline-form">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                <button class="btn btn-sm btn-tk-mint"
+                                        type="submit" th:text="#{ui.reactivate_shop.s7d8}">Reactivate</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script th:if="${!#lists.isEmpty(shops)}">
         document.addEventListener("DOMContentLoaded", function() {
+            if (!document.getElementById("shopsTable")) {
+                return;
+            }
             initDataTable("shopsTable");
-            attachExportButtons("export-buttons-shops", "shopsTable");
         });
     </script>
 

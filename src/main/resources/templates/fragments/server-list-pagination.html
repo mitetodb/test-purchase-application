@@ -2,32 +2,40 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 <!--
-  Server-side list pagination. Expects model attributes: filter (query params), and a Page<?> as "listPage".
-  Caller sets th:with="listPage=${purchasePage}" etc. before include, or passes page directly.
+  Server-side list pagination. Caller passes the Page and the list path.
+  Links copy the current request query (sort, showArchived, and every other
+  filter) and only replace page and size. listPath is the fallback path.
 -->
 <nav th:fragment="serverPagination(page, listPath)"
-     class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3 mb-2"
-     th:if="${page != null and page.totalElements > 0}">
-    <p class="text-muted mb-0 small"
+     class="list-pagination"
+     th:if="${page != null and page.totalElements > 0}"
+     th:attr="aria-label=#{list.pagination.nav}"
+     th:with="keptSort=${#ctx.containsVariable('listSort') ? listSort : null}">
+    <p class="list-pagination-summary"
        th:text="#{list.pagination.summary(${page.number + 1}, ${page.totalPages}, ${page.totalElements})}">
         Page 1 of 1 (0 items)
     </p>
-    <ul class="pagination pagination-sm mb-0" th:if="${page.totalPages > 1}">
-        <li class="page-item" th:classappend="${page.first} ? 'disabled'">
-            <a class="page-link"
-               th:href="@{${listPath}(page=${page.number - 1}, size=${page.size}, status=${filter.status}, customerId=${filter.customerId}, createdFrom=${filter.createdFrom}, createdTo=${filter.createdTo}, mysteryShopperId=${filter.mysteryShopperId}, name=${filter.name}, category=${filter.category}, country=${filter.country}, showDeactivated=${filter.showDeactivated}, role=${filter.role}, active=${filter.active}, username=${filter.username})}"
-               th:text="#{list.pagination.previous}">Previous</a>
-        </li>
-        <li class="page-item disabled">
-            <span class="page-link"
-                  th:text="#{list.pagination.pageIndicator(${page.number + 1}, ${page.totalPages})}">1 / 1</span>
-        </li>
-        <li class="page-item" th:classappend="${page.last} ? 'disabled'">
-            <a class="page-link"
-               th:href="@{${listPath}(page=${page.number + 1}, size=${page.size}, status=${filter.status}, customerId=${filter.customerId}, createdFrom=${filter.createdFrom}, createdTo=${filter.createdTo}, mysteryShopperId=${filter.mysteryShopperId}, name=${filter.name}, category=${filter.category}, country=${filter.country}, showDeactivated=${filter.showDeactivated}, role=${filter.role}, active=${filter.active}, username=${filter.username})}"
-               th:text="#{list.pagination.next}">Next</a>
-        </li>
-    </ul>
+    <div class="list-pagination-controls" th:if="${page.totalPages > 1}">
+        <a class="list-page-link"
+           th:unless="${page.first}"
+           th:href="${@listPaginationLinks.href(listPath, page.number - 1, page.size, keptSort)}"
+           th:text="#{list.pagination.previous}">Previous</a>
+        <span class="list-page-link is-disabled"
+              th:if="${page.first}"
+              aria-disabled="true"
+              th:text="#{list.pagination.previous}">Previous</span>
+        <span class="list-page-indicator"
+              aria-current="page"
+              th:text="#{list.pagination.pageIndicator(${page.number + 1}, ${page.totalPages})}">1 / 1</span>
+        <a class="list-page-link"
+           th:unless="${page.last}"
+           th:href="${@listPaginationLinks.href(listPath, page.number + 1, page.size, keptSort)}"
+           th:text="#{list.pagination.next}">Next</a>
+        <span class="list-page-link is-disabled"
+              th:if="${page.last}"
+              aria-disabled="true"
+              th:text="#{list.pagination.next}">Next</span>
+    </div>
 </nav>
 </body>
 </html>
