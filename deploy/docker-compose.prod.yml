@@ -99,11 +99,12 @@ services:
       MONITORING_ALERT_CRON: "${MONITORING_ALERT_CRON:-0 */5 * * * ?}"
     volumes:
       - uploads:/app/uploads
-      # Optional read-only mounts when MONITORING_BACKUP_CHECK_ENABLED=true (set host paths on the server; match container paths in MONITORING_* env):
-      # - ${HOST_BACKUP_MARKER:-/path/on/host/backup-last-success.timestamp}:/var/lib/testkauf/backup-last-success.timestamp:ro
-      #   → MONITORING_BACKUP_MARKER_PATH=/var/lib/testkauf/backup-last-success.timestamp
-      # - ${HOST_BACKUP_SCAN_DIR:-/path/on/host/mysql-backups}:/var/lib/testkauf/backup-scan:ro
-      #   → MONITORING_BACKUP_SCAN_DIRECTORY=/var/lib/testkauf/backup-scan
+      # Host backup files are not mounted. Leave the examples below commented.
+      # Uncomment only when MONITORING_BACKUP_CHECK_ENABLED is intentionally true.
+      # Container paths must match MONITORING_BACKUP_MARKER_PATH and
+      # MONITORING_BACKUP_SCAN_DIRECTORY (paths inside the app container).
+      # - /path/on/host/backup-last-success.timestamp:/var/lib/testkauf/backup-last-success.timestamp:ro
+      # - /root/testkauf-backups/mysql:/var/lib/testkauf/backup-scan:ro
     depends_on:
       db: { condition: service_healthy }
       pricing-svc: { condition: service_healthy }
