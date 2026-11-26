@@ -12,16 +12,16 @@ This does not install cron, logrotate, or a health-check hook. It does not copy 
 | --- | --- | --- | --- |
 | Database `test_purchase_db` | MySQL service `db` in `deploy/docker-compose.prod.yml` | `deploy/backup-mysql.sh` | `/root/testkauf-backups/mysql/test_purchase_db-YYYYMMDD-HHMMSS.sql.gz` |
 | Database `pricedb` | same server | `deploy/backup-mysql.sh` | `/root/testkauf-backups/mysql/pricedb-YYYYMMDD-HHMMSS.sql.gz` |
-| Uploaded files | Docker volume `testkauf_uploads`, mounted at `/app/uploads` in the app container | `deploy/backup-uploads.sh` | `/root/testkauf-backups/uploads/uploads-YYYYMMDD-HHMMSS.tar.gz` and a sibling `.sha256` file |
+| Uploaded files | Docker volume `testkauf_uploads`, mounted at `/app/uploads` in the app container | `deploy/backup-uploads.sh` | `/root/testkauf-backups/uploads/uploads-YYYYMMDD-HHMMSS-<suffix>.tar.gz` and a sibling `.sha256` file |
 
 The uploads read uses a one-off container. The volume is mounted read-only, so the app is not stopped and the backup process cannot change live files:
 
 ```bash
 docker run --rm -v testkauf_uploads:/data:ro -v /root/testkauf-backups/uploads:/backup alpine:3.20 \
-  tar -czf /backup/uploads-YYYYMMDD-HHMMSS.tar.gz.partial -C /data .
+  tar -czf /backup/uploads-YYYYMMDD-HHMMSS-<suffix>.tar.gz.partial -C /data .
 ```
 
-The script writes that archive as `uploads-YYYYMMDD-HHMMSS.tar.gz.partial` and the checksum as `uploads-YYYYMMDD-HHMMSS.tar.gz.sha256.partial` (mode 600, `umask 077`). It runs `gzip -t`, `tar -tzf`, and `sha256sum -c` on those temp names. Only after all three succeed does it rename them to `uploads-YYYYMMDD-HHMMSS.tar.gz` and `.sha256` (the checksum line is rewritten to the final file name). A failure deletes the temps, appends FAILED, and exits non-zero, with no final archive left from that run. Timestamps are UTC. A non-blocking `flock` on `BACKUP_DIR/.lock` refuses a second run while one is still going.
+The script writes that archive as `uploads-YYYYMMDD-HHMMSS-<suffix>.tar.gz.partial` and the checksum as `uploads-YYYYMMDD-HHMMSS-<suffix>.tar.gz.sha256.partial` (mode 600, `umask 077`). `<suffix>` is 6 hex characters (or `BACKUP_NAME_SUFFIX` in the harness) so two starts in the same UTC second get different names. It runs `gzip -t`, `tar -tzf`, and `sha256sum -c` on those temp names. Only after all three succeed does it rename them to the final `.tar.gz` and `.sha256` (the checksum line is rewritten to the final file name). A failure deletes only paths this run created, appends FAILED, and exits non-zero. A final archive from an earlier run is not removed. If the chosen final name already exists, the run refuses it and deletes nothing. A non-blocking `flock` on `BACKUP_DIR/.lock` refuses a second run while one is still going.
 
 Passwords stay in `deploy/.env` on the server (mode 600). `deploy/backup-uploads.sh` does not read that file. Do not commit `.env`, checksums of production archives, or backup files.
 
@@ -36,7 +36,7 @@ A leftover `uploads-*.partial` older than one day is removed the same way (`-max
 
 ## Visible failure
 
-Each uploads run appends one status line to `/var/log/testkauf-backup.log` and rewrites `/root/testkauf-backups/LAST_STATUS` with the same line. If the log file is missing, the script creates it mode 640. An existing log file is left at its current mode. The logrotate example uses `copytruncate` and `create 640 root adm`, so a rotated file stays 640.
+Each uploads run appends one status line to `/var/log/testkauf-backup.log` and rewrites `/root/testkauf-backups/LAST_STATUS` with the same line. The script creates the log mode 640 if it is missing, and chmods it to 640 if it already exists. The logrotate example uses `copytruncate` and `create 640 root adm`, so a rotated file stays 640.
 
 Success:
 
@@ -315,6 +315,21 @@ gzip: forced failure for drill
 ```
 
 The volume was removed after this check.
+
+## Harness
+
+`deploy/tests/test-backup-uploads.sh` builds a demo Docker volume (one text file), runs `deploy/backup-uploads.sh`, and deletes the volume when it exits. It checks:
+
+- a successful backup (`sha256sum -c`, no `.partial` left, log mode 640 even if the file already existed)
+- two runs forced into the same UTC second with different suffixes (both archives stay, first checksum still OK)
+- a second run that picks the same final name (non-zero exit, first archive bytes and checksum unchanged, no `.partial` left)
+- a forced `gzip -t` failure (non-zero exit, temps removed, earlier archives still verify)
+
+Docker must be running. Nothing is installed.
+
+```bash
+deploy/tests/test-backup-uploads.sh
+```
 
 ## Install on the server (operator, not this change)
 

@@ -5,13 +5,16 @@
 # The archive and its sha256 file are written under temp names in BACKUP_DIR.
 # gzip -t, tar -tzf, and sha256sum -c must pass before those temps are renamed
 # to the final uploads-YYYYMMDD-HHMMSS.tar.gz and .sha256 names. A failure
-# deletes the temps, writes FAILED, and exits non-zero. No final name is left behind.
+# deletes only the temp files this run created, writes FAILED, and exits non-zero.
+# A final name this run did not publish is never removed.
+# Each run adds a short unique suffix so two starts in the same UTC second
+# do not share a path. An existing final archive is refused, not overwritten.
 #
 # Defaults match the live MySQL job (deploy/backup-mysql.sh stays MySQL-only):
 #   volume testkauf_uploads
 #   directory /root/testkauf-backups/uploads
 #   retention 14 days (find -maxdepth 1 -mtime +N)
-#   log /var/log/testkauf-backup.log (created mode 640 if missing)
+#   log /var/log/testkauf-backup.log (mode 640, created if missing)
 #
 # This file is not installed by deploy/server-setup.sh. Cron example: docs/backup-restore.md.
 #
@@ -23,6 +26,7 @@
 #   STATUS_FILE         one-line OK/FAILED status (default /root/testkauf-backups/LAST_STATUS)
 #   BACKUP_HEALTH_URL   optional health-check URL; empty = no HTTP call
 #   ALPINE_IMAGE        image used only to read the volume (default alpine:3.20)
+#   BACKUP_NAME_SUFFIX  optional name suffix (tests). Default: 6 hex chars.
 set -euo pipefail
 umask 077
 
@@ -38,21 +42,26 @@ TMP_CHECKSUM=""
 FINAL_ARCHIVE=""
 FINAL_CHECKSUM=""
 PUBLISHED=0
+# Paths this run created. Failure cleanup deletes only these.
+CREATED=()
 
 utc_now() {
   date -u +"%Y-%m-%dT%H:%M:%SZ"
 }
 
-# Create the log only when it is missing, mode 640 (rw-r-----).
-# An existing file keeps whatever mode the operator or logrotate already set.
+# Mode 640 (rw-r-----) whether the log is new or already present.
 ensure_log_file() {
   local dir
   dir="$(dirname "$LOG_FILE")"
   mkdir -p -- "$dir"
   if [[ ! -e "$LOG_FILE" ]]; then
     : >"$LOG_FILE"
-    chmod 640 "$LOG_FILE"
   fi
+  chmod 640 "$LOG_FILE"
+}
+
+note_created() {
+  CREATED+=("$1")
 }
 
 # One line a monitor can grep: "<UTC> OK ..." or "<UTC> FAILED ...".
@@ -77,21 +86,21 @@ write_status_file() {
   chmod 600 "$STATUS_FILE"
 }
 
-# Temps are always removed. Final names are removed unless publish finished.
+# Remove only files this run created. After a successful publish, keep them.
+# Never touch a final archive chosen but not created by this run.
 cleanup_incomplete() {
   local f
-  for f in "$TMP_ARCHIVE" "$TMP_CHECKSUM"; do
+  if [[ "$PUBLISHED" == 1 ]]; then
+    return 0
+  fi
+  if [[ "${#CREATED[@]}" -eq 0 ]]; then
+    return 0
+  fi
+  for f in "${CREATED[@]}"; do
     if [[ -n "$f" && -e "$f" ]]; then
       rm -f -- "$f"
     fi
   done
-  if [[ "$PUBLISHED" != 1 ]]; then
-    for f in "$FINAL_ARCHIVE" "$FINAL_CHECKSUM"; do
-      if [[ -n "$f" && -e "$f" ]]; then
-        rm -f -- "$f"
-      fi
-    done
-  fi
 }
 
 finish_failure() {
@@ -164,17 +173,30 @@ if ! docker volume inspect "$UPLOADS_VOLUME" >/dev/null 2>&1; then
 fi
 
 ts="$(date -u +%Y%m%d-%H%M%S)"
-FINAL_ARCHIVE="${BACKUP_DIR}/uploads-${ts}.tar.gz"
+if [[ -n "${BACKUP_NAME_SUFFIX:-}" ]]; then
+  if [[ ! "$BACKUP_NAME_SUFFIX" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$ ]]; then
+    die "BACKUP_NAME_SUFFIX has unexpected characters"
+  fi
+  suffix="$BACKUP_NAME_SUFFIX"
+else
+  suffix="$(od -An -N3 -tx1 /dev/urandom | tr -d ' \n')"
+fi
+if [[ -z "$suffix" ]]; then
+  die "could not build a unique archive suffix"
+fi
+FINAL_ARCHIVE="${BACKUP_DIR}/uploads-${ts}-${suffix}.tar.gz"
 FINAL_CHECKSUM="${FINAL_ARCHIVE}.sha256"
-TMP_ARCHIVE="${BACKUP_DIR}/uploads-${ts}.tar.gz.partial"
-TMP_CHECKSUM="${BACKUP_DIR}/uploads-${ts}.tar.gz.sha256.partial"
+TMP_ARCHIVE="${BACKUP_DIR}/uploads-${ts}-${suffix}.tar.gz.partial"
+TMP_CHECKSUM="${BACKUP_DIR}/uploads-${ts}-${suffix}.tar.gz.sha256.partial"
 
+# Refuse before creating anything, so cleanup has no path to delete.
 if [[ -e "$FINAL_ARCHIVE" || -e "$FINAL_CHECKSUM" || -e "$TMP_ARCHIVE" || -e "$TMP_CHECKSUM" ]]; then
-  die "refusing to overwrite existing archive for ${ts}"
+  die "refusing to overwrite existing archive ${FINAL_ARCHIVE}"
 fi
 
 # Read-only volume mount: no app stop, no write into the live uploads.
 # The container writes the temp name only. The final name does not exist yet.
+note_created "$TMP_ARCHIVE"
 docker run --rm \
   -v "${UPLOADS_VOLUME}:/data:ro" \
   -v "${BACKUP_DIR}:/backup" \
@@ -184,6 +206,7 @@ docker run --rm \
 chmod 600 "$TMP_ARCHIVE"
 gzip -t "$TMP_ARCHIVE"
 tar -tzf "$TMP_ARCHIVE" >/dev/null
+note_created "$TMP_CHECKSUM"
 (
   cd -- "$BACKUP_DIR"
   sha256sum "$(basename "$TMP_ARCHIVE")" > "$(basename "$TMP_CHECKSUM")"
@@ -195,6 +218,7 @@ chmod 600 "$TMP_CHECKSUM"
 digest="$(awk 'NR==1 { print $1 }' "$TMP_CHECKSUM")"
 mv -- "$TMP_ARCHIVE" "$FINAL_ARCHIVE"
 TMP_ARCHIVE=""
+note_created "$FINAL_ARCHIVE"
 printf '%s  %s\n' "$digest" "$(basename "$FINAL_ARCHIVE")" >"$TMP_CHECKSUM"
 chmod 600 "$TMP_CHECKSUM"
 (
@@ -203,6 +227,7 @@ chmod 600 "$TMP_CHECKSUM"
 )
 mv -- "$TMP_CHECKSUM" "$FINAL_CHECKSUM"
 TMP_CHECKSUM=""
+note_created "$FINAL_CHECKSUM"
 PUBLISHED=1
 
 remove_expired() {
