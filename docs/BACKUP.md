@@ -231,7 +231,15 @@ Log success lines with ISO timestamps; any failure must trigger alerting (sectio
 
 3. **Restore pricing database** (same pattern, database name `pricedb`).
 
-4. **Restore uploads volume** (destructive — replaces current files):
+4. **Restore uploads volume** (replaces current files). The archive is `uploads-YYYYMMDD-HHMMSS-xxxxxx.tar.gz` with a sibling `.sha256`. Verify first:
+
+   ```bash
+   LATEST=$(ls -1t /root/testkauf-backups/uploads/uploads-*.tar.gz | head -n1)
+   cd /root/testkauf-backups/uploads
+   sha256sum --strict -c "$(basename "$LATEST").sha256"
+   ```
+
+   Wipe the volume only after that command exits 0. Put the basename of `$LATEST` in place of `uploads-YYYYMMDD-HHMMSS-xxxxxx.tar.gz`.
 
    ```bash
    docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env stop app
@@ -239,7 +247,7 @@ Log success lines with ISO timestamps; any failure must trigger alerting (sectio
      -v testkauf_uploads:/data \
      -v /root/testkauf-backups/uploads:/backup:ro \
      alpine:3.20 \
-     sh -c 'find /data -mindepth 1 -maxdepth 1 -exec rm -rf {} + && tar -xzf /backup/uploads-YYYYMMDD-HHMMSS.tar.gz -C /data'
+     sh -c 'find /data -mindepth 1 -maxdepth 1 -exec rm -rf {} + && tar -xzf /backup/uploads-YYYYMMDD-HHMMSS-xxxxxx.tar.gz -C /data'
    ```
 
 5. **Start services:**

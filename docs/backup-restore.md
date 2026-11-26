@@ -12,16 +12,16 @@ This does not install cron, logrotate, or a health-check hook. It does not copy 
 | --- | --- | --- | --- |
 | Database `test_purchase_db` | MySQL service `db` in `deploy/docker-compose.prod.yml` | `deploy/backup-mysql.sh` | `/root/testkauf-backups/mysql/test_purchase_db-YYYYMMDD-HHMMSS.sql.gz` |
 | Database `pricedb` | same server | `deploy/backup-mysql.sh` | `/root/testkauf-backups/mysql/pricedb-YYYYMMDD-HHMMSS.sql.gz` |
-| Uploaded files | Docker volume `testkauf_uploads`, mounted at `/app/uploads` in the app container | `deploy/backup-uploads.sh` | `/root/testkauf-backups/uploads/uploads-YYYYMMDD-HHMMSS-<suffix>.tar.gz` and a sibling `.sha256` file |
+| Uploaded files | Docker volume `testkauf_uploads`, mounted at `/app/uploads` in the app container | `deploy/backup-uploads.sh` | `/root/testkauf-backups/uploads/uploads-YYYYMMDD-HHMMSS-xxxxxx.tar.gz` and a sibling `.sha256` file |
 
 The uploads read uses a one-off container. The volume is mounted read-only, so the app is not stopped and the backup process cannot change live files:
 
 ```bash
 docker run --rm -v testkauf_uploads:/data:ro -v /root/testkauf-backups/uploads:/backup alpine:3.20 \
-  tar -czf /backup/uploads-YYYYMMDD-HHMMSS-<suffix>.tar.gz.partial -C /data .
+  tar -czf /backup/uploads-YYYYMMDD-HHMMSS-xxxxxx.tar.gz.partial -C /data .
 ```
 
-The script writes that archive as `uploads-YYYYMMDD-HHMMSS-<suffix>.tar.gz.partial` and the checksum as `uploads-YYYYMMDD-HHMMSS-<suffix>.tar.gz.sha256.partial` (mode 600, `umask 077`). `<suffix>` is 6 hex characters (or `BACKUP_NAME_SUFFIX` in the harness) so two starts in the same UTC second get different names. It runs `gzip -t`, `tar -tzf`, and `sha256sum -c` on those temp names. Only after all three succeed does it rename them to the final `.tar.gz` and `.sha256` (the checksum line is rewritten to the final file name). A failure deletes only paths this run created, appends FAILED, and exits non-zero. A final archive from an earlier run is not removed. If the chosen final name already exists, the run refuses it and deletes nothing. A non-blocking `flock` on `BACKUP_DIR/.lock` refuses a second run while one is still going.
+The script writes that archive as `uploads-YYYYMMDD-HHMMSS-xxxxxx.tar.gz.partial` and the checksum as `uploads-YYYYMMDD-HHMMSS-xxxxxx.tar.gz.sha256.partial` (mode 600, `umask 077`). `xxxxxx` is 6 hex characters (or `BACKUP_NAME_SUFFIX` in the harness) so two starts in the same UTC second get different names. It runs `gzip -t`, `tar -tzf`, and `sha256sum -c` on those temp names. Only after all three succeed does it rename them to the final `.tar.gz` and `.sha256` (the checksum line is rewritten to the final file name). A failure deletes only paths this run created, appends FAILED, and exits non-zero. A final archive from an earlier run is not removed. If the chosen final name already exists, the run refuses it and deletes nothing. A non-blocking `flock` on `BACKUP_DIR/.lock` refuses a second run while one is still going.
 
 Passwords stay in `deploy/.env` on the server (mode 600). `deploy/backup-uploads.sh` does not read that file. Do not commit `.env`, checksums of production archives, or backup files.
 
@@ -41,7 +41,7 @@ Each uploads run appends one status line to `/var/log/testkauf-backup.log` and r
 Success:
 
 ```text
-2026-11-26T03:25:07Z OK uploads /root/testkauf-backups/uploads/uploads-20261126-032501.tar.gz sha256=<64 hex> size_bytes=<n> hook=off
+2026-11-26T03:25:07Z OK uploads /root/testkauf-backups/uploads/uploads-YYYYMMDD-HHMMSS-xxxxxx.tar.gz sha256=<64 hex> size_bytes=<n> hook=off
 ```
 
 Failure (exit code is the failing command's status, or 1):
@@ -74,27 +74,31 @@ The 03:15 line is the job already described by `deploy/server-setup.sh`. That sc
 
 ## Verify an archive
 
+The uploads archive is `uploads-YYYYMMDD-HHMMSS-xxxxxx.tar.gz`. The checksum file is the same name plus `.sha256`. Check the newest archive first. `sha256sum -c` must print `OK` and exit 0. Do not restore an archive that fails the checksum.
+
 ```bash
+LATEST=$(ls -1t /root/testkauf-backups/uploads/uploads-*.tar.gz | head -n1)
 cd /root/testkauf-backups/uploads
-sha256sum --strict -c uploads-YYYYMMDD-HHMMSS.tar.gz.sha256
-gzip -t uploads-YYYYMMDD-HHMMSS.tar.gz
-tar -tzf uploads-YYYYMMDD-HHMMSS.tar.gz
+sha256sum --strict -c "$(basename "$LATEST").sha256"
+gzip -t "$(basename "$LATEST")"
+tar -tzf "$(basename "$LATEST")"
 gzip -t /root/testkauf-backups/mysql/test_purchase_db-YYYYMMDD-HHMMSS.sql.gz
 gzip -t /root/testkauf-backups/mysql/pricedb-YYYYMMDD-HHMMSS.sql.gz
 ```
-
-`sha256sum -c` must print `OK` and exit 0. Do not restore an archive that fails the checksum.
 
 ## Restore
 
 Practice on a copy first (see the drill below). A production restore replaces database rows and files. Stop writers before the restore. Backup itself does not need a stop.
 
-1. Verify the uploads archive first. This is the command to copy. If it fails, stop. Do not wipe the volume.
+1. Verify the newest uploads archive first. This is the command to copy. If it does not exit 0, stop. Do not wipe the volume.
 
    ```bash
+   LATEST=$(ls -1t /root/testkauf-backups/uploads/uploads-*.tar.gz | head -n1)
    cd /root/testkauf-backups/uploads
-   sha256sum --strict -c uploads-YYYYMMDD-HHMMSS.tar.gz.sha256
+   sha256sum --strict -c "$(basename "$LATEST").sha256"
    ```
+
+   The file is `uploads-YYYYMMDD-HHMMSS-xxxxxx.tar.gz`. The checksum is `uploads-YYYYMMDD-HHMMSS-xxxxxx.tar.gz.sha256`.
 
 2. Stop the app container (leave `db` running). From the repo checkout:
 
@@ -114,15 +118,17 @@ Practice on a copy first (see the drill below). A production restore replaces da
 
 4. Check row counts you care about, for example `SELECT COUNT(*) FROM <table>`.
 
-5. Replace the uploads volume only after step 1 exited 0. This deletes current files in the volume, then extracts the archive:
+5. Replace the uploads volume only after step 1 exited 0. This deletes current files in the volume, then extracts that same archive (`uploads-YYYYMMDD-HHMMSS-xxxxxx.tar.gz`):
 
    ```bash
    docker run --rm \
      -v testkauf_uploads:/data \
      -v /root/testkauf-backups/uploads:/backup:ro \
      alpine:3.20 \
-     sh -c 'find /data -mindepth 1 -delete && tar -xzf /backup/uploads-YYYYMMDD-HHMMSS.tar.gz -C /data'
+     sh -c 'find /data -mindepth 1 -delete && tar -xzf /backup/uploads-YYYYMMDD-HHMMSS-xxxxxx.tar.gz -C /data'
    ```
+
+   Put the basename of `$LATEST` in place of `uploads-YYYYMMDD-HHMMSS-xxxxxx.tar.gz`.
 
 6. Start the app again:
 
@@ -134,7 +140,7 @@ Practice on a copy first (see the drill below). A production restore replaces da
 
 ## Restore drill (synthetic data)
 
-Ran once on this change, on a local Docker engine, not on the production server. Databases and the file below were created for the drill and then removed. No production `.env`, URL, or customer data was used.
+Ran once on this change, on a local Docker engine, not on the production server. Databases and the file below were created for the drill and then removed. No production `.env`, URL, or customer data was used. Current archives are `uploads-YYYYMMDD-HHMMSS-xxxxxx.tar.gz`. The transcript records the filenames that drill wrote. Verify with the newest-archive snippet above.
 
 Date: 2026-11-26, about 09:56 UTC. Docker 29.1.3, images `mysql:8.4` and `alpine:3.20`, on a local engine. Workspace `/tmp/testkauf-drill` (mode 700). The env file held only `MYSQL_ROOT_PASSWORD` for this drill and is not recorded here. The password was not printed. Each `mysql` / `mysqldump` call also printed `mysql: [Warning] Using a password on the command line interface can be insecure.` Those repeated warning lines are omitted below.
 
@@ -348,7 +354,9 @@ UPLOADS_VOLUME=testkauf_uploads \
   /usr/local/bin/testkauf-backup-uploads.sh
 echo "exit=$?"
 cat /root/testkauf-backups/LAST_STATUS
-cd /root/testkauf-backups/uploads && sha256sum --strict -c uploads-*.tar.gz.sha256
+LATEST=$(ls -1t /root/testkauf-backups/uploads/uploads-*.tar.gz | head -n1)
+cd /root/testkauf-backups/uploads
+sha256sum --strict -c "$(basename "$LATEST").sha256"
 ```
 
 If the checkout is not under `/opt/testkauf/test-purchase-application`, use the path that already holds `deploy/backup-mysql.sh`.
