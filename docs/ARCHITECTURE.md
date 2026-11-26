@@ -93,14 +93,15 @@ graph TB
 - **Network**: Internal Docker network only (no published ports)
 - **Users**: Least-privilege users per service
 - **Migrations**: Flyway (main app) for schema versioning
-- **Backups**: Automated nightly backups via `deploy/backup-mysql.sh`
+- **Backups**: Nightly MySQL dumps via `deploy/backup-mysql.sh`. Uploads archive: `deploy/backup-uploads.sh` (phase 1, install separately; see [backup-restore.md](backup-restore.md))
 
 ### 5. Backup System
 
-- **Script**: `deploy/backup-mysql.sh`
-- **Schedule**: Cron (typically 3:15 AM daily)
-- **Location**: `/root/testkauf-backups/`
-- **Format**: Gzipped SQL dumps
+- **MySQL script**: `deploy/backup-mysql.sh` (unchanged contract: both databases, gzip, 14-day retention)
+- **Uploads script**: `deploy/backup-uploads.sh` (read-only volume archive, sha256, OK/FAILED status). Not installed by `server-setup.sh`
+- **Schedule**: MySQL cron 03:15 UTC. Uploads cron example 03:25 UTC in [backup-restore.md](backup-restore.md)
+- **Location**: `/root/testkauf-backups/mysql` and `/root/testkauf-backups/uploads`
+- **Format**: Gzipped SQL dumps and a gzipped tar of the uploads volume
 - **Retention**: 14 days (configurable)
 - **Permissions**: Files created with mode 600 (owner only)
 

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # MySQL backup with rotation for the testkauf compose stack.
+# Uploads are a separate job (deploy/backup-uploads.sh, 03:25 UTC). Keep this file MySQL-only
+# so the existing 03:15 cron line stays backward compatible.
 # Cron example (daily 03:15):  15 3 * * * /opt/testkauf/deploy/backup-mysql.sh >> /var/log/testkauf-backup.log 2>&1
 # Env: BACKUP_DIR (default deploy/backups), RETENTION_DAYS (14), COMPOSE_FILE, ENV_FILE.
 set -euo pipefail

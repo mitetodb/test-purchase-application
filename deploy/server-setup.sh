@@ -56,5 +56,7 @@ nginx -t && systemctl reload nginx
 
 install -m 700 "$APP/deploy/backup-mysql.sh" /usr/local/bin/testkauf-backup-mysql.sh
 CRON="15 3 * * * BACKUP_DIR=/root/testkauf-backups/mysql COMPOSE_FILE=$APP/deploy/docker-compose.prod.yml ENV_FILE=$ENVF /usr/local/bin/testkauf-backup-mysql.sh >> /var/log/testkauf-backup.log 2>&1"
-( crontab -l 2>/dev/null | grep -v testkauf-backup; echo "$CRON" ) | crontab -
+# Refresh only the MySQL line. Do not drop a manually added uploads line (testkauf-backup-uploads.sh).
+( crontab -l 2>/dev/null | grep -v 'testkauf-backup-mysql\.sh'; echo "$CRON" ) | crontab -
+# Uploads backup is not installed here. See docs/backup-restore.md before adding a 03:25 UTC cron line.
 echo "setup done"

@@ -164,8 +164,10 @@ Monitoring (#81) adds **no** new Flyway version — health components are applic
 Existing databases are baselined at v1 automatically (`baseline-on-migrate`), and Hibernate runs with `ddl-auto=validate` in prod.
 If an old database created by `ddl-auto=update` fails validation, start it once with `JPA_DDL_AUTO=none`, then add a corrective `V2__*.sql`.
 
-**Backups:** `deploy/backup-mysql.sh` (mysqldump → gzip, `RETENTION_DAYS=14` rotation, files saved with mode 600). Example cron line:
+**Backups:** `deploy/backup-mysql.sh` (mysqldump, gzip, `RETENTION_DAYS=14` rotation, files saved with mode 600). Example cron line:
 `15 3 * * * /opt/testkauf/test-purchase-application/deploy/backup-mysql.sh >> /var/log/testkauf-backup.log 2>&1`
+
+Uploads (phase 1, not installed by `server-setup.sh`): `deploy/backup-uploads.sh`. See [docs/backup-restore.md](docs/backup-restore.md).
 
 **i18n:** BG / EN / DE message bundles (`messages_*.properties`). Switch the language with the navbar globe menu or `?lang=bg|en|de`; the choice is stored in a cookie.
 
