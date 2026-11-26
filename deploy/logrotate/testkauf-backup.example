@@ -1,9 +1,13 @@
 # Example only. Not installed by this repository.
 # After review, copy to /etc/logrotate.d/testkauf-backup (mode 644).
+# Prod /var/log is 775 root:syslog. Logrotate skips a log in a group-writable
+# directory unless the config names that owner with su. su root syslog matches
+# the directory, so the file is rotated instead of skipped.
 # backup-uploads.sh creates /var/log/testkauf-backup.log mode 640 when it is missing.
-# copytruncate keeps that inode (and its mode). create 640 is the same mode if
-# logrotate has to create the file. No mail directive: prod has no mailer.
+# copytruncate keeps that inode (and its mode). create 640 root adm is the
+# same mode if logrotate has to create the file. No mail directive: prod has no mailer.
 /var/log/testkauf-backup.log {
+    su root syslog
     weekly
     rotate 8
     missingok

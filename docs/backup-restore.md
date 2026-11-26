@@ -36,7 +36,7 @@ A leftover `uploads-*.partial` older than one day is removed the same way (`-max
 
 ## Visible failure
 
-Each uploads run appends one status line to `/var/log/testkauf-backup.log` and rewrites `/root/testkauf-backups/LAST_STATUS` with the same line. The script creates the log mode 640 if it is missing, and chmods it to 640 if it already exists. The logrotate example uses `copytruncate` and `create 640 root adm`, so a rotated file stays 640.
+Each uploads run appends one status line to `/var/log/testkauf-backup.log` and rewrites `/root/testkauf-backups/LAST_STATUS` with the same line. The script creates the log mode 640 if it is missing, and chmods it to 640 if it already exists. The logrotate example uses `su root syslog`, `copytruncate`, and `create 640 root adm`. `su` is required because `/var/log` is 775 root:syslog; without it logrotate skips the file. `copytruncate` keeps the inode and its mode.
 
 Success:
 
@@ -54,7 +54,7 @@ A monitor can alert when `LAST_STATUS` matches ` FAILED ` or when that file is o
 
 `BACKUP_HEALTH_URL` is empty by default and the script does not call the network. If you set it, a successful run sends HTTP GET to that URL (`hook=ok` or `hook=failed` on the OK line). A failed run GETs the URL with `/fail` appended. A hook error does not change the backup result: the archive is still the source of truth, and a successful archive with a dead hook exits 0 with `hook=failed`.
 
-Example logrotate config (not installed): [`deploy/logrotate/testkauf-backup.example`](../deploy/logrotate/testkauf-backup.example). It uses `copytruncate` because both scripts append and there is no daemon to signal.
+Example logrotate config (not installed): [`deploy/logrotate/testkauf-backup.example`](../deploy/logrotate/testkauf-backup.example). It uses `copytruncate` because both scripts append and there is no daemon to signal, and `su root syslog` because `/var/log` is 775 root:syslog.
 
 The MySQL script does not write `LAST_STATUS`. Its cron line already appends stdout to the same log. Leave that job as it is.
 
@@ -368,6 +368,8 @@ install -m 644 \
   /opt/testkauf/test-purchase-application/deploy/logrotate/testkauf-backup.example \
   /etc/logrotate.d/testkauf-backup
 ```
+
+The example includes `su root syslog` because `/var/log` is mode 775 and owned by `root:syslog`. Without `su`, logrotate skips `/var/log/testkauf-backup.log`. `copytruncate` and `create 640 root adm` stay in the file.
 
 Leave `BACKUP_HEALTH_URL` unset until you have a hook you intend to call. Do not put that URL in git.
 
