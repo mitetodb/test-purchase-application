@@ -11,7 +11,7 @@ The live stack runs on shared Hetzner server **baccardi** under **`/opt/testkauf
 - **Never expose MySQL** (or `pricing-svc`) ports on the host.
 - **Before every deploy:** run MySQL backup (`deploy/backup-mysql.sh` or full plan in [BACKUP.md](BACKUP.md)); rollback steps in [ADMIN-OPS.md](ADMIN-OPS.md).
 
-See also: **[Admin & operations](ADMIN-OPS.md)** (rollback, env key names, 2FA recovery).
+See also: **[Admin & operations](ADMIN-OPS.md)** (rollback, env key names, 2FA recovery). Deploy history, newest first: **[Deploy log](DEPLOY-LOG.md)**.
 
 ## Prerequisites
 
