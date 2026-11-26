@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Archive Docker volume uploads (avatars + attachments). Reference only — docs/BACKUP.md.
+# Minimal reference for docs/BACKUP.md. The phase 1 script with retention, sha256,
+# and the OK/FAILED status line is deploy/backup-uploads.sh (see docs/backup-restore.md).
+# Archive Docker volume uploads (avatars + attachments). Reference only.
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$HERE/../.." && pwd)"

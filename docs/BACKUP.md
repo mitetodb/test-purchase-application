@@ -6,6 +6,10 @@ This document is the **operational plan** for backing up and restoring the Test 
 
 **Important:** Scripts under `deploy/backup/` and the examples below are **reference only**. Nothing in this repository is wired into cron, systemd, or compose on your server until an operator installs it deliberately. The existing nightly job (if any) may still use `deploy/backup-mysql.sh` alone until you extend it per this plan.
 
+**Phase 1 (same server):** [`deploy/backup-uploads.sh`](../deploy/backup-uploads.sh) archives the uploads volume next to the MySQL dumps (14-day retention, sha256, OK/FAILED log line). It does not upload anything off the server. Install steps, the 03:25 UTC cron example, and a demo restore drill are in [backup-restore.md](backup-restore.md). `deploy/server-setup.sh` does not install that cron.
+
+**Phase 2 (future):** an encrypted off-site copy is out of scope for the phase 1 script. Section 12 remains a placeholder plan only.
+
 ---
 
 ## 1. What to back up
@@ -322,7 +326,8 @@ Document anonymization date and backup retention in privacy records so stakehold
 | File | Purpose |
 |------|---------|
 | `deploy/backup/backup-all.example.sh` | Orchestrate DB + uploads + integrity |
-| `deploy/backup/backup-uploads.example.sh` | Archive `uploads` volume |
+| `deploy/backup-uploads.sh` | Phase 1 nightly uploads archive (retention, sha256, failure status). See [backup-restore.md](backup-restore.md) |
+| `deploy/backup/backup-uploads.example.sh` | Minimal volume-archive reference (prefer `deploy/backup-uploads.sh`) |
 | `deploy/backup/rotate-local.example.sh` | Daily/weekly/monthly file retention |
 | `deploy/backup/offsite-restic.example.sh` | Push to Storage Box via restic |
 | `deploy/backup/restore-test.example.sh` | Throwaway restore verification |

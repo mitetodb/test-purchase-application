@@ -36,7 +36,7 @@ Env file: `deploy/.env` (copy from repo `.env.example`)
 
 ## Pre-deploy checklist
 
-1. **Backup both databases** (see [BACKUP.md](BACKUP.md) and §Rollback below) — at minimum run `deploy/backup-mysql.sh` or your `backup-all` wrapper.
+1. **Backup both databases and the uploads volume** (see [backup-restore.md](backup-restore.md), [BACKUP.md](BACKUP.md), and §Rollback below). The live MySQL job is `deploy/backup-mysql.sh`. Uploads use `deploy/backup-uploads.sh` once that cron is installed.
 2. **Note current git SHA** on the server: `git rev-parse HEAD`.
 3. **Confirm health:** `curl -sf http://127.0.0.1:${APP_HOST_PORT:-8090}/actuator/health`.
 4. **Pull and rebuild only Testkauf:**

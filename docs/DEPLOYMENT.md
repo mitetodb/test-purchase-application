@@ -302,6 +302,8 @@ crontab -e
 - Creates files with mode 600 (secure)
 - Logs to specified location
 
+Uploads are a separate script, `deploy/backup-uploads.sh`. It is not added by the steps above and not installed by `deploy/server-setup.sh`. Copy-paste install, the 03:25 UTC cron line, logrotate example, and the restore drill are in [backup-restore.md](backup-restore.md).
+
 ### 10. First Login
 
 ```bash
