@@ -1,7 +1,8 @@
 # Example only. Not installed by this repository.
 # After review, copy to /etc/logrotate.d/testkauf-backup (mode 644).
-# copytruncate: backup-mysql.sh and backup-uploads.sh append to this file
-# and there is no daemon to signal. Do not add a mail directive; prod has no mailer.
+# backup-uploads.sh creates /var/log/testkauf-backup.log mode 640 when it is missing.
+# copytruncate keeps that inode (and its mode). create 640 is the same mode if
+# logrotate has to create the file. No mail directive: prod has no mailer.
 /var/log/testkauf-backup.log {
     weekly
     rotate 8

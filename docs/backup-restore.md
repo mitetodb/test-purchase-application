@@ -18,25 +18,25 @@ The uploads read uses a one-off container. The volume is mounted read-only, so t
 
 ```bash
 docker run --rm -v testkauf_uploads:/data:ro -v /root/testkauf-backups/uploads:/backup alpine:3.20 \
-  tar -czf /backup/uploads-YYYYMMDD-HHMMSS.tar.gz.tmp -C /data .
+  tar -czf /backup/uploads-YYYYMMDD-HHMMSS.tar.gz.partial -C /data .
 ```
 
-The script writes that archive to a `.tmp` name, then renames it, runs `gzip -t` and `tar -tzf`, and writes `sha256sum` output to `uploads-YYYYMMDD-HHMMSS.tar.gz.sha256` (mode 600). Timestamps are UTC. A non-blocking `flock` on `BACKUP_DIR/.lock` refuses a second run while one is still going.
+The script writes that archive as `uploads-YYYYMMDD-HHMMSS.tar.gz.partial` and the checksum as `uploads-YYYYMMDD-HHMMSS.tar.gz.sha256.partial` (mode 600, `umask 077`). It runs `gzip -t`, `tar -tzf`, and `sha256sum -c` on those temp names. Only after all three succeed does it rename them to `uploads-YYYYMMDD-HHMMSS.tar.gz` and `.sha256` (the checksum line is rewritten to the final file name). A failure deletes the temps, appends FAILED, and exits non-zero, with no final archive left from that run. Timestamps are UTC. A non-blocking `flock` on `BACKUP_DIR/.lock` refuses a second run while one is still going.
 
 Passwords stay in `deploy/.env` on the server (mode 600). `deploy/backup-uploads.sh` does not read that file. Do not commit `.env`, checksums of production archives, or backup files.
 
 ## Retention
 
-Both scripts default to `RETENTION_DAYS=14` and delete with `find -mtime +14`:
+Both scripts default to `RETENTION_DAYS=14`.
 
-- MySQL: `*.sql.gz` under `BACKUP_DIR` (production: `/root/testkauf-backups/mysql`)
-- Uploads: `uploads-*.tar.gz` and the matching `.sha256` files under `/root/testkauf-backups/uploads`
+- MySQL: `find -mtime +14` on `*.sql.gz` under `BACKUP_DIR` (production: `/root/testkauf-backups/mysql`)
+- Uploads: `find -maxdepth 1 -mtime +14` on `uploads-*.tar.gz` and the matching `.sha256` files in `/root/testkauf-backups/uploads` (nothing in a subdirectory)
 
-A partial `uploads-*.tar.gz.tmp` older than one day is removed. The fresh archive is not.
+A leftover `uploads-*.partial` older than one day is removed the same way (`-maxdepth 1`). The fresh archive is not. The failure trap deletes temps immediately, so this sweep is only for a run that was killed before the trap.
 
 ## Visible failure
 
-Each uploads run appends one status line to `/var/log/testkauf-backup.log` and rewrites `/root/testkauf-backups/LAST_STATUS` with the same line. Cron does not need a mailer. There is no `MAILTO`.
+Each uploads run appends one status line to `/var/log/testkauf-backup.log` and rewrites `/root/testkauf-backups/LAST_STATUS` with the same line. If the log file is missing, the script creates it mode 640. An existing log file is left at its current mode. The logrotate example uses `copytruncate` and `create 640 root adm`, so a rotated file stays 640.
 
 Success:
 
@@ -60,9 +60,12 @@ The MySQL script does not write `LAST_STATUS`. Its cron line already appends std
 
 ## Cron example (do not install from git)
 
-Root crontab, 03:25 UTC, after the existing 03:15 MySQL dump. The uploads script appends its own log line, so this entry has no shell redirect (a redirect would copy progress into the log a second time).
+Root crontab, 03:25 UTC, after the existing 03:15 MySQL dump. `PATH` is set so cron finds `docker`. `MAILTO=""` so cron does not try to mail output (there is no mailer). The uploads script appends its own log line, so that entry has no shell redirect (a redirect would copy progress into the log a second time).
 
 ```cron
+MAILTO=""
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
 15 3 * * * BACKUP_DIR=/root/testkauf-backups/mysql COMPOSE_FILE=/opt/testkauf/test-purchase-application/deploy/docker-compose.prod.yml ENV_FILE=/opt/testkauf/test-purchase-application/deploy/.env /usr/local/bin/testkauf-backup-mysql.sh >> /var/log/testkauf-backup.log 2>&1
 25 3 * * * BACKUP_DIR=/root/testkauf-backups/uploads UPLOADS_VOLUME=testkauf_uploads /usr/local/bin/testkauf-backup-uploads.sh
 ```
@@ -86,13 +89,20 @@ gzip -t /root/testkauf-backups/mysql/pricedb-YYYYMMDD-HHMMSS.sql.gz
 
 Practice on a copy first (see the drill below). A production restore replaces database rows and files. Stop writers before the restore. Backup itself does not need a stop.
 
-1. Stop the app container (leave `db` running). From the repo checkout:
+1. Verify the uploads archive first. This is the command to copy. If it fails, stop. Do not wipe the volume.
+
+   ```bash
+   cd /root/testkauf-backups/uploads
+   sha256sum --strict -c uploads-YYYYMMDD-HHMMSS.tar.gz.sha256
+   ```
+
+2. Stop the app container (leave `db` running). From the repo checkout:
 
    ```bash
    docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env stop app
    ```
 
-2. Restore `test_purchase_db` (repeat with `pricedb` and that dump):
+3. Restore `test_purchase_db` (repeat with `pricedb` and that dump):
 
    ```bash
    gunzip -c /root/testkauf-backups/mysql/test_purchase_db-YYYYMMDD-HHMMSS.sql.gz \
@@ -102,9 +112,9 @@ Practice on a copy first (see the drill below). A production restore replaces da
 
    The password is read inside the container from `MYSQL_ROOT_PASSWORD`. It is not placed on the host command line.
 
-3. Check row counts you care about, for example `SELECT COUNT(*) FROM <table>`.
+4. Check row counts you care about, for example `SELECT COUNT(*) FROM <table>`.
 
-4. Replace uploads only after `sha256sum -c` succeeds. This deletes current files in the volume, then extracts the archive:
+5. Replace the uploads volume only after step 1 exited 0. This deletes current files in the volume, then extracts the archive:
 
    ```bash
    docker run --rm \
@@ -114,13 +124,13 @@ Practice on a copy first (see the drill below). A production restore replaces da
      sh -c 'find /data -mindepth 1 -delete && tar -xzf /backup/uploads-YYYYMMDD-HHMMSS.tar.gz -C /data'
    ```
 
-5. Start the app again:
+6. Start the app again:
 
    ```bash
    docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env up -d app
    ```
 
-6. Confirm `sha256sum -c` still matches the archive, and that a known file under the volume has the checksum you recorded before the wipe.
+7. Confirm `sha256sum -c` still matches the archive, and that a known file under the volume has the checksum you recorded before the wipe.
 
 ## Restore drill (synthetic data)
 
@@ -278,6 +288,34 @@ The two later archives are extra hook runs after the restore. The restore itself
 
 Drill containers, the compose volume, and `testkauf_uploads` were removed after these checks. Nothing was installed on a server.
 
+### Follow-up: temp file is published only after checks (2026-11-26 10:11 UTC)
+
+Same script after the temp-name change. Local volume `testkauf_drill_p2`, one file `avatars/demo.txt` containing `phase1-atomic`. Log path did not exist beforehand. An expired archive sat in the backup directory, and another expired archive sat in a subdirectory.
+
+```text
+success_exit=0
+log_mode=640
+LAST_STATUS=2026-11-26T10:11:35Z OK uploads /tmp/testkauf-drill2/uploads/uploads-20261126-101135.tar.gz sha256=5a7033ae7c32a3f023b3a2d9b447753392b9dea707dc9dc66736bc98f60255ed size_bytes=166 hook=off
+-rw------- uploads-20261126-101135.tar.gz
+-rw------- uploads-20261126-101135.tar.gz.sha256
+sha256sum --strict -c uploads-20261126-101135.tar.gz.sha256
+uploads-20261126-101135.tar.gz: OK
+partials_after_success=0
+top-level expired archive removed: yes
+nested expired archive kept: yes
+
+failure path: PATH prepended a gzip that exits 1, so gzip -t fails before rename
+failure_exit=1
+LAST_STATUS=2026-11-26T10:11:36Z FAILED uploads backup failed (exit 1)
+partials_after_failure=0
+final archives still present: 1 (the earlier good archive only)
+log tail:
+gzip: forced failure for drill
+2026-11-26T10:11:36Z FAILED uploads backup failed (exit 1)
+```
+
+The volume was removed after this check.
+
 ## Install on the server (operator, not this change)
 
 Do not run `deploy/server-setup.sh` for this, and do not restart the app. The 03:15 MySQL cron stays as it is.
@@ -300,7 +338,7 @@ cd /root/testkauf-backups/uploads && sha256sum --strict -c uploads-*.tar.gz.sha2
 
 If the checkout is not under `/opt/testkauf/test-purchase-application`, use the path that already holds `deploy/backup-mysql.sh`.
 
-Add the 03:25 UTC line from the cron section to root's crontab. Optional, after review:
+Add the crontab block from the cron section (`MAILTO=""`, `PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin`, the existing 03:15 line, and the 03:25 uploads line). Optional, after review:
 
 ```bash
 install -m 644 \
